@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
-function App() {
-  const [count, setCount] = useState(0)
+import Navbar from './components/navbar.jsx'; 
+import Footer from './components/footer.jsx';
 
+import Home from './pages/home.jsx';
+import Academico from './pages/Academico.jsx';
+import Contacto from './pages/Contacto.jsx';
+import Investigaciones from './pages/Investigaciones.jsx';
+import QuienesSomos from './pages/QuienesSomos.jsx';
+import Noticias from './pages/Noticias.js';
+import Estudiantes from './pages/Estudiantes.jsx';
+import Docentes from './pages/Docentes.jsx';
+import Industrial from './pages/Industrial.jsx'
+import Computacion from './pages/Computacion.jsx';
+import Login from './pages/Login.jsx';
+import Registro from './pages/registro.jsx';
+
+function Layout() {
+  const location = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, [location.pathname]);
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <main className="flex-1 pt-20 pb-12">
+        <Outlet />  {/* renderiza la página */}
+      </main>
+      <Footer />
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="quienes-somos" element={<QuienesSomos />} />
+        <Route path="contacto" element={<Contacto />} />
+        <Route path="academico" element={<Academico />} />
+        <Route path="investigaciones" element={<Investigaciones />} />
+        <Route path="noticias" element={<Noticias />} />
+        <Route path="estudiantes" element={<Estudiantes />} />
+        <Route path="docentes" element={<Docentes />} />
+        <Route path="industrial" element={<Industrial />} />
+        <Route path="computacion" element={<Computacion />} />
+        <Route path="login" element={<Login />} />
+        <Route path="registro" element={<Registro />} />
+      </Route>
+    </Routes>
+  );
+}
+
+export default App;
