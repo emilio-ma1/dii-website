@@ -4,7 +4,9 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 //Verificar si el usuario tiene un Token valido
+
 const verifyToken = (req, res, next) => {
+
   const token = req.headers['authorization']; //Esperamos el "Bearer <token>"
 
   if (!token) {

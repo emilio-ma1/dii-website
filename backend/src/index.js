@@ -1,24 +1,57 @@
-const express = require('express');
-const cors = require('cors');
+const http = require('http');
+const getBody = require('./utils/bodyParser');
+const sendJSON = require('./utils/responseHelper');
 require('dotenv').config();
+//Controladores
+//const { login } = require('./controllers/authController');
+const { getNews, createNews } = require('./controllers/newsController');
 
-//Importar tus rutas de noticias
-const newsRoutes = require('./routes/newsRoutes'); 
-
-const app = express();
 const PORT = process.env.PORT || 3000;
 
-//Middlewares
-app.use(cors());
-app.use(express.json());
+const server = http.createServer(async (req, res) => {
+    // Manejo de CORS Preflight
+    if (req.method === 'OPTIONS') {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.writeHead(204);
+        res.end();
+        return;
+    }
 
-app.use('/api/news', newsRoutes); 
+    // Enrutamiento Manual
+    const { url, method } = req;
 
-app.get('/', (req, res) => {
-  res.send('API del DII funcionando. Intenta ir a /api/news');
+    try {
+        // Rutas del auth
+        if (url === '/api/auth/login' && method === 'POST') {
+            const body = await getBody(req);
+            req.body = body; 
+            await login(req, res);
+        }
+        
+        // Rutas de Noticias
+        else if (url === '/api/news' && method === 'GET') {
+            await getNews(req, res);
+        }
+        
+        else if (url === '/api/news' && method === 'POST') {
+            const body = await getBody(req);
+            req.body = body;
+            await createNews(req, res);
+        }
+
+        // RUTA 404
+        else {
+            sendJSON(res, 404, { error: 'Ruta no encontrada' });
+        }
+
+    } catch (error) {
+        console.error(error);
+        sendJSON(res, 500, { error: 'Error interno del servidor' });
+    }
 });
 
-//Iniciar el servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+server.listen(PORT, () => {
+    console.log(`Servidor corriendo en puerto ${PORT}`);
 });
