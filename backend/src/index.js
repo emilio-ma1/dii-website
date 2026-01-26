@@ -1,57 +1,29 @@
-const http = require('http');
-const getBody = require('./utils/bodyParser');
-const sendJSON = require('./utils/responseHelper');
+const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
-//Controladores
-//const { login } = require('./controllers/authController');
-const { getNews, createNews } = require('./controllers/newsController');
 
+// Importar rutas
+//const authRoutes = require('./routes/authRoutes');
+const newsRoutes = require('./routes/newsRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-const server = http.createServer(async (req, res) => {
-    // Manejo de CORS Preflight
-    if (req.method === 'OPTIONS') {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        res.writeHead(204);
-        res.end();
-        return;
-    }
+// Middlewares
+app.use(cors()); // Permite que React se comunique
+app.use(express.json()); // Entiende los JSON que llegan en el Body
 
-    // Enrutamiento Manual
-    const { url, method } = req;
+// Rutas
+//app.use('/api/auth', authRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/projects', projectRoutes);
 
-    try {
-        // Rutas del auth
-        if (url === '/api/auth/login' && method === 'POST') {
-            const body = await getBody(req);
-            req.body = body; 
-            await login(req, res);
-        }
-        
-        // Rutas de Noticias
-        else if (url === '/api/news' && method === 'GET') {
-            await getNews(req, res);
-        }
-        
-        else if (url === '/api/news' && method === 'POST') {
-            const body = await getBody(req);
-            req.body = body;
-            await createNews(req, res);
-        }
-
-        // RUTA 404
-        else {
-            sendJSON(res, 404, { error: 'Ruta no encontrada' });
-        }
-
-    } catch (error) {
-        console.error(error);
-        sendJSON(res, 500, { error: 'Error interno del servidor' });
-    }
+// Ruta de prueba base
+app.get('/', (req, res) => {
+  res.send('API del DII funcionando correctamente con Express');
 });
 
-server.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

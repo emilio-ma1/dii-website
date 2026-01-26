@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { getNews, createNews } = require('../controllers/newsController');
-//const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
+const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 
-//Definir los endpoints
-router.get('/', getNews);      //GET http://localhost:3000/api/news
-router.post('/', createNews);  //POST http://localhost:3000/api/news
+// GET /api/news -> Público
+router.get('/', getNews);
+
+// POST /api/news
+// Privado es decir solo el admin puede crear noticias
+router.post('/', verifyToken, verifyAdmin, createNews);
+
 module.exports = router;

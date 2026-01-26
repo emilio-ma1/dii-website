@@ -1,5 +1,4 @@
 const NewsModel = require('../models/newsModel');
-const sendJSON = require('../utils/responseHelper');
 
 const crearSlug = (text) => {
   return text
@@ -14,30 +13,30 @@ const crearSlug = (text) => {
 const getNews = async (req, res) => {
   try {
     const news = await NewsModel.getAll();
-    sendJSON(res, 200, news);
+    res.json(news); // Express maneja el status 200 por defecto
   } catch (error) {
     console.error(error);
-    sendJSON(res, 500, { error: 'Error al obtener las noticias' });
+    res.status(500).json({ error: 'Error al obtener las noticias' });
   }
 };
 
 const createNews = async (req, res) => {
-  const { title, content, created_by, image_url } = req.body;
+  const { title, content, image_url } = req.body;
 
-  const authorId = created_by || 1; //Por defecto usuario 1 si no se manda
-  //Validación basica
+  const created_by = req.user ? req.user.id : null; // recuperamos el usuario autenticado desde el middleware
+  
   if (!title || !content) {
-    return sendJSON(res, 400, { error: 'Título y contenido son obligatorios' });
+    return res.status(400).json({ error: 'Título y contenido son obligatorios' });
   }
 
   try {
     const slug = crearSlug(title) + '-' + Date.now();
 
-    const newPost = await NewsModel.create(title, slug, content, image_url || null, authorId); 
-    sendJSON(res, 201, { message: 'Noticia creada exitosamente', news: newPost });
+    const newPost = await NewsModel.create(title, slug, content, image_url || null, created_by); 
+    res.status(201).json({ message: 'Noticia creada exitosamente', news: newPost });
   } catch (error) {
     console.error('Error en createNews:', error.message);
-    sendJSON(res, 500, { error: 'Error al crear la noticia', details: error.message });
+    res.status(500).json({ error: 'Error al crear la noticia', details: error.message });
   }
 };
 
