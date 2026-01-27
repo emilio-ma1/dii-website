@@ -5,7 +5,7 @@ require('dotenv').config();
 // Importar rutas
 //const authRoutes = require('./routes/authRoutes');
 const newsRoutes = require('./routes/newsRoutes');
-const projectRoutes = require('./routes/projectRoutes');
+const projectRoutes = require('./routes/proyectRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
