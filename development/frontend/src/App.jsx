@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 
 import Navbar from './components/navbar.jsx'; 
 import Footer from './components/footer.jsx';
+import ProtectedRoute from './components/ProtectedRoutes.jsx';
 
 import Home from './pages/home.jsx';
 import Academico from './pages/Academico.jsx';
@@ -15,7 +16,7 @@ import Docentes from './pages/Docentes.jsx';
 import Industrial from './pages/Industrial.jsx'
 import Computacion from './pages/Computacion.jsx';
 import Login from './pages/Login.jsx';
-import Registro from './pages/registro.jsx';
+import Registro from './pages/Registro.jsx';
 
 function Layout() {
   const location = useLocation();
@@ -48,7 +49,7 @@ function App() {
         <Route path="industrial" element={<Industrial />} />
         <Route path="computacion" element={<Computacion />} />
         <Route path="login" element={<Login />} />
-        <Route path="registro" element={<Registro />} />
+        <Route path="registro" element={<ProtectedRoute><Registro /></ProtectedRoute>} />
       </Route>
     </Routes>
   );
