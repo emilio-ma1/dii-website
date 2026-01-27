@@ -1,55 +1,62 @@
+# Diseño de Base de Datos - DII Website
+
+Este documento detalla la arquitectura de la base de datos relacional para el sitio web del Departamento de Ingeniería Industrial. El diseño prioriza la integridad referencial, la seguridad de los usuarios y la no redundancia de datos.
+
+## 1. Diagrama Entidad-Relación (ER)
+
+El siguiente diagrama ilustra las entidades y sus relaciones. Destaca la gestión de usuarios mixta (Secretaria y Egresados) y la relación "Muchos a Muchos" entre Proyectos y sus autores (Profesores y Egresados).
+
 ```mermaid
 erDiagram
-    %% Entidad de Usuarios (Secretaria y Egresados)
+    %% ENTIDADES PRINCIPALES
     USERS {
         int id PK
-        string email UK "Correo unico para login"
-        string password_hash "Encriptada"
         string full_name
-        string role "ENUM('admin', 'egresado')"
-        datetime created_at
+        string email UK
+        string password_hash
+        string role "ENUM: admin, egresado"
     }
 
-    %% Entidad de Profesores (Solo informativo, sin acceso)
     PROFESORES {
         int id PK
         string full_name
-        string degree "Ej: Doctor en Ingeniería"
-        text bio
-        string email_public "Correo de contacto visible"
-        string photo_url
+        string degree
+        string bio
+        string email_public
         boolean is_active
     }
 
-    %% Entidad de Noticias
     NEWS {
         int id PK
         string title
-        string slug UK "Para URL amigable"
-        text content
-        string image_url
+        string slug UK
+        string content
         datetime published_at
-        int created_by FK "Departamento de Ingenieria Industrial"
+        int created_by FK
     }
 
-    %% Entidad de Proyectos de Investigación
     PROJECTS {
         int id PK
         string title
-        text abstract "Resumen publico"
-        string pdf_url "Url del archivo (Acceso restringido)"
+        string abstract
+        string pdf_url
         int year
-        datetime uploaded_at
     }
 
-    %% Tabla Intermedia: Relación muchos a muchos
-    %% Un proyecto puede tener varios profesores investigadores
-    PROJECT_AUTHORS {
+    %% TABLAS INTERMEDIAS (PIVOT)
+    PROJECT_PROFESSORS {
         int project_id PK, FK
         int professor_id PK, FK
     }
 
-    %% Relaciones
-    USERS ||--o{ NEWS : "crea (solo admin)"
-    PROFESSORS }o--o{ PROJECT_AUTHORS : "participa"
-    PROJECTS ||--o{ PROJECT_AUTHORS : "tiene autores"
+    PROJECT_ALUMNI {
+        int project_id PK, FK
+        int user_id PK, FK
+    }
+
+    %% RELACIONES
+    USERS ||--o{ NEWS : "publica (solo admin)"
+    PROJECTS ||--|{ PROJECT_PROFESSORS : "tiene"
+    PROFESORES ||--|{ PROJECT_PROFESSORS : "participa"
+    PROJECTS ||--o{ PROJECT_ALUMNI : "tiene"
+    USERS ||--o{ PROJECT_ALUMNI : "participa (solo egresados)"
