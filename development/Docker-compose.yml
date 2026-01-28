@@ -24,10 +24,14 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-    env_file:
-      - ./backend/.env
     environment:
+      - PORT=3000
       - DB_HOST=postgres
+      - DB_USER=user
+      - DB_PASS=password
+      - DB_NAME=appdb
+      - DB_PORT=5432
+      - JWT_SECRET=8f4a577db72f063da2a19a76eabd15fd0f840f43638e98ce780fa91fa27223af 
     depends_on:
       - postgres
     networks:
@@ -36,8 +40,10 @@ services:
   postgres:
     image: postgres:16
     container_name: postgres-dev
-    env_file:
-      - ./backend/.env
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: appdb
     ports:
       - "5432:5432"
     volumes:
