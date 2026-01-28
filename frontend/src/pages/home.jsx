@@ -15,6 +15,7 @@ export default function Home() {
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
     return(
         <div className="bg-gradient-to-br from-gray-50 to-white px-4 sm:px-6 py-2 pt-16"> 
             <div className="max-w-6xl mx-auto text-center">
@@ -100,10 +101,10 @@ export default function Home() {
              <button
              onClick={scrollToTop}
              className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#610b2fde] text-white flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 ${showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`} aria-label="Volver arriba">
-                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                        </svg>
-                        </button>
-                        </div>
-                        );
-                    }
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                    </button>
+                    </div>
+                    );
+                }

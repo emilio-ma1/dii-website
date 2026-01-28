@@ -1,32 +1,39 @@
-import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
-import Navbar from './components/navbar.jsx'; 
-import Footer from './components/footer.jsx';
+import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 
-import Home from './pages/home.jsx';
-import Academico from './pages/Academico.jsx';
-import Contacto from './pages/Contacto.jsx';
-import Investigaciones from './pages/Investigaciones.jsx';
-import QuienesSomos from './pages/QuienesSomos.jsx';
-import Noticias from './pages/Noticias.js';
-import Estudiantes from './pages/Estudiantes.jsx';
-import Docentes from './pages/Docentes.jsx';
-import Industrial from './pages/Industrial.jsx'
-import Computacion from './pages/Computacion.jsx';
-import Login from './pages/Login.jsx';
-import Registro from './pages/registro.jsx';
+import Navbar from "./components/navbar.jsx";
+import Footer from "./components/footer.jsx";
+
+import AdminLayout from "./admin/AdminLayout.jsx";
+import AdminDashboard from "./admin/AdminDashboard.jsx";
+import AdminUsuarios from "./admin/AdminUsuarios.jsx";
+
+import Home from "./pages/home.jsx";
+import Academico from "./pages/Academico.jsx";
+import Contacto from "./pages/Contacto.jsx";
+import Investigaciones from "./pages/Investigaciones.jsx";
+import QuienesSomos from "./pages/QuienesSomos.jsx";
+import Noticias from "./pages/Noticias.js";
+import Estudiantes from "./pages/Estudiantes.jsx";
+import Docentes from "./pages/Docentes.jsx";
+import Industrial from "./pages/Industrial.jsx";
+import Computacion from "./pages/Computacion.jsx";
+import Login from "./pages/Login.jsx";
 
 function Layout() {
   const location = useLocation();
+
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [location.pathname]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       <main className="flex-1 pt-20 pb-12">
-        <Outlet />  {/* renderiza la página */}
+        <Outlet /> {/* renderiza la pagina */}
       </main>
       <Footer />
     </div>
@@ -48,10 +55,18 @@ function App() {
         <Route path="industrial" element={<Industrial />} />
         <Route path="computacion" element={<Computacion />} />
         <Route path="login" element={<Login />} />
-        <Route path="registro" element={<Registro />} />
+      </Route>
+
+      {/* rutas protegidas */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="usuarios" element={<AdminUsuarios />} />
+        </Route>
       </Route>
     </Routes>
   );
 }
 
 export default App;
+
