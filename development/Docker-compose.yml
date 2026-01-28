@@ -28,7 +28,7 @@ services:
       - PORT=3000
       - DB_HOST=postgres
       - DB_USER=user
-      - DB_PASS=password
+      - DB_PASSWORD=password
       - DB_NAME=appdb
       - DB_PORT=5432
       - JWT_SECRET=8f4a577db72f063da2a19a76eabd15fd0f840f43638e98ce780fa91fa27223af 
