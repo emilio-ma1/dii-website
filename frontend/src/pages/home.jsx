@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Noticias from './NoticiasHome.jsx';
 
 export default function Home() {
-    {/*para el boton para subir hacia arriba */}
+    //para el boton para subir hacia arriba
     const [showScrollTop, setShowScrollTop] = useState(false);
      useEffect(() => {
         const handleScroll = () => {
