@@ -1,22 +1,28 @@
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
+import { AuthProvider } from './auth/authContext.jsx';
+import ProtectedRoute from "./auth/ProtectedRoute.jsx";
+
 import Navbar from './components/navbar.jsx'; 
 import Footer from './components/footer.jsx';
-import ProtectedRoute from './components/ProtectedRoutes.jsx';
 
-import Home from './pages/home.jsx';
-import Academico from './pages/Academico.jsx';
-import Contacto from './pages/Contacto.jsx';
-import Investigaciones from './pages/Investigaciones.jsx';
-import QuienesSomos from './pages/QuienesSomos.jsx';
-import Noticias from './pages/Noticias.js';
-import Estudiantes from './pages/Estudiantes.jsx';
-import Docentes from './pages/Docentes.jsx';
-import Industrial from './pages/Industrial.jsx'
-import Computacion from './pages/Computacion.jsx';
-import Login from './pages/Login.jsx';
-import Registro from './pages/Registro.jsx';
+import AdminLayout from "./admin/AdminLayout.jsx";
+import AdminDashboard from "./admin/AdminDashboard.jsx";
+import AdminUsuarios from "./admin/AdminUsuarios.jsx";
+
+import Home from "./pages/home.jsx";
+import Academico from "./pages/Academico.jsx";
+import Contacto from "./pages/Contacto.jsx";
+import Investigaciones from "./pages/Investigaciones.jsx";
+import QuienesSomos from "./pages/QuienesSomos.jsx";
+import Noticias from "./pages/Noticias.js";
+import Estudiantes from "./pages/Estudiantes.jsx";
+import Docentes from "./pages/Docentes.jsx";
+import Industrial from "./pages/Industrial.jsx";
+import Computacion from "./pages/Computacion.jsx";
+import Login from "./pages/Login.jsx";
+
 
 function Layout() {
   const location = useLocation();
@@ -36,22 +42,32 @@ function Layout() {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        <Route path="quienes-somos" element={<QuienesSomos />} />
-        <Route path="contacto" element={<Contacto />} />
-        <Route path="academico" element={<Academico />} />
-        <Route path="investigaciones" element={<Investigaciones />} />
-        <Route path="noticias" element={<Noticias />} />
-        <Route path="estudiantes" element={<Estudiantes />} />
-        <Route path="docentes" element={<Docentes />} />
-        <Route path="industrial" element={<Industrial />} />
-        <Route path="computacion" element={<Computacion />} />
-        <Route path="login" element={<Login />} />
-        <Route path="registro" element={<ProtectedRoute><Registro /></ProtectedRoute>} />
-      </Route>
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        {/* rutas publicas */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="quienes-somos" element={<QuienesSomos />} />
+          <Route path="contacto" element={<Contacto />} />
+          <Route path="academico" element={<Academico />} />
+          <Route path="investigaciones" element={<Investigaciones />} />
+          <Route path="noticias" element={<Noticias />} />
+          <Route path="estudiantes" element={<Estudiantes />} />
+          <Route path="docentes" element={<Docentes />} />
+          <Route path="industrial" element={<Industrial />} />
+          <Route path="computacion" element={<Computacion />} />
+          <Route path="login" element={<Login />} />
+        </Route>
+
+        {/* rutas protegidas*/}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="usuarios" element={<AdminUsuarios />} />
+          </Route>
+        </Route>
+      </Routes>
+    </AuthProvider>
   );
 }
 

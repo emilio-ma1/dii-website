@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/authContext";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -7,29 +8,17 @@ export default function Login() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError(null);
-        try {
-            const response = await fetch("http://localhost:3000/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            });
+    const { login } = useAuth();
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Error al iniciar sesión");
-            }
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
-            navigate("/");
-        } catch (err) {
-            setError(err.message);
-        }
+    const handleSubmit = async (e) => { 
+        e.preventDefault(); 
+        setError(null); 
+        const resultado = await login({ email, password}); 
+        if(resultado.ok){ 
+            navigate("/"); 
+        }else{ 
+            setError(resultado.message); 
+        } 
     };
 
 return (
@@ -77,16 +66,9 @@ return (
                 </div>
                 <button
                     type="submit"
-                    className="w-full bg-[#610b2f] text-white py-2 rounded-xl font-semibold hover:opacity-90 transition-opacity"
-                >
+                    className="w-full bg-[#610b2f] text-white py-2 rounded-xl font-semibold hover:opacity-90 transition-opacity">
                     Ingresar
                 </button>
-                <p className="text-center text-sm text-gray-600">
-                    ¿No tienes cuenta?{" "}
-                    <Link to="/registro" className="text-[#610b2f] font-semibold hover:underline">
-                        Crear Cuenta
-                    </Link>
-                </p>
             </form>
         </div>
     );
