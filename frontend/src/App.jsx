@@ -21,7 +21,8 @@ import Docentes from "./pages/Docentes.jsx";
 import Industrial from "./pages/Industrial.jsx";
 import Computacion from "./pages/Computacion.jsx";
 import Login from "./pages/Login.jsx";
-
+import VinculacionconelMedio from "./pages/VinculacionconelMedio.jsx";
+import VinculacionDetalle from "./pages/Vinculaciondetalle.jsx";
 function Layout() {
   const location = useLocation();
 
@@ -55,6 +56,8 @@ function App() {
         <Route path="industrial" element={<Industrial />} />
         <Route path="computacion" element={<Computacion />} />
         <Route path="login" element={<Login />} />
+        <Route path="vinculacion-con-el-medio" element={<VinculacionconelMedio />} />
+        <Route path="vinculacion-con-el-medio-detalle/:id" element={<VinculacionDetalle />} />
       </Route>
 
       {/* rutas protegidas */}
