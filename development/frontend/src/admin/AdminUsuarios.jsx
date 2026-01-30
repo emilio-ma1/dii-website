@@ -1,36 +1,50 @@
-import { useState } from "react";
+import { useState } from "react"; 
+import { useAuth } from "../auth/authContext";
 
 export default function AdminUsuarios() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState(null);
 
-  {/* detecta si las contraseñas no coinciden */}
+  //detecta si las contraseñas no coinciden
   const mismatch = confirm.length > 0 && pass !== confirm;
-
-  {/* envio del formulario */}
-  const handleSubmit = (e) => {
+  const { register } = useAuth();
+  //envio del formulario
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     if (pass !== confirm) return;
-
-    alert(`Cuenta creada: ${email}`);
-    {/* limpia el formulario */}
-    setEmail("");
-    setPass("");
-    setConfirm("");
-  };
-
+    const result =  await register({full_name: name, email: email, password: pass});
+    if(result.ok){
+      alert(`Cuenta creada: ${email}`);
+      //limpia el formulario
+      setName("");
+      setEmail("");
+      setPass("");
+      setConfirm("");
+    }else{ 
+      alert(`Error: ${result.message}`) 
+    } 
+  }
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-bold text-gray-900">Crear cuentas</h2>
       {/* tarjeta del formulario */}
       <div className="bg-white rounded-2xl shadow border border-gray-200 p-6 max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* campo email y contraseña */}
+          {/* campo nombre */}
+          <div>
+            <label className="text-sm font-semibold text-gray-700">Nombre Completo</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full border rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-[#610b2f]/30" required />
+          </div>
+            {/* campo correo */}
           <div>
             <label className="text-sm font-semibold text-gray-700">Correo</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full border rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-[#610b2f]/30" placeholder="usuario@userena.cl" required />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full border rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-[#610b2f]/30"  required />
           </div>
+          {/* campo contraseña */}
           <div>
             <label className="text-sm font-semibold text-gray-700">Contraseña</label>
             <input type="password" value={pass} onChange={(e) => setPass(e.target.value)} className="mt-1 w-full border rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-[#610b2f]/30" required />

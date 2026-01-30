@@ -41,7 +41,7 @@ export default function AdminLayout() {
             <NavLink to="/admin" end className={linkClass}>
               Dashboard
             </NavLink>
-            <NavLink to="/admin/usuarios" className={linkClass}>
+            <NavLink to="/admin/adminusuarios" className={linkClass}>
               Crear cuentas
             </NavLink>
           </div>

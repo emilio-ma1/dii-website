@@ -53,6 +53,14 @@ const register = async (req, res) => {
   const { full_name, email, password, role } = req.body;
 
   try {
+
+    const userExist = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+
+    if (userExist.rows.length > 0) {
+      return res.status(409).json({ error: "Este correo electrónico ya está registrado." });
+    }
+
+    const roleToSave = role || 'egresado';
     // Encriptar la contraseña antes de guardarla
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
@@ -63,7 +71,7 @@ const register = async (req, res) => {
       VALUES ($1, $2, $3, $4)
       RETURNING id, full_name, email, role`;
       
-    const result = await pool.query(query, [full_name, email, hash, role]);
+    const result = await pool.query(query, [full_name, email, hash, roleToSave]);
     
     res.status(201).json({ 
         message: 'Usuario creado exitosamente', 

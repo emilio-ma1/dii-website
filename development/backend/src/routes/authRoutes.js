@@ -6,6 +6,6 @@ const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 router.post('/login', login);
 
 // Ruta PRIVADA (Solo Admin puede crear otros usuarios)
-router.post('/registro', verifyToken, verifyAdmin, register);
+router.post('/register', verifyToken, verifyAdmin, register);
 
 module.exports = router;

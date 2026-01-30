@@ -6,7 +6,7 @@ function Card({ title, desc, to }) {
     <div className="bg-white rounded-2xl shadow border border-gray-200 p-6">
       <h3 className="text-lg font-bold text-gray-900">{title}</h3>
       <p className="text-gray-600 mt-2">{desc}</p>
-      <Link to={to} className="inline-block mt-4 text-[#610b2f] font-semibold hover:underline">
+      <Link to="/admin/adminusuarios" className="inline-block mt-4 text-[#610b2f] font-semibold hover:underline">
         Ir al módulo →
       </Link>
     </div>

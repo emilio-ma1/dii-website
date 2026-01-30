@@ -59,7 +59,7 @@ export default function NuestrosEstudiantes() {
         {/* titulo */}
         <div className="text-center">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2">
-          Nuestros Estudiantes
+          NUESTROS ESTUDIANTES
         </h1>
         <div className="w-24 h-1 bg-[#610b2f] mx-auto rounded-full"></div>
         <div className="max-w-3xl mx-auto">

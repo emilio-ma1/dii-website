@@ -62,22 +62,28 @@ export function AuthProvider({ children }) {
   };
 
   // Funcion de Registro
-  const register = async (formData) => {
+  const register = async (userData) => {
+
+    const token = localStorage.getItem("token");
     try {
       const response = await fetch(`http://localhost:3000/api/auth/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify(userData), 
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        return { ok: false, message: data.error || "Error al registrarse" };
+        return { ok: false, message: data.error || data.message || "Error al registrarse" };
       }
 
       return { ok: true, message: "Usuario creado exitosamente" };
     } catch (error) {
+      console.error("Error en register:", error);
       return { ok: false, message: "Error de conexión" };
     }
   };
