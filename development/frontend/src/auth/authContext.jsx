@@ -4,10 +4,12 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-
   const [loading, setLoading] = useState(true);
 
-  // Cargar sesion al iniciar si se refrescas la pagina
+  // Variable de entorno para la URL base de la API
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+  // Cargar sesión al iniciar si se refresca la página
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
@@ -16,7 +18,7 @@ export function AuthProvider({ children }) {
       try {
         setUser(JSON.parse(storedUser));
       } catch (error) {
-        console.error("Error al restaurar sesión:", error);
+        console.error("[ERROR] Failed to parse stored user session:", error);
         localStorage.removeItem("user");
         localStorage.removeItem("token");
       }
@@ -24,10 +26,17 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  // Funcion de Login
+  /**
+   * Authenticates a user, stores the session token, and updates the context state.
+   *
+   * @param {object} credentials - Objeto con las credenciales del usuario.
+   * @param {string} credentials.email - Correo electrónico del usuario.
+   * @param {string} credentials.password - Contraseña del usuario.
+   * @returns {Promise<{ok: boolean, message?: string}>} Resultado de la operación con mensaje de contexto.
+   */
   const login = async ({ email, password }) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/auth/login`, {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -38,10 +47,10 @@ export function AuthProvider({ children }) {
       const data = await response.json();
 
       if (!response.ok) {
-        // Si el backend devuelve error (400, 401, 500)
+        // Devuelve el mensaje de error contextualizado desde el backend
         return { 
           ok: false, 
-          message: data.error || data.message || "Error al iniciar sesión" 
+          message: data.error || data.message || "Invalid credentials provided." 
         };
       }
 
@@ -56,17 +65,23 @@ export function AuthProvider({ children }) {
       return { ok: true };
 
     } catch (error) {
-      console.error("Error de red:", error);
-      return { ok: false, message: "Error de conexión con el servidor." };
+      console.error("[ERROR] Network failure during login attempt:", error);
+      // Mensaje al consumidor con contexto útil
+      return { ok: false, message: "Network error: Unable to reach the authentication service." };
     }
   };
 
-  // Funcion de Registro
+  /**
+   * Registers a new user in the system (Admin only access).
+   *
+   * @param {object} userData - Datos del usuario a crear (full_name, email, password).
+   * @returns {Promise<{ok: boolean, message?: string}>} Resultado de la operación.
+   */
   const register = async (userData) => {
-
     const token = localStorage.getItem("token");
+    
     try {
-      const response = await fetch(`http://localhost:3000/api/auth/register`, {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { 
             "Content-Type": "application/json", 
@@ -78,22 +93,24 @@ export function AuthProvider({ children }) {
       const data = await response.json();
 
       if (!response.ok) {
-        return { ok: false, message: data.error || data.message || "Error al registrarse" };
+        return { ok: false, message: data.error || data.message || "Registration failed due to invalid data." };
       }
 
       return { ok: true, message: "Usuario creado exitosamente" };
     } catch (error) {
-      console.error("Error en register:", error);
-      return { ok: false, message: "Error de conexión" };
+      console.error("[ERROR] Network failure during registration attempt:", error);
+      return { ok: false, message: "Network error: Unable to reach the registration service." };
     }
   };
 
-  // Cerrar sesion
+  /**
+   * Clears the current user session, removes tokens, and redirects to login.
+   */
   const logout = () => {
     localStorage.removeItem("user");
-    localStorage.removeItem("token"); // Se borra el token
+    localStorage.removeItem("token");
     setUser(null);
-    window.location.href = "/login"; // Forzar redireccion limpia
+    window.location.href = "/login"; // Redirección limpia
   };
 
   const value = useMemo(

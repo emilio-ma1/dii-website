@@ -1,11 +1,10 @@
-import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect } from "react";
+import { Outlet, Route, Routes, useLocation } from "react-router-dom";
 
-import { AuthProvider } from './auth/authContext.jsx';
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 
-import Navbar from './components/navbar.jsx'; 
-import Footer from './components/footer.jsx';
+import Navbar from "./components/navbar.jsx";
+import Footer from "./components/footer.jsx";
 
 import AdminLayout from "./admin/AdminLayout.jsx";
 import AdminDashboard from "./admin/AdminDashboard.jsx";
@@ -16,62 +15,96 @@ import Academico from "./pages/Academico.jsx";
 import Contacto from "./pages/Contacto.jsx";
 import Investigaciones from "./pages/Investigaciones.jsx";
 import QuienesSomos from "./pages/QuienesSomos.jsx";
-import Noticias from "./pages/Noticias.js";
+import Noticias from "./pages/Noticias.jsx";
 import Estudiantes from "./pages/Estudiantes.jsx";
 import Docentes from "./pages/Docentes.jsx";
 import Industrial from "./pages/Industrial.jsx";
 import Computacion from "./pages/Computacion.jsx";
 import Login from "./pages/Login.jsx";
-import VinculacionconelMedio from "./pages/VinculacionconelMedio.jsx";
-import VinculacionDetalle from "./pages/Vinculaciondetalle.jsx";
+import VinculacionConElMedio from "./pages/VinculacionconelMedio.jsx";
+import VinculacionDetalle from "./pages/VinculacionDetalle.jsx";
 
+
+/**
+ * Layout principal del sitio.
+ *
+ * Este componente define la estructura base de todas las páginas públicas,
+ * incluyendo:
+ * - Navbar superior
+ * - Contenido dinámico mediante <Outlet>
+ * - Footer inferior
+ */
 function Layout() {
+  // obtiene la ubicación actual de la ruta
   const location = useLocation();
+
+  /**
+   * Cada vez que cambia la ruta se desplaza automáticamente
+   * la página hacia la parte superior.
+   */
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [location.pathname]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* barra de navegación superior */}
       <Navbar />
+      {/* contenido dinámico de cada página */}
       <main className="flex-1 pt-20 pb-12">
-        <Outlet />  {/* renderiza la página */}
+        <Outlet />
       </main>
+      {/* pie de página */}
       <Footer />
     </div>
   );
 }
 
-function App() {
+/**
+ * Componente principal de la aplicación.
+ *
+ * Define todas las rutas del sitio utilizando React Router.
+ * Incluye:
+ * - rutas públicas
+ * - rutas protegidas (panel administrador)
+ */
+export default function App() {
   return (
-    <AuthProvider>
-      <Routes>
-        {/* rutas publicas */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="quienes-somos" element={<QuienesSomos />} />
-          <Route path="contacto" element={<Contacto />} />
-          <Route path="academico" element={<Academico />} />
-          <Route path="investigaciones" element={<Investigaciones />} />
-          <Route path="noticias" element={<Noticias />} />
-          <Route path="estudiantes" element={<Estudiantes />} />
-          <Route path="docentes" element={<Docentes />} />
-          <Route path="industrial" element={<Industrial />} />
-          <Route path="computacion" element={<Computacion />} />
-          <Route path="login" element={<Login />} />
-          <Route path="vinculacion-con-el-medio" element={<VinculacionconelMedio />} />
-          <Route path="vinculacion-con-el-medio-detalle/:id" element={<VinculacionDetalle />} />
-        </Route>
+    <Routes>
+      {/* rutas públicas del sitio */}
+      <Route path="/" element={<Layout />}>
+      {/* página principal */}
+        <Route index element={<Home />} />
+        {/* secciones informativas */}
+        <Route path="quienes-somos" element={<QuienesSomos />} />
+        <Route path="contacto" element={<Contacto />} />
+        {/* áreas del departamento */}
+        <Route path="academico" element={<Academico />} />
+        <Route path="investigaciones" element={<Investigaciones />} />
+        {/* noticias */}
+        <Route path="noticias" element={<Noticias />} />
+        {/* comunidad académica */}
+        <Route path="estudiantes" element={<Estudiantes />} />
+        <Route path="docentes" element={<Docentes />} />
+        {/* carreras */}
+        <Route path="industrial" element={<Industrial />} />
+        <Route path="computacion" element={<Computacion />} />
+        {/* autenticación */}
+        <Route path="login" element={<Login />} />
+        {/* detalle de proyecto de vinculación */}
+        <Route path="vinculacion-con-el-medio" element={<VinculacionConElMedio />} />
+        <Route path="vinculacion-con-el-medio-detalle/:id" element={<VinculacionDetalle />} />
+      </Route>
 
-        {/* rutas protegidas*/}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="adminusuarios" element={<AdminUsuarios />} />
-          </Route>
+      {/* rutas protegidas del panel administrativo */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+        {/* dashboard principal del administrador */}
+          <Route index element={<AdminDashboard />} />
+          {/* gestión de usuarios */}
+          <Route path="usuarios" element={<AdminUsuarios />} />
         </Route>
-      </Routes>
-    </AuthProvider>
+      </Route>
+    </Routes>
   );
 }
-
-export default App;
