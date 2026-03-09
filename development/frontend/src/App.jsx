@@ -23,6 +23,7 @@ import Computacion from "./pages/Computacion.jsx";
 import Login from "./pages/Login.jsx";
 import VinculacionConElMedio from "./pages/VinculacionconelMedio.jsx";
 import VinculacionDetalle from "./pages/VinculacionDetalle.jsx";
+import InvestigacionDetalle from "./pages/InvestigacionDetalle.jsx";
 
 
 /**
@@ -48,13 +49,10 @@ function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* barra de navegación superior */}
       <Navbar />
-      {/* contenido dinámico de cada página */}
       <main className="flex-1 pt-20 pb-12">
         <Outlet />
       </main>
-      {/* pie de página */}
       <Footer />
     </div>
   );
@@ -94,6 +92,7 @@ export default function App() {
         {/* detalle de proyecto de vinculación */}
         <Route path="vinculacion-con-el-medio" element={<VinculacionConElMedio />} />
         <Route path="vinculacion-con-el-medio-detalle/:id" element={<VinculacionDetalle />} />
+        <Route path="/investigacion/:id" element={<InvestigacionDetalle />} />
       </Route>
 
       {/* rutas protegidas del panel administrativo */}

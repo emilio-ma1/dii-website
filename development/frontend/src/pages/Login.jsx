@@ -42,21 +42,17 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-        {/* formulario de login */}
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6"
       >
-        {/* título */}
         <h1 className="text-2xl font-bold text-[#722b4d] text-center">Login</h1>
         
-        {/* mensaje de error */}
         {errorMessage && (
           <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3 text-center">
             {errorMessage}
           </div>
         )}
-        {/* campo correo electrónico */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-gray-700">Correo electrónico</label>
           <input
@@ -68,7 +64,7 @@ export default function Login() {
             required
           />
         </div>
-        {/* campo contraseña */}
+
         <div className="space-y-2">
           <label className="text-sm font-semibold text-gray-700">Contraseña</label>
           <input

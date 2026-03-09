@@ -1,124 +1,194 @@
 import { Link } from "react-router-dom";
 
 /**
- * Datos de ejemplo de los proyectos de Vinculación con el Medio.
+ * Lista de proyectos de Vinculación con el Medio.
  */
 const PROJECTS = [
   {
-    id: "proyecto-1",
-    imgSrc: "/images/Ambiente.png",
-    title: "Título del Proyecto",
-    summary: "Resumen del proyecto",
-    author: "Autor",
+    id: "ejemplo-1",
+    category: "categoria",
+    year: "2025",
+    title: "titulo",
+    author: "autor",
+    role: "rol",
+    summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
   },
   {
-    id: "proyecto-2",
-    imgSrc: "/images/Ambiente.png",
-    title: "Título del Proyecto",
-    summary: "Resumen del proyecto",
-    author: "Autor",
+    id: "ejemplo-2",
+    category: "categoria",
+    year: "2025",
+    title: "titulo",
+    author: "autor",
+    role: "rol",
+    summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
   },
   {
-    id: "proyecto-3",
-    imgSrc: "/images/Ambiente.png",
-    title: "Título del Proyecto",
-    summary: "Resumen del proyecto",
-    author: "Autor",
-  },
-  {
-    id: "proyecto-4",
-    imgSrc: "/images/Ambiente.png",
-    title: "Título del Proyecto",
-    summary: "Resumen del proyecto",
-    author: "Autor",
-  },
-  {
-    id: "proyecto-5",
-    imgSrc: "/images/Ambiente.png",
-    title: "Título del Proyecto",
-    summary: "Resumen del proyecto",
-    author: "Autor",
-  },
-  {
-    id: "proyecto-6",
-    imgSrc: "/images/Ambiente.png",
-    title: "Título del Proyecto",
-    summary: "Resumen del proyecto",
-    author: "Autor",
+    id: "ejemplo-3",
+    category: "categoria",
+    year: "2024",
+    title: "titulo",
+    author: "autor",
+    role: "rol",
+    summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
   },
 ];
 
 /**
- * Tarjeta que representa un proyecto de Vinculación con el Medio.
+ * Renderiza el ícono de calendario utilizado para mostrar el año del proyecto.
  *
- * @param {string} to - Ruta hacia el detalle del proyecto
- * @param {string} imgSrc - Imagen representativa del proyecto
- * @param {string} title - Título del proyecto
- * @param {string} summary - Breve descripción del proyecto
- * @param {string} author - Autor o responsable del proyecto
+ * @returns {JSX.Element} El ícono de calendario renderizado.
  */
-function ProjectCard({ to, imgSrc, title, summary, author }) {
+function CalendarIcon() {
   return (
-    <Link
-      to={to}
-      className="group block bg-white border-2 border-[#722b4d] transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl focus-visible:-translate-y-2 focus-visible:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+    <svg
+      className="h-4 w-4 text-gray-400"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
     >
-      {/* imagen del proyecto */}
-      <div className="h-28 sm:h-32 flex items-center justify-center">
-        <img src={imgSrc} alt={title} className="h-16 w-16 sm:h-20 sm:w-20 object-contain" />
-      </div>
-
-      {/* información del proyecto */}
-      <div className="bg-[#722b4d] text-white px-3 py-3 min-h-[92px] relative">
-        <h3 className="font-bold text-sm sm:text-base leading-snug">{title}</h3>
-        <p className="text-xs sm:text-sm text-white/90 mt-1">{summary}</p>
-        {/* autor del proyecto */}
-        <span className="absolute bottom-2 right-3 text-[11px] sm:text-xs text-white/90">
-          {author}
-        </span>
-      </div>
-    </Link>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M8 7V3m8 4V3m-9 8h10m-13 9h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v11a2 2 0 002 2z"
+      />
+    </svg>
   );
 }
 
 /**
- * Página de Vinculación con el Medio.
- * Presenta proyectos o iniciativas donde el departamento
- * interactúa con la comunidad o el entorno.
+ * Renderiza una tarjeta con la información resumida de un proyecto
+ * de Vinculación con el Medio.
+ *
+ * @param {Object} props - Propiedades del componente.
+ * @param {Object} props.project - Información del proyecto.
+ * @param {string} props.project.id - Identificador único del proyecto.
+ * @param {string} props.project.category - Categoría del proyecto.
+ * @param {string} props.project.year - Año asociado al proyecto.
+ * @param {string} props.project.title - Título del proyecto.
+ * @param {string} props.project.author - Nombre del autor o responsable.
+ * @param {string} props.project.role - Rol del autor dentro del proyecto.
+ * @param {string} props.project.summary - Resumen breve del proyecto.
+ * @returns {JSX.Element} La tarjeta del proyecto renderizada.
  */
-
-export default function VinculacionConElMedio() {
+function ProjectCard({ project }) {
   return (
-    <div className="bg-gray-100 min-h-screen pt-12 pb-12 px-4">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* encabezado de la página */}
-        <div className="text-center">
-          {/* título principal */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2">VINCULACIÓN CON EL MEDIO</h1>
-          {/* línea decorativa */}
-          <div className="w-24 h-1 bg-[#722b4d] mx-auto rounded-full" />
+    <article className="rounded-md border border-[#722b4d]/20 border-t-4 border-t-[#722b4d] bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <div className="px-5 py-5">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <span className="rounded bg-[#722b4d]/10 px-3 py-1 text-xs font-semibold text-[#722b4d]">
+            {project.category}
+          </span>
 
-          {/* descripción del área */}
-          <div className="max-w-3xl mx-auto mt-6">
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4">Descripción del Área</h2>
-            <p className="text-lg md:text-xl lg:text-2xl text-gray-600 leading-relaxed">Esto es ...</p>
+          <div className="flex items-center gap-1 text-sm text-gray-500">
+            <CalendarIcon />
+            <span>{project.year}</span>
           </div>
         </div>
 
-        {/* listado de proyectos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {PROJECTS.map((project) => (
-            <ProjectCard
-              key={project.id}
-              to={`/vinculacion-con-el-medio-detalle/${project.id}`}
-              imgSrc={project.imgSrc}
-              title={project.title}
-              summary={project.summary}
-              author={project.author}
-            />
-          ))}
+        <h3 className="text-xl font-bold leading-snug text-[#722b4d]">
+          {project.title}
+        </h3>
+
+        <div className="mt-3 text-sm text-gray-500">
+          <span className="font-medium text-gray-700">{project.author}</span>
+          <span className="mx-1">—</span>
+          <span>{project.role}</span>
+        </div>
+
+        <p className="mt-4 text-sm leading-7 text-gray-600">
+          {project.summary}
+        </p>
+
+        <div className="mt-5">
+          <Link
+            to={`/vinculacion-con-el-medio-detalle/${project.id}`}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#722b4d] transition hover:gap-3"
+          >
+            Ver detalle
+            <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </div>
+    </article>
+  );
+}
+
+
+/**
+ * Renderiza el hero principal de la página de Vinculación con el Medio.
+ *
+ * @returns {JSX.Element} La sección superior de la página renderizada.
+ */
+function VinculacionHero() {
+  return (
+    <section className="bg-[#722b4d] text-white">
+      <div className="mx-auto max-w-7xl px-6 pt-28 pb-24 lg:pt-32 lg:pb-28">
+        <div className="max-w-2xl">
+          <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
+            Área de Vinculación
+          </span>
+
+          <h1 className="mt-4 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
+            Vinculación con el Medio
+          </h1>
+
+          <p className="mt-6 text-base leading-8 text-white/90 sm:text-lg">
+            El Departamento de Ingeniería Industrial...
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Renderiza la página principal de Vinculación con el Medio.
+ *
+ * Responsabilidades:
+ * - Mostrar el encabezado principal de la sección.
+ * - Presentar la lista de proyectos disponibles.
+ * - Permitir la navegación al detalle de cada proyecto.
+ *
+ * @returns {JSX.Element} La página de Vinculación con el Medio renderizada.
+ */
+export default function VinculacionConElMedio() {
+  return (
+    <div className="min-h-screen bg-white">
+      <VinculacionHero />
+
+      <section
+        className="bg-[#f7f5f6] py-20"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(114,43,77,0.08) 1px, transparent 0)",
+          backgroundSize: "24px 24px",
+        }}
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#722b4d]/80">
+              Proyectos
+            </p>
+
+            <h2 className="mt-3 text-3xl font-extrabold text-[#722b4d] sm:text-4xl">
+              Proyectos de Vinculación
+            </h2>
+
+            <p className="mt-4 text-base leading-7 text-gray-600 sm:text-lg">
+              Iniciativas desarrolladas en colaboración con empresas,
+              organismos públicos y comunidades de la región.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
+            {PROJECTS.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

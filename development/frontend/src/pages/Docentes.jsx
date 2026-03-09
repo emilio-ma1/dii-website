@@ -1,104 +1,141 @@
 /**
- * Tarjeta que representa a un docente del departamento.
- * Muestra su foto, nombre, carreras donde participa,
- * asignaturas que imparte y correo institucional.
+ * Renderiza una tarjeta con la información principal de un docente.
  *
- * @param {Object} teacher - Información del docente
+ * @param {Object} props - Propiedades del componente.
+ * @param {Object} props.teacher - Información del docente a mostrar.
+ * @param {string} props.teacher.fullName - Nombre completo del docente.
+ * @param {string} props.teacher.role - Cargo o rol del docente.
+ * @param {string} props.teacher.area - Área académica o de especialidad.
+ * @param {string} props.teacher.email - Correo electrónico del docente.
+ * @param {string} props.teacher.imageUrl - Ruta de la imagen del docente.
+ * @returns {JSX.Element} La tarjeta del docente renderizada.
  */
 function TeacherCard({ teacher }) {
   return (
-    <div className="group overflow-hidden rounded-2xl bg-white border border-black/10 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
-      {/* imagen del docente */}
-      <div className="bg-white h-52 flex items-center justify-center p-4">
+    <div className="bg-white rounded-xl border border-black/10 shadow-md p-6 text-center transition duration-300 hover:-translate-y-2 hover:shadow-xl">
+      <div className="flex justify-center mb-4">
         <img
           src={teacher.imageUrl}
           alt={`Foto de ${teacher.fullName}`}
-          className="max-h-full max-w-full object-contain"
+          className="w-24 h-24 object-cover rounded-md"
           loading="lazy"
         />
       </div>
 
-      {/* información del docente */}
-      <div className="bg-[#722b4d] text-white p-5 min-h-[180px] flex flex-col">
-        {/* nombre del docente */}
-        <h3 className="text-lg font-bold mb-3">{teacher.fullName}</h3>
+      <h3 className="text-[#722b4d] font-semibold text-lg">
+        {teacher.fullName}
+      </h3>
 
-        <div className="space-y-2 text-sm text-white/90">
-        {/* carreras donde trabaja */}
-          <p>
-            <span className="font-semibold text-white">Carreras donde trabaja:</span>{" "}
-            {teacher.programs}
-          </p>
-          {/* asignaturas que imparte */}
-          <p>
-            <span className="font-semibold text-white">Asignaturas que imparte:</span>{" "}
-            {teacher.subjects}
-          </p>
-          {/* correo institucional */}
-          <p>
-            <span className="font-semibold text-white">Correo institucional:</span>{" "}
-            {teacher.email}
-          </p>
-        </div>
-      </div>
+      <p className="text-[#1f78c1] text-sm mb-3">
+        {teacher.role}
+      </p>
+
+      <p className="text-gray-500 text-sm">
+        {teacher.area}
+      </p>
+
+      <p className="text-gray-400 text-sm mt-1">
+        {teacher.email}
+      </p>
     </div>
   );
 }
 
 /**
- * Página que muestra el listado de docentes
- * pertenecientes al Departamento de Ingeniería Industrial.
+ * Renderiza la página de docentes del departamento.
+ *
+ * Esta vista muestra un encabezado principal y una grilla de tarjetas
+ * con la información básica de cada docente.
+ *
+ * @returns {JSX.Element} La página de docentes renderizada.
  */
 export default function Docentes() {
+
   /**
-   * Lista de docentes (datos de prueba).
-   * Cada objeto representa un profesor del departamento.
+   * Lista de docentes mostrados en la página.
    */
   const teachers = [
     {
       id: 1,
-      fullName: "Docente 1",
-      programs: "Ingeniería Civil Industrial",
-      subjects: "Asignatura 1, Asignatura 2",
-      email: "nombre@userena.cl",
+      fullName: "Ejemplo 1",
+      role: "Profesor",
+      area: "Investigación de operaciones",
+      email: "@userena.cl",
       imageUrl: "/images/foto-docente.png",
     },
     {
       id: 2,
-      fullName: "Docente 2",
-      programs: "Ingeniería Civil en Computación e Informática",
-      subjects: "Asignatura 1, Asignatura 2",
-      email: "nombre@userena.cl",
+      fullName: "Ejemplo 2",
+      role: "Profesora",
+      area: "área",
+      email: "@userena.cl",
       imageUrl: "/images/foto-docente.png",
     },
     {
       id: 3,
-      fullName: "Docente 3",
-      programs: "Ingeniería Civil Industrial",
-      subjects: "Asignatura 1, Asignatura 2",
-      email: "nombre@userena.cl",
+      fullName: "Ejemplo 3",
+      role: "Profesor",
+      area: "área",
+      email: "@userena.cl",
+      imageUrl: "/images/foto-docente.png",
+    },
+    {
+      id: 4,
+      fullName: "Ejemplo 4",
+      role: "Profesora",
+      area: "área",
+      email: "@userena.cl",
+      imageUrl: "/images/foto-docente.png",
+    },
+    {
+      id: 5,
+      fullName: "Ejemplo 5",
+      role: "Profesor",
+      area: "área",
+      email: "@userena.cl",
+      imageUrl: "/images/foto-docente.png",
+    },
+    {
+      id: 6,
+      fullName: "Ejemplo 6",
+      role: "Profesora",
+      area: "área",
+      email: "@userena.cl",
       imageUrl: "/images/foto-docente.png",
     },
   ];
 
   return (
-    <div className="bg-gray-100 min-h-screen pt-12 pb-12 px-4">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* título de la página */}
-        <div className="text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2">DOCENTES</h1>
-          {/* línea decorativa */}
-          <div className="w-24 h-1 bg-[#722b4d] mx-auto rounded-full" />
-        </div>
+    <div className="min-h-screen">
+      <section className="bg-[#722b4d] text-white pt-28 pb-24 text-center">
+        
+        <span className="inline-block rounded bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white/90">
+            Nuestro Equipo
+          </span>
 
-        {/* grid de docentes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* renderizado dinámico de tarjetas */}
+        <h1 className="mt-5 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
+            Docentes
+          </h1>
+
+        <p className="mt-4 text-white/80 max-w-2xl mx-auto text-lg">
+          Profesionales de excelencia comprometidos con la formación integral de nuestros estudiantes.
+        </p>
+      </section>
+
+      <section
+        className="py-20 px-6"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(114,43,77,0.08) 1px, transparent 0)",
+          backgroundSize: "24px 24px",
+        }}
+      >
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {teachers.map((teacher) => (
             <TeacherCard key={teacher.id} teacher={teacher} />
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

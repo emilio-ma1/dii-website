@@ -1,106 +1,145 @@
 import { Link } from "react-router-dom";
 
 /**
- * Tarjeta que representa un programa académico.
- * Cada tarjeta redirige a la página específica de la carrera.
+ * Tarjeta de carrera del área académica.
+ * Muestra logo, información principal y acceso a la carrera.
  *
- * @param {string} title - Nombre del programa académico
- * @param {string} to - Ruta a la que redirige
- * @param {string} imageSrc - Imagen representativa del programa
- * @param {string} imageAlt - Texto alternativo de la imagen
- * @param {string} description - Breve descripción del programa
+ * @param {string} title - Nombre de la carrera
+ * @param {string} to - Ruta de navegación
+ * @param {string} imageSrc - Imagen o logo de la carrera
+ * @param {string} imageAlt - Texto alternativo
+ * @param {string} description - Descripción breve
+ * @param {string} accentColor - Color principal de la tarjeta
  */
-function ProgramCard({ title, to, imageSrc, imageAlt, description }) {
+function ProgramItem({
+  title,
+  to,
+  imageSrc,
+  imageAlt,
+  description,
+  accentColor = "#722b4d",
+}) {
   return (
-    <div className="space-y-6">
-      {/* Título del programa */}
-      <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-[#722b4d] text-center drop-shadow-lg leading-tight">
-        {title}
-      </h2>
-      {/* Tarjeta clickeable que redirige al detalle del programa */}
-      <Link to={to} className="block">
-        <div className="group cursor-pointer relative bg-gradient-to-br from-[#6b133b] to-[#722b4d] rounded-3xl p-6 sm:p-8 lg:p-12 shadow-2xl transition-all duration-500 hover:-translate-y-2 border-4 border-white/20 h-auto md:h-[22rem] lg:h-[26rem]">
-          <div className="flex flex-col md:flex-row items-center h-full gap-6 md:gap-8">
-            {/* Imagen del programa */}
-            <div className="w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56 bg-white/95 rounded-2xl flex items-center justify-center shadow-2xl border-4 border-white/80 p-4 lg:p-6 group-hover:scale-105 transition-all shrink-0">
-              <img
-                src={imageSrc}
-                alt={imageAlt}
-                className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 object-contain"
-              />
-            </div>
-            {/* Descripción del programa */}
-            <div className="flex-1 w-full md:w-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 lg:p-8 shadow-xl border border-white/60 md:h-full flex flex-col justify-center">
-              <h3 className="text-xl lg:text-2xl font-semibold text-[#722b4d] mb-3 text-center md:text-left">
-                Resumen Carrera
-              </h3>
-              <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-center md:text-left">
-                {description}
-              </p>
+    <Link to={to} className="block h-full">
+      <article className="h-full rounded-2xl border border-black/10 bg-white p-6 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-7">
+        <div className="flex h-full flex-col gap-6 md:flex-row md:items-stretch">
+          <div className="flex w-full flex-shrink-0 items-center justify-center md:w-[130px]">
+            <img
+              src={imageSrc}
+              alt={imageAlt}
+              className="h-[110px] w-auto object-contain"
+              loading="lazy"
+            />
+          </div>
+
+          <div className="flex h-full flex-1 flex-col">
+            <span
+              className="inline-block w-fit rounded px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
+              style={{
+                backgroundColor: `${accentColor}14`,
+                color: accentColor,
+              }}
+            >
+              Pregrado · 5 años
+            </span>
+
+            <h2
+              className="mt-4 text-2xl font-bold leading-tight sm:text-3xl"
+              style={{ color: accentColor }}
+            >
+              {title}
+            </h2>
+
+            <p className="mt-4 text-sm leading-7 text-gray-600 sm:text-base">
+              {description}
+            </p>
+
+            <div className="mt-auto pt-6">
+              <div className="mb-5 h-px w-full bg-gray-200" />
+              <span
+                className="inline-flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+                style={{ backgroundColor: accentColor }}
+              >
+                Ver sitio de la carrera
+                <span aria-hidden="true">↗</span>
+              </span>
             </div>
           </div>
         </div>
-      </Link>
-    </div>
+      </article>
+    </Link>
+  );
+}
+
+/**
+ * Hero del área académica.
+ */
+function AcademicoHero() {
+  return (
+    <section className="bg-[#722b4d] text-white">
+      <div className="mx-auto max-w-7xl px-6 pt-28 pb-24 text-center lg:pt-32 lg:pb-28">
+        <div className="mx-auto max-w-3xl">
+          <span className="inline-block rounded bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-[#7ec3ff]">
+            Área Académica
+          </span>
+
+          <h1 className="mt-5 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
+            Nuestras Carreras
+          </h1>
+
+          <p className="mt-6 text-base leading-8 text-white/85 sm:text-lg">
+            El Departamento de Ingeniería Industrial imparte carreras de pregrado
+            orientadas a formar profesionales con impacto real en la industria y
+            la tecnología.
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
 /**
  * Página del área académica del departamento.
- *
- * Muestra los programas académicos disponibles
- * dentro del Departamento de Ingeniería Industrial.
  */
 export default function Academico() {
-  /**
-   * Lista de programas académicos.
-   * Cada objeto representa una carrera disponible.
-   */
   const programs = [
     {
-      title: "Ingeniería Civil Industrial",
+      title:( 
+      <> Ingeniería Civil <br />
+      Industrial
+      </>
+      ),
       to: "/industrial",
       imageSrc: "/images/civil-industrial.jpg",
-      imageAlt: "Civil Industrial",
+      imageAlt: "Logo de Ingeniería Civil Industrial",
       description:
-        "Descripción del área académica de Ingeniería Civil Industrial en el Departamento.",
+        "Forma profesionales capaces de diseñar, optimizar y gestionar sistemas productivos y organizacionales, integrando herramientas de ingeniería, gestión y mejora continua para aportar valor a la industria y la sociedad.",
+      accentColor: "#722b4d",
     },
     {
       title: "Ingeniería Civil en Computación e Informática",
       to: "/computacion",
       imageSrc: "/images/civil-computacion.png",
-      imageAlt: "Civil Computación",
+      imageAlt: "Logo de Ingeniería Civil en Computación e Informática",
       description:
-        "Descripción del área académica de Ingeniería Civil en Computación e Informática.",
+        "Prepara especialistas en desarrollo tecnológico, sistemas de información y transformación digital, con herramientas para resolver desafíos complejos en distintos contextos.",
+      accentColor: "#1f78c1",
     },
   ];
 
   return (
-    <div className="bg-gray-100 min-h-screen pt-12 pb-12 px-4">
-      <div className="max-w-6xl mx-auto space-y-12">
-        {/* Encabezado de la página */}
-        <div className="text-center space-y-6">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold">ACADÉMICO</h1>
-          {/* Línea decorativa */}
-          <div className="w-24 h-1 bg-[#722b4d] mx-auto rounded-full" />
-          {/* Descripción general del área */}
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4">
-              Descripción del Área
-            </h2>
-            <p className="text-lg md:text-xl lg:text-2xl text-gray-600 leading-relaxed">
-              El Departamento de Ingeniería Civil Industrial ofrece formación integral...
-            </p>
+    <div className="min-h-screen bg-white">
+      <AcademicoHero />
+      {/* carreras */}
+      <section className="bg-[#f7f5f6] py-16 sm:py-20 lg:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 items-stretch gap-8 xl:grid-cols-2">
+            {programs.map((program) => (
+              <ProgramItem key={program.to} {...program} />
+            ))}
           </div>
         </div>
-
-        {/* Lista de programas académicos */}
-        <div className="space-y-16 max-w-7xl mx-auto">
-          {programs.map((program) => (
-            <ProgramCard key={program.to} {...program} />
-          ))}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
