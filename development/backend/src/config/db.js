@@ -1,3 +1,12 @@
+/**
+ * @file Configuración de la conexión a la base de datos (PostgreSQL).
+ * @description
+ * Este módulo inicializa y exporta el pool de conexiones a la base de datos
+ * utilizando las credenciales provistas mediante variables de entorno.
+ * * Responsabilidades:
+ * - Establecer la conexión con PostgreSQL.
+ * - Manejar y registrar eventos de éxito y errores de conexión del pool.
+ */
 const { Pool } = require('pg');
 require('dotenv').config();
 
@@ -9,14 +18,14 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-//Mensaje de exito cuando se conecta
+// Evento que se dispara al conectar exitosamente un nuevo cliente
 pool.on('connect', () => {
-  console.log('Base de datos conectada exitosamente');
+  console.info('[INFO] Database connected successfully');
 });
 
-//Manejo de errores
+// Manejo de errores fatales e inesperados en el pool de conexiones
 pool.on('error', (err) => {
-  console.error('Error inesperado en la base de datos', err);
+  console.error('[ERROR] Unexpected database error on idle client:', err);
   process.exit(-1);
 });
 

@@ -24,6 +24,7 @@ import Login from "./pages/Login.jsx";
 import VinculacionConElMedio from "./pages/VinculacionconelMedio.jsx";
 import VinculacionDetalle from "./pages/VinculacionDetalle.jsx";
 import InvestigacionDetalle from "./pages/InvestigacionDetalle.jsx";
+import { AuthProvider } from "./auth/authContext.jsx";
 
 
 /**
@@ -68,6 +69,7 @@ function Layout() {
  */
 export default function App() {
   return (
+    <AuthProvider>
     <Routes>
       {/* rutas públicas del sitio */}
       <Route path="/" element={<Layout />}>
@@ -95,15 +97,16 @@ export default function App() {
         <Route path="/investigacion/:id" element={<InvestigacionDetalle />} />
       </Route>
 
-      {/* rutas protegidas del panel administrativo */}
-      <Route element={<ProtectedRoute />}>
-        <Route path="/admin" element={<AdminLayout />}>
-        {/* dashboard principal del administrador */}
-          <Route index element={<AdminDashboard />} />
-          {/* gestión de usuarios */}
-          <Route path="usuarios" element={<AdminUsuarios />} />
+        {/* rutas protegidas del panel administrativo */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+          {/* dashboard principal del administrador */}
+            <Route index element={<AdminDashboard />} />
+            {/* gestión de usuarios */}
+            <Route path="usuarios" element={<AdminUsuarios />} />
+          </Route>
         </Route>
-      </Route>
-    </Routes>
+      </Routes>
+    </AuthProvider>
   );
 }
