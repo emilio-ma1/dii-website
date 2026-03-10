@@ -104,6 +104,97 @@ function AboutHero() {
 }
 
 /**
+ * Renderiza una sección de equipamientos destacados del departamento.
+ *
+ * @returns {JSX.Element} La sección de equipamientos renderizada.
+ */
+function EquipmentSection() {
+  /**
+   * Lista de equipamientos destacados del departamento.
+   */
+  const equipmentItems = [
+    {
+      id: "01",
+      title: "Impresora 3D",
+      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      imageSrc: "/images/impresora3d.jpg",
+      imageAlt: "Impresora 3D del Departamento de Ingeniería Industrial",
+      accentColor: "#722b4d",
+    },
+    {
+      id: "02",
+      title: "Ejemplo ",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      imageSrc: "/images/",
+      imageAlt: "ejemplo2",
+      accentColor: "#1f78c1",
+    },
+  ];
+
+  return (
+    <section className="bg-[#f7f5f6] py-16 sm:py-20 lg:py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-12 max-w-4xl sm:mb-14">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#722b4d]/80">
+            Infraestructura
+          </p>
+
+          <h2 className="mt-3 text-3xl font-extrabold leading-tight text-[#722b4d] sm:text-4xl lg:text-5xl">
+            Equipamiento del Departamento
+          </h2>
+
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-gray-600 sm:text-base sm:leading-8 lg:text-lg">
+            El departamento cuenta con equipamiento Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          </p>
+        </div>
+
+        <div className="space-y-16">
+          {equipmentItems.map((item, index) => {
+            const isReverse = index % 2 !== 0;
+
+            return (
+              <article
+                key={item.id}
+                className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12"
+              >
+                <div className={isReverse ? "lg:order-2" : ""}>
+                  <div className="overflow-hidden rounded-lg bg-white shadow-md">
+                    <img
+                      src={item.imageSrc}
+                      alt={item.imageAlt}
+                      className="h-[280px] w-full object-cover sm:h-[360px] lg:h-[420px]"
+                    />
+                  </div>
+                </div>
+
+                <div className={isReverse ? "lg:order-1" : ""}>
+                  <p
+                    className="text-5xl font-extrabold leading-none opacity-15 sm:text-6xl"
+                    style={{ color: item.accentColor }}
+                  >
+                    {item.id}
+                  </p>
+
+                  <h3 className="mt-4 text-2xl font-extrabold leading-tight text-[#1f1f1f] sm:text-3xl">
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-5 text-sm leading-7 text-gray-600 sm:text-base sm:leading-8">
+                    {item.description}
+                  </p>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
  * Renderiza la página "Quiénes Somos" del departamento.
  *
  * Responsabilidades:
@@ -269,13 +360,31 @@ export default function QuienesSomos() {
                 </p>
               </div>
             </div>
-
-            <div className="relative overflow-hidden rounded-lg shadow-lg">
-              <img
-                src="/images/industrial.jpg"
-                alt="Historia del Departamento de Ingeniería Industrial"
-                className="h-[350px] w-full object-cover sm:h-[420px]"
-              />
+            
+            <div className="flex flex-col gap-6">
+              <div className="relative overflow-hidden rounded-lg bg-[#722b4d] p-6 text-white shadow-md">
+                <h3 className="flex items-center gap-2 text-lg font-semibold">
+                  Misión
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-white/90">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                </p>
+                
+                <div className="absolute right-0 top-0 h-16 w-16 bg-white/10"/>
+              </div>
+              
+              <div className="relative overflow-hidden rounded-lg bg-[#1f78c1] p-6 text-white shadow-md">
+                <h3 className="flex items-center gap-2 text-lg font-semibold">
+                  Visión
+                </h3>
+                
+                <p className="mt-3 text-sm leading-7 text-white/90">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                </p>
+                <div className="absolute right-0 top-0 h-16 w-16 bg-white/10"/>
+              </div>
             </div>
           </div>
         </div>
@@ -312,6 +421,7 @@ export default function QuienesSomos() {
           </div>
         </div>
       </section>
+      <EquipmentSection />
 
       <section className="bg-white py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

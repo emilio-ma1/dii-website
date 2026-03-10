@@ -131,7 +131,7 @@ export default function Navbar() {
       { to: "/", label: "Inicio" },
       { to: "/docentes", label: "Docentes" },
       { to: "/estudiantes", label: "Nuestros Estudiantes" },
-      { to: "/quienes-somos", label: "Quiénes Somos" },
+      { to: "/quienes-somos", label: "Conócenos" },
       { to: "/contacto", label: "Contacto" },
     ],
     []
