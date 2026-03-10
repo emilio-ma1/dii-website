@@ -17,6 +17,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const newsRoutes = require('./routes/newsRoutes');
 const projectRoutes = require('./routes/projectRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,7 @@ app.use(express.json()); // Parseo de JSON en el Body de las peticiones
 app.use('/api/auth', authRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/users', userRoutes);
 
 // Ruta base de comprobación (Health Check)
 app.get('/', (req, res) => {

@@ -1,91 +1,106 @@
 /**
  * @file Controlador de proyectos (projectController).
  * @description
- * Gestiona la creación de nuevos proyectos de investigación o vinculación,
- * manejando las transacciones necesarias para vincular profesores y egresados.
+ * Gestiona la lógica de negocio para los proyectos. Conecta las rutas HTTP
+ * con las consultas a la base de datos (Modelo) y maneja las transacciones.
  */
 const pool = require('../config/db');
+const ProjectModel = require('../models/projectModel');
 
 /**
- * Crea un nuevo proyecto y sus asociaciones con autores (profesores y/o egresados).
- * Utiliza una transacción SQL para garantizar la integridad de los datos si falla un insert.
+ * Obtiene el catálogo completo de proyectos públicos.
  *
- * @param {object} req - Objeto de petición HTTP, debe contener los datos del proyecto y arrays de IDs.
- * @param {object} res - Objeto de respuesta HTTP de Express.
- * @returns {object} Respuesta JSON confirmando la creación y el ID del proyecto, o un error 400/500.
- * @throws {Error} Si falla la transacción en la base de datos (se realiza un ROLLBACK).
+ * @param {object} req - Objeto de petición HTTP.
+ * @param {object} res - Objeto de respuesta HTTP.
+ * @returns {object} Respuesta JSON con el listado de proyectos.
+ */
+const getAllProjects = async (req, res) => {
+  try {
+    const projectsList = await ProjectModel.getAll();
+    return res.json(projectsList);
+  } catch (error) {
+    console.error('[ERROR] Failed to fetch projects in controller:', error);
+    return res.status(500).json({ message: 'Error interno del servidor al obtener los proyectos.' });
+  }
+};
+
+/**
+ * Obtiene el detalle de un proyecto específico, incluyendo a sus autores (JOIN).
+ *
+ * @param {object} req - Objeto de petición HTTP (contiene el ID en los parámetros).
+ * @param {object} res - Objeto de respuesta HTTP.
+ * @returns {object} Respuesta JSON con el proyecto o un error 404/500.
+ */
+const getProjectById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const projectDetails = await ProjectModel.getByIdWithAuthors(id);
+    
+    // Retorno temprano si el ID no existe en la base de datos
+    if (!projectDetails) {
+      return res.status(404).json({ message: 'El proyecto solicitado no existe.' });
+    }
+    
+    return res.json(projectDetails);
+  } catch (error) {
+    console.error(`[ERROR] Failed to fetch project details for ID ${id}:`, error);
+    return res.status(500).json({ message: 'Error interno del servidor al obtener el proyecto.' });
+  }
+};
+
+/**
+ * Crea un nuevo proyecto y sus asociaciones mediante una transacción SQL.
+ *
+ * @param {object} req - Objeto de petición HTTP.
+ * @param {object} res - Objeto de respuesta HTTP.
+ * @returns {object} Respuesta JSON confirmando la creación.
  */
 const createProject = async (req, res) => {
   const { 
-    title, 
-    abstract, 
-    year, 
-    pdf_url: pdfUrl, 
-    image_url: imageUrl, 
-    status, 
-    category, 
-    professor_ids: professorIds, 
-    alumni_ids: alumniIds 
+    title, abstract, year, pdf_url: pdfUrl, 
+    image_url: imageUrl, status, category, 
+    professor_ids: professorIds, alumni_ids: alumniIds 
   } = req.body;
 
-  // Retorno temprano validación de campos obligatorios antes de tocar la BD
   if (!title || !status || !category) {
-    return res.status(400).json({ message: 'El título, el estado y la categoría son campos obligatorios.' });
+    return res.status(400).json({ message: 'El título, estado y categoría son obligatorios.' });
   }
 
   const client = await pool.connect();
 
   try {
-    // INICIO DE LA TRANSACCIÓN
     await client.query('BEGIN'); 
 
     const insertProjectQuery = `
       INSERT INTO projects (title, abstract, pdf_url, image_url, status, category, year) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7) 
-      RETURNING id;
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;
     `;
-    const projectValues = [title, abstract, pdfUrl, imageUrl, status, category, year];
-    
-    const queryResult = await client.query(insertProjectQuery, projectValues);
+    const queryResult = await client.query(insertProjectQuery, [title, abstract, pdfUrl, imageUrl, status, category, year]);
     const newProjectId = queryResult.rows[0].id;
     
-    // Inserción de autores (Profesores) validando que sea un arreglo válido
     if (Array.isArray(professorIds) && professorIds.length > 0) {
-        const insertProfessorQuery = 'INSERT INTO project_professors (project_id, professor_id) VALUES ($1, $2);';
         for (const professorId of professorIds) {
-            await client.query(insertProfessorQuery, [newProjectId, professorId]);
+            await client.query('INSERT INTO project_professors (project_id, professor_id) VALUES ($1, $2);', [newProjectId, professorId]);
         }
     }
     
-    // Inserción de autores (Egresados) validando que sea un arreglo válido
     if (Array.isArray(alumniIds) && alumniIds.length > 0) {
-        const insertAlumniQuery = 'INSERT INTO project_alumni (project_id, user_id) VALUES ($1, $2);';
         for (const alumniId of alumniIds) {
-            await client.query(insertAlumniQuery, [newProjectId, alumniId]);
+            await client.query('INSERT INTO project_alumni (project_id, user_id) VALUES ($1, $2);', [newProjectId, alumniId]);
         }
     }
     
-    // CONFIRMACIÓN DE LA TRANSACCIÓN
     await client.query('COMMIT');
-
-    return res.status(201).json({ 
-      message: 'Proyecto creado con éxito.', 
-      projectId: newProjectId 
-    });
+    return res.status(201).json({ message: 'Proyecto creado con éxito.', projectId: newProjectId });
 
   } catch (error) {
-    // Cancelación de los cambios si alguna consulta falla
     await client.query('ROLLBACK');
-    
-    // Trazas técnicas
     console.error('[ERROR] Transaction failed while creating project:', error);
-    
-    // Mensaje genérico y seguro para el frontend
-    return res.status(500).json({ message: 'Error interno del servidor al crear el proyecto.' });
+    return res.status(500).json({ message: 'Error interno al crear el proyecto.' });
   } finally {
-    // Siempre liberar el cliente de vuelta al pool para evitar memory leaks
     client.release();
   }
 };
 
-module.exports = { createProject };
+module.exports = { createProject, getAllProjects, getProjectById };
