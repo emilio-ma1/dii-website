@@ -59,12 +59,13 @@ const getProjectById = async (req, res) => {
 const createProject = async (req, res) => {
   const { 
     title, abstract, year, pdf_url: pdfUrl, 
-    image_url: imageUrl, status, category, 
+    image_url: imageUrl, status, category_id: categoryId, 
     professor_ids: professorIds, alumni_ids: alumniIds 
   } = req.body;
 
-  if (!title || !status || !category) {
-    return res.status(400).json({ message: 'El título, estado y categoría son obligatorios.' });
+  //validación inicial
+  if (!title || !status || !categoryId) {
+    return res.status(400).json({ message: 'El título, estado y la categoría son obligatorios.' });
   }
 
   const client = await pool.connect();
@@ -73,10 +74,10 @@ const createProject = async (req, res) => {
     await client.query('BEGIN'); 
 
     const insertProjectQuery = `
-      INSERT INTO projects (title, abstract, pdf_url, image_url, status, category, year) 
+      INSERT INTO projects (title, abstract, pdf_url, image_url, status, category_id, year) 
       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;
     `;
-    const queryResult = await client.query(insertProjectQuery, [title, abstract, pdfUrl, imageUrl, status, category, year]);
+    const queryResult = await client.query(insertProjectQuery, [title, abstract, pdfUrl, imageUrl, status, categoryId, year]);
     const newProjectId = queryResult.rows[0].id;
     
     if (Array.isArray(professorIds) && professorIds.length > 0) {
