@@ -48,6 +48,12 @@ erDiagram
         int created_by FK
     }
 
+    CATEGORIES {
+        int id PK
+        string name "Ej: Operaciones, Logística"
+        string description
+    }
+
     PROJECTS {
         int id PK
         string title
@@ -55,7 +61,7 @@ erDiagram
         string pdf_url
         string image_url "Upload de imagen (RF-04)"
         string status "ENUM: en proceso, finalizado (RF-08)"
-        string category "ENUM: investigacion, vinculacion (RF-05)"
+        int category_id FK "Relación con CATEGORIES"
         int year
     }
 
@@ -81,6 +87,7 @@ erDiagram
     %% RELACIONES
     USERS ||--o| ALUMNI_PROFILES : "tiene detalles (solo egresados)"
     USERS ||--o{ NEWS : "publica (solo admin)"
+    CATEGORIES ||--o{ PROJECTS : "clasifica"
     PROJECTS ||--|{ PROJECT_PROFESSORS : "tiene"
     PROFESSORS ||--|{ PROJECT_PROFESSORS : "participa"
     PROJECTS ||--o{ PROJECT_ALUMNI : "tiene"
