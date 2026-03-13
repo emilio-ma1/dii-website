@@ -8,28 +8,28 @@ const RESEARCH_PROJECTS = [
     id: "ejemplo-1",
     category: "categoria",
     year: "2025",
-    title:"titulo",
+    title:"Ejemplo 1",
     researcher: "nombre investigador",
     role: "rol",
-    summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    Cardsummary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
   },
   {
     id: "ejemplo-2",
     category: "categoria",
     year: "2025",
-    title:"titulo",
+    title:"Ejemplo 2",
     researcher: "nombre investigador",
     role: "rol",
-    summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    Cardsummary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
   },
   {
     id: "ejemplo-3",
     category: "categoria",
     year: "2024",
-    title:"titulo",
+    title:"Ejemplo 3",
     researcher: "nombre investigador",
     role: "rol",
-    summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    Cardsummary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
   },
 ];
 
@@ -55,7 +55,6 @@ function CalendarIcon() {
     </svg>
   );
 }
-
 /**
  * Renderiza una tarjeta con la información resumida de un proyecto de investigación.
  *
@@ -67,7 +66,7 @@ function CalendarIcon() {
  * @param {string} props.project.title - Título del proyecto.
  * @param {string} props.project.researcher - Nombre del investigador responsable.
  * @param {string} props.project.role - Rol del investigador en el proyecto.
- * @param {string} props.project.summary - Resumen breve del proyecto.
+ * @param {string} props.project.cardSummary - Resumen breve del proyecto para la tarjeta.
  * @returns {JSX.Element} La tarjeta del proyecto renderizada.
  */
 function ResearchCard({ project }) {
@@ -96,13 +95,13 @@ function ResearchCard({ project }) {
         </div>
 
         <p className="mt-4 text-sm leading-7 text-gray-600">
-          {project.summary}
+          {project.Cardsummary}
         </p>
 
         <div className="mt-5">
           <Link
             to={`/investigacion/${project.id}`}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#722b4d] hover:gap-3 transition"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#722b4d] transition hover:gap-3"
           >
             Ver detalle →
           </Link>
