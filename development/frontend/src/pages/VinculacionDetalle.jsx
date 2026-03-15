@@ -1,5 +1,9 @@
 import { Link, useParams } from "react-router-dom";
 
+const STATUS_LABELS = {
+  in_progress: "En proceso",
+  completed: "Completado",
+};
 
 /**
  * Página de detalle de un proyecto de Vinculación con el Medio.
@@ -15,42 +19,50 @@ export default function VinculacionDetalle() {
   const { id } = useParams();
 
   /**
-   * Datos de ejemplo, sin imagen
+   * Datos de ejemplo
    */
   const fallbackProjects = {
     "ejemplo-1": {
       id: "ejemplo-1",
-      category: "categoria",
+      status: "in_progress",
+      topic: "Tema",
       year: "2025",
-      title: " Ejemplo 1",
+      title: "Ejemplo 1",
       author: "autor",
       role: "rol",
       summary:"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
-      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n\nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      image: "/images/",
+      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
+      image: "/images/Vinculacion-ejemplo.jpg",
     },
     "ejemplo-2": {
       id: "ejemplo-2",
-      category: "categoria",
+      status: "completed",
+      topic: "Tema",
       year: "2025",
       title: "Ejemplo 2",
       author: "autor",
       role: "rol",
       summary:"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
-      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n\nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      image: "/images/",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
+      image: "/images/Vinculacion-ejemplo.jpg",
+    },
+    "ejemplo-3": {
+      id: "ejemplo-3",
+      status: "completed",
+      topic: "Tema",
+      year: "2024",
+      title: "Ejemplo 3",
+      author: "autor",
+      role: "rol",
+      summary:"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
+      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
+      image: "/images/Vinculacion-ejemplo.jpg",
     },
   };
 
-  /**
-   * Busca el proyecto correspondiente al identificador recibido en la ruta.
-   */
   const project = fallbackProjects[id];
 
-  /**
-   * Si no existe un proyecto asociado al identificador,
-   * se muestra una vista informativa de contenido no encontrado.
-   */
   if (!project) {
     return (
       <div className="min-h-screen bg-[#f7f5f6] px-6 py-16 sm:py-20 lg:py-24">
@@ -98,9 +110,15 @@ export default function VinculacionDetalle() {
           </Link>
 
           <div className="mt-8 max-w-4xl">
-            <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
-              {project.category}
-            </span>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
+                {STATUS_LABELS[project.status]}
+              </span>
+
+              <span className="inline-block rounded border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
+                {project.topic}
+              </span>
+            </div>
 
             <h1 className="mt-5 text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
               {project.title}

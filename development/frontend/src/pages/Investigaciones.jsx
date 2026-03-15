@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
 
 /**
  * Lista de proyectos de investigación
@@ -6,37 +7,43 @@ import { Link } from "react-router-dom";
 const RESEARCH_PROJECTS = [
   {
     id: "ejemplo-1",
-    category: "categoria",
+    status: "in_progress",
+    topic: "Tema",
     year: "2025",
-    title:"Ejemplo 1",
+    title: "Ejemplo 1",
     researcher: "nombre investigador",
     role: "rol",
-    Cardsummary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
   {
     id: "ejemplo-2",
-    category: "categoria",
+    status: "completed",
+    topic: "Tema",
     year: "2025",
-    title:"Ejemplo 2",
+    title: "Ejemplo 2",
     researcher: "nombre investigador",
     role: "rol",
-    Cardsummary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
   {
     id: "ejemplo-3",
-    category: "categoria",
+    status: "completed",
+    topic: "Tema",
     year: "2024",
-    title:"Ejemplo 3",
+    title: "Ejemplo 3",
     researcher: "nombre investigador",
     role: "rol",
-    Cardsummary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
 ];
 
+const STATUS_LABELS = {
+  in_progress: "En proceso",
+  completed: "Completado",
+};
+
 /**
- * Renderiza el ícono de calendario utilizado para mostrar el año del proyecto.
- *
- * @returns {JSX.Element} El ícono de calendario renderizado.
+ * Ícono calendario
  */
 function CalendarIcon() {
   return (
@@ -55,28 +62,43 @@ function CalendarIcon() {
     </svg>
   );
 }
+
 /**
- * Renderiza una tarjeta con la información resumida de un proyecto de investigación.
- *
- * @param {Object} props - Propiedades del componente.
- * @param {Object} props.project - Información del proyecto.
- * @param {string} props.project.id - Identificador único del proyecto.
- * @param {string} props.project.category - Categoría del proyecto.
- * @param {string} props.project.year - Año asociado al proyecto.
- * @param {string} props.project.title - Título del proyecto.
- * @param {string} props.project.researcher - Nombre del investigador responsable.
- * @param {string} props.project.role - Rol del investigador en el proyecto.
- * @param {string} props.project.cardSummary - Resumen breve del proyecto para la tarjeta.
- * @returns {JSX.Element} La tarjeta del proyecto renderizada.
+ * Botón filtro
+ */
+function FilterButton({ active, children, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-md border px-5 py-2.5 text-sm font-medium transition ${
+        active
+          ? "border-[#722b4d] bg-[#722b4d] text-white shadow-md"
+          : "border-[#722b4d]/20 bg-white text-[#722b4d] hover:border-[#722b4d] hover:bg-[#722b4d]/5"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
+ * Tarjeta proyecto
  */
 function ResearchCard({ project }) {
   return (
     <article className="rounded-md border border-[#722b4d]/20 border-t-4 border-t-[#722b4d] bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="px-5 py-5">
-        <div className="mb-4 flex items-center justify-between">
-          <span className="rounded bg-[#722b4d]/10 px-3 py-1 text-xs font-semibold text-[#722b4d]">
-            {project.category}
-          </span>
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded bg-[#722b4d] px-3 py-1 text-xs font-semibold text-white">
+              {STATUS_LABELS[project.status]}
+            </span>
+
+            <span className="rounded border border-[#722b4d]/20 bg-[#722b4d]/10 px-3 py-1 text-xs font-semibold text-[#722b4d]">
+              {project.topic}
+            </span>
+          </div>
 
           <div className="flex items-center gap-1 text-sm text-gray-500">
             <CalendarIcon />
@@ -89,13 +111,15 @@ function ResearchCard({ project }) {
         </h3>
 
         <div className="mt-3 text-sm text-gray-500">
-          <span className="font-medium text-gray-700">{project.researcher}</span>
+          <span className="font-medium text-gray-700">
+            {project.researcher}
+          </span>
           <span className="mx-1">—</span>
           <span>{project.role}</span>
         </div>
 
         <p className="mt-4 text-sm leading-7 text-gray-600">
-          {project.Cardsummary}
+          {project.summary}
         </p>
 
         <div className="mt-5">
@@ -111,11 +135,6 @@ function ResearchCard({ project }) {
   );
 }
 
-/**
- * Renderiza el hero principal de la página de investigaciones.
- *
- * @returns {JSX.Element} La sección superior de investigaciones renderizada.
- */
 function ResearchHero() {
   return (
     <section className="bg-[#722b4d] text-white">
@@ -138,17 +157,16 @@ function ResearchHero() {
   );
 }
 
-/**
- * Renderiza la página principal de investigaciones del departamento.
- *
- * Responsabilidades:
- * - Mostrar el encabezado principal de la sección.
- * - Presentar la lista de proyectos de investigación disponibles.
- * - Permitir la navegación al detalle de cada proyecto.
- *
- * @returns {JSX.Element} La página de investigaciones renderizada.
- */
 export default function Investigaciones() {
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  const filteredProjects = useMemo(() => {
+    if (activeFilter === "all") return RESEARCH_PROJECTS;
+    return RESEARCH_PROJECTS.filter(
+      (project) => project.status === activeFilter
+    );
+  }, [activeFilter]);
+
   return (
     <div className="min-h-screen bg-white">
       <ResearchHero />
@@ -156,7 +174,8 @@ export default function Investigaciones() {
       <section
         className="bg-[#f7f5f6] py-20"
         style={{
-          backgroundImage:"radial-gradient(circle at 1px 1px, rgba(114,43,77,0.08) 1px, transparent 0)",
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(114,43,77,0.08) 1px, transparent 0)",
           backgroundSize: "24px 24px",
         }}
       >
@@ -170,14 +189,32 @@ export default function Investigaciones() {
               Proyectos de Investigación
             </h2>
 
-            <p className="mt-4 text-base leading-7 text-gray-600 sm:text-lg">
-              Investigaciones en curso y finalizadas desarrolladas por los
-              académicos del departamento.
-            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <FilterButton
+                active={activeFilter === "all"}
+                onClick={() => setActiveFilter("all")}
+              >
+                Todos
+              </FilterButton>
+
+              <FilterButton
+                active={activeFilter === "in_progress"}
+                onClick={() => setActiveFilter("in_progress")}
+              >
+                En proceso
+              </FilterButton>
+
+              <FilterButton
+                active={activeFilter === "completed"}
+                onClick={() => setActiveFilter("completed")}
+              >
+                Completado
+              </FilterButton>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
-            {RESEARCH_PROJECTS.map((project) => (
+          <div className="mt-10 grid grid-cols-1 gap-8 xl:grid-cols-3">
+            {filteredProjects.map((project) => (
               <ResearchCard key={project.id} project={project} />
             ))}
           </div>
