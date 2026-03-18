@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 const PROJECTS = [
   {
     id: "ejemplo-1",
-    status: "in_progress",
+    status: "current",
     topic: "Tema",
     year: "2025",
     title: "Ejemplo 1",
@@ -17,7 +17,7 @@ const PROJECTS = [
   },
   {
     id: "ejemplo-2",
-    status: "completed",
+    status: "not_current",
     topic: "Tema",
     year: "2025",
     title: "Ejemplo 2",
@@ -27,7 +27,7 @@ const PROJECTS = [
   },
   {
     id: "ejemplo-3",
-    status: "completed",
+    status: "not_current",
     topic: "Tema",
     year: "2024",
     title: "Ejemplo 3",
@@ -38,8 +38,8 @@ const PROJECTS = [
 ];
 
 const STATUS_LABELS = {
-  in_progress: "En proceso",
-  completed: "Completado",
+  current: "Vigente",
+  not_current: "No Vigente",
 };
 
 /**

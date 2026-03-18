@@ -10,8 +10,8 @@ const DEFAULT_PERMISSIONS = {
 };
 
 const STATUS_LABELS = {
-  in_progress: "En proceso",
-  completed: "Completado",
+  current: "Vigente",
+  not_current: "No Vigente",
 };
 
 const DEFAULT_PROJECT_IMAGE = "/images/Vinculacion-ejemplo.jpg";
@@ -26,7 +26,7 @@ const INITIAL_PROJECTS = [
     summary:"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
     description:"Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.",
     image: DEFAULT_PROJECT_IMAGE,
-    status: "in_progress",
+    status: "Vigente",
   },
 ];
 
@@ -39,7 +39,7 @@ const EMPTY_FORM = {
   summary: "",
   description: "",
   image: "",
-  status: "in_progress",
+  status: "current",
 };
 
 /**
@@ -409,8 +409,8 @@ function ProjectForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
             onChange={onChange}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
           >
-            <option value="in_progress">En proceso</option>
-            <option value="completed">Completado</option>
+            <option value="current">Vigente</option>
+            <option value="not_current">No vigente</option>
           </select>
         </div>
       </div>

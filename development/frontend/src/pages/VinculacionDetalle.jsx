@@ -1,8 +1,8 @@
 import { Link, useParams } from "react-router-dom";
 
 const STATUS_LABELS = {
-  in_progress: "En proceso",
-  completed: "Completado",
+  current: "Vigente",
+  not_current: "No Vigente",
 };
 
 /**
@@ -24,7 +24,7 @@ export default function VinculacionDetalle() {
   const fallbackProjects = {
     "ejemplo-1": {
       id: "ejemplo-1",
-      status: "in_progress",
+      status: "current",
       topic: "Tema",
       year: "2025",
       title: "Ejemplo 1",
@@ -36,7 +36,7 @@ export default function VinculacionDetalle() {
     },
     "ejemplo-2": {
       id: "ejemplo-2",
-      status: "completed",
+      status: "not_current",
       topic: "Tema",
       year: "2025",
       title: "Ejemplo 2",
@@ -49,7 +49,7 @@ export default function VinculacionDetalle() {
     },
     "ejemplo-3": {
       id: "ejemplo-3",
-      status: "completed",
+      status: "not_current",
       topic: "Tema",
       year: "2024",
       title: "Ejemplo 3",
