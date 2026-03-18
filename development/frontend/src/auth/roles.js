@@ -36,6 +36,11 @@ export const MENU_BY_ROLE = {
       label: "Gestión de Investigaciones",
       to: "/admin/investigaciones",
     },
+    {
+      label: "Gestión de Vinculación con el Medio",
+      to: "/admin/vinculacion",
+    },
+
   ],
 
   [ROLES.DOCENTE]: [
