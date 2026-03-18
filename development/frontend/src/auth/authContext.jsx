@@ -2,12 +2,42 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
 
+/**
+ * Usuarios mock para desarrollo frontend
+ */
+const MOCK_USERS = [
+  {
+    id: 1,
+    full_name: "Nombre Secretaria",
+    email: "admin@userena.cl",
+    password: "admin123",
+    role: "admin",
+  },
+  {
+    id: 2,
+    full_name: "Nombre Egresado",
+    email: "egresado@userena.cl",
+    password: "egresado123",
+    role: "egresado",
+  },
+    {
+    id: 3,
+    full_name: "Nombre Docente",
+    email: "docente@userena.cl",
+    password: "docente123",
+    role: "docente",
+  },
+];
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Variable de entorno para la URL base de la API
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+  // frontend
+  const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_AUTH === "true";
 
   // Cargar sesión al iniciar si se refresca la página
   useEffect(() => {
@@ -27,6 +57,32 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
+   * Login mock para desarrollo frontend
+   */
+  const loginWithMock = async ({ email, password }) => {
+    const foundUser = MOCK_USERS.find(
+      (mockUser) => mockUser.email === email && mockUser.password === password
+    );
+
+    if (!foundUser) {
+      return {
+        ok: false,
+        message: "Correo o contraseña incorrectos.",
+      };
+    }
+
+    const mockToken = "mock-token-frontend";
+    const { password: _password, ...safeUser } = foundUser;
+
+    localStorage.setItem("token", mockToken);
+    localStorage.setItem("user", JSON.stringify(safeUser));
+
+    setUser(safeUser);
+
+    return { ok: true };
+  };
+
+  /**
    * Authenticates a user, stores the session token, and updates the context state.
    *
    * @param {object} credentials - Objeto con las credenciales del usuario.
@@ -35,6 +91,11 @@ export function AuthProvider({ children }) {
    * @returns {Promise<{ok: boolean, message?: string}>} Resultado de la operación con mensaje de contexto.
    */
   const login = async ({ email, password }) => {
+    // frontend
+    if (USE_MOCK_AUTH) {
+      return loginWithMock({ email, password });
+    }
+
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",

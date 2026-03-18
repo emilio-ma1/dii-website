@@ -215,11 +215,6 @@ export default function VinculacionConElMedio() {
                 Completado
               </FilterButton>
             </div>
-
-            <p className="mt-6 text-base leading-7 text-gray-600 sm:text-lg">
-              Iniciativas desarrolladas en colaboración con empresas,
-              organismos públicos y comunidades de la región.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">

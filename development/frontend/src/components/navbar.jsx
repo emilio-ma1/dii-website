@@ -89,7 +89,7 @@ function MobileMenu({ isOpen, menuRef, items, currentPath, onNavigate, showAuthL
             <button
               type="button"
               onClick={onLogout}
-              className="w-full block py-3 px-6 text-white bg-[#0f70b7] font-semibold rounded-sm text-center hover:bg-[#0d5f9e] transition-colors mt-2"
+              className="w-full block py-3 px-6 text-white bg-[#990012] font-semibold rounded-sm text-center hover:bg-[#951f3e] transition-colors mt-2"
             >
               Cerrar sesión
             </button>
@@ -234,7 +234,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="bg-[#0f70b7] hover:bg-[#0d5f9e] px-4 py-2 rounded-sm text-sm font-semibold text-white transition-colors"
+                  className="bg-[#990012] hover:bg-[#951f3e] px-4 py-2 rounded-sm text-sm font-semibold text-white transition-colors"
                 >
                   Cerrar sesión
                 </button>

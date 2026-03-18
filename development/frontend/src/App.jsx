@@ -7,8 +7,15 @@ import Navbar from "./components/navbar.jsx";
 import Footer from "./components/footer.jsx";
 
 import AdminLayout from "./admin/AdminLayout.jsx";
-import AdminDashboard from "./admin/AdminDashboard.jsx";
+//import AdminDashboard from "./admin/AdminDashboard.jsx";
 import AdminUsuarios from "./admin/AdminUsuarios.jsx";
+import GestionInvestigaciones from "./admin/GestionInvestigaciones.jsx";
+import GestionCuentas from "./admin/GestionCuentas.jsx";
+import GestionVinculacion from "./admin/GestionVinculacion.jsx";
+import GestionDocentes from "./admin/GestionDocentes.jsx";
+import GestionEstudiantes from "./admin/GestionEstudiantes.jsx";
+import GestionContacto from "./admin/GestionContacto.jsx";
+import GestionEquipamiento from "./admin/GestionEquipamiento.jsx";
 
 import Home from "./pages/home.jsx";
 import Academico from "./pages/Academico.jsx";
@@ -59,6 +66,8 @@ function Layout() {
   );
 }
 
+
+
 /**
  * Componente principal de la aplicación.
  *
@@ -94,16 +103,23 @@ export default function App() {
         {/* detalle de proyecto de vinculación */}
         <Route path="vinculacion-con-el-medio" element={<VinculacionConElMedio />} />
         <Route path="vinculacion-con-el-medio-detalle/:id" element={<VinculacionDetalle />} />
-        <Route path="/investigacion/:id" element={<InvestigacionDetalle />} />
+        <Route path="investigacion/:id" element={<InvestigacionDetalle />} />
       </Route>
 
         {/* rutas protegidas del panel administrativo */}
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
-          {/* dashboard principal del administrador */}
-            <Route index element={<AdminDashboard />} />
+          {/* dashboard principal del administrador 
+            <Route index element={<AdminDashboard />} />*/}
             {/* gestión de usuarios */}
             <Route path="usuarios" element={<AdminUsuarios />} />
+            <Route path="investigaciones" element={<GestionInvestigaciones />} />
+            <Route path="cuentas" element={<GestionCuentas />} />
+            <Route path="vinculacion" element={<GestionVinculacion />} />
+            <Route path="docentes" element={<GestionDocentes />} />
+            <Route path="estudiantes" element={<GestionEstudiantes />} />
+            <Route path="contacto" element={<GestionContacto />} />
+            <Route path="equipamiento" element={<GestionEquipamiento />} />
           </Route>
         </Route>
       </Routes>

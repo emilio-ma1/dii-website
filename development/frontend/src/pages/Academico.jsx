@@ -130,7 +130,6 @@ export default function Academico() {
   return (
     <div className="min-h-screen bg-white">
       <AcademicoHero />
-      {/* carreras */}
       <section className="bg-[#f7f5f6] py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 items-stretch gap-8 xl:grid-cols-2">

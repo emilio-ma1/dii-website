@@ -29,7 +29,7 @@ export default function Login() {
       return;
     }
 
-    navigate("/admin", { replace: true });
+    navigate("/admin/investigaciones", { replace: true });
   };
 
   return (
