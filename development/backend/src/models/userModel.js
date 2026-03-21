@@ -62,7 +62,51 @@ const UserModel = {
       console.error(`[ERROR] Failed to delete user with ID ${userId}:`, error);
       throw error;
     }
-  }
+  },
+  
+  /**
+   * Actualiza los datos de un usuario por su ID.
+   *
+   * @param {number|string} userId - El ID del usuario a editar.
+   * @param {object} updateData - Datos a actualizar (full_name, email, role, passwordHash).
+   * @returns {Promise<object|null>} El usuario actualizado o null si no existe.
+   * @throws {Error} Si ocurre un problema con la consulta SQL.
+   */
+  updateById: async (userId, updateData) => {
+    const { full_name, email, role, passwordHash } = updateData;
+    
+    try {
+      let query;
+      let values;
+
+      // Si viene un nuevo passwordHash, actualizamos la contraseña también
+      if (passwordHash) {
+        query = `
+          UPDATE users 
+          SET full_name = $1, email = $2, role = $3, password_hash = $4 
+          WHERE id = $5 
+          RETURNING id, full_name, email, role;
+        `;
+        values = [full_name, email, role, passwordHash, userId];
+      } else {
+        // Si no hay passwordHash, dejamos la contraseña intacta
+        query = `
+          UPDATE users 
+          SET full_name = $1, email = $2, role = $3 
+          WHERE id = $4 
+          RETURNING id, full_name, email, role;
+        `;
+        values = [full_name, email, role, userId];
+      }
+
+      const { rows } = await pool.query(query, values);
+      return rows.length > 0 ? rows[0] : null; // Retorna el usuario o null si no lo halló
+      
+    } catch (error) {
+      console.error(`[ERROR] Failed to update user with ID ${userId}:`, error);
+      throw error;
+    }
+  }  
 };
 
 module.exports = UserModel;

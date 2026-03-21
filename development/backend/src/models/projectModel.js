@@ -8,19 +8,33 @@ const pool = require('../config/db');
 
 const ProjectModel = {
   /**
-   * Obtiene todos los proyectos registrados con su categoría correspondiente.
+   * Obtiene todos los proyectos registrados con su categoría y el arreglo de autores.
    *
    * @returns {Promise<Array>} Un arreglo de objetos con los datos de los proyectos.
    * @throws {Error} Si ocurre un problema al ejecutar la consulta SQL.
    */
   getAll: async () => {
     try {
-      //JOIN para traer el nombre de la categoría
       const query = `
-        SELECT p.*, c.name AS category_name 
+        SELECT 
+            p.*, 
+            c.name AS category_name,
+            (
+                SELECT COALESCE(json_agg(json_build_object('id', u.id, 'full_name', u.full_name, 'role', u.role)), '[]')
+                FROM project_alumni pa
+                JOIN users u ON pa.user_id = u.id
+                WHERE pa.project_id = p.id
+            ) ::jsonb ||
+            (
+                SELECT COALESCE(json_agg(json_build_object('id', u.id, 'full_name', pr.full_name, 'role', 'teacher')), '[]')
+                FROM project_professors pp
+                JOIN professors pr ON pp.professor_id = pr.id
+                JOIN users u ON pr.user_id = u.id
+                WHERE pp.project_id = p.id
+            ) ::jsonb AS authors
         FROM projects p
         LEFT JOIN categories c ON p.category_id = c.id
-        ORDER BY p.year DESC, p.id DESC;
+        ORDER BY p.year DESC NULLS LAST, p.id DESC;
       `;
       const { rows } = await pool.query(query);
       return rows;
@@ -31,7 +45,7 @@ const ProjectModel = {
   },
 
   /**
-   * Obtiene un proyecto específico con todos sus autores anidados y su categoría.
+   * Obtiene un proyecto específico con todos sus autores y su categoría.
    *
    * @param {number|string} projectId - El ID único del proyecto a buscar.
    * @returns {Promise<object|null>} El objeto del proyecto o null.
@@ -41,31 +55,31 @@ const ProjectModel = {
     try {
       const query = `
         SELECT 
-          p.*,
-          c.name AS category_name,
-          c.description AS category_description,
-          COALESCE(
-            json_agg(DISTINCT jsonb_build_object('id', u_prof.id, 'name', u_prof.full_name)) 
-            FILTER (WHERE u_prof.id IS NOT NULL), '[]'
-          ) AS professors,
-          COALESCE(
-            json_agg(DISTINCT jsonb_build_object('id', u_alumni.id, 'name', u_alumni.full_name)) 
-            FILTER (WHERE u_alumni.id IS NOT NULL), '[]'
-          ) AS alumni
+            p.*,
+            c.name AS category_name,
+            c.description AS category_description,
+            (
+                SELECT COALESCE(json_agg(json_build_object('id', u.id, 'full_name', u.full_name, 'role', u.role)), '[]')
+                FROM project_alumni pa
+                JOIN users u ON pa.user_id = u.id
+                WHERE pa.project_id = p.id
+            ) ::jsonb ||
+            (
+                SELECT COALESCE(json_agg(json_build_object('id', u.id, 'full_name', pr.full_name, 'role', 'teacher')), '[]')
+                FROM project_professors pp
+                JOIN professors pr ON pp.professor_id = pr.id
+                JOIN users u ON pr.user_id = u.id
+                WHERE pp.project_id = p.id
+            ) ::jsonb AS authors
         FROM projects p
         LEFT JOIN categories c ON p.category_id = c.id
-        LEFT JOIN project_professors pp ON p.id = pp.project_id
-        LEFT JOIN users u_prof ON pp.professor_id = u_prof.id
-        LEFT JOIN project_alumni pa ON p.id = pa.project_id
-        LEFT JOIN users u_alumni ON pa.user_id = u_alumni.id
-        WHERE p.id = $1
-        GROUP BY p.id, c.id;
+        WHERE p.id = $1;
       `;
       
       const { rows } = await pool.query(query, [projectId]);
       
       if (rows.length === 0) return null;
-      return rows[0];
+      return rows[0]; // Retornamos el objeto limpio
     } catch (error) {
       console.error(`[ERROR] Failed to fetch project details for ID ${projectId}:`, error);
       throw error;

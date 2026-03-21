@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 
 // Importación de controladores y middlewares de seguridad
-const { getAllUsers, getUsersByRole, deleteUser } = require('../controllers/userController');
+const { getAllUsers, getUsersByRole, deleteUser, updateUser } = require('../controllers/userController');
 const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 
 /**
@@ -29,5 +29,11 @@ router.get('/role/:roleName', verifyToken, verifyAdmin, getUsersByRole);
  * Método: DELETE /api/users/:id
  */
 router.delete('/:id', verifyToken, verifyAdmin, deleteUser);
+
+/**
+ * Endpoint privado para actualizar los datos de un usuario.
+ * Método: PUT /api/users/:id
+ */
+router.put('/:id', verifyToken, verifyAdmin, updateUser);
 
 module.exports = router;

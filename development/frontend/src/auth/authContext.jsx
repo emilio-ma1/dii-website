@@ -2,100 +2,77 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
 
-/**
- * Usuarios mock para desarrollo frontend
- */
-const MOCK_USERS = [
-  {
-    id: 1,
-    full_name: "Nombre Secretaria",
-    email: "admin@example.cl",
-    password: "admin123",
-    role: "admin",
-  },
-  {
-    id: 2,
-    full_name: "Nombre Egresado",
-    email: "egresado@example.cl",
-    password: "egresado123",
-    role: "egresado",
-  },
-    {
-    id: 3,
-    full_name: "Nombre Docente",
-    email: "docente@example.cl",
-    password: "docente123",
-    role: "docente",
-  },
-];
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Agregamos el token al estado para que React reaccione si cambia
+  const [token, setToken] = useState(localStorage.getItem("token"));
 
   // Variable de entorno para la URL base de la API
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-  // frontend
-  const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_AUTH === "true";
-
-  // Cargar sesión al iniciar si se refresca la página
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
-
-    if (storedUser && storedToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("[ERROR] Failed to parse stored user session:", error);
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-      }
-    }
-    setLoading(false);
-  }, []);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   /**
-   * Login mock para desarrollo frontend
+   * Clears the current user session, removes tokens, and redirects to login.
+   * La movemos arriba para que el useEffect pueda usarla.
    */
-  const loginWithMock = async ({ email, password }) => {
-    const foundUser = MOCK_USERS.find(
-      (mockUser) => mockUser.email === email && mockUser.password === password
-    );
+  const logout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
+    window.location.href = "/login"; // Redirección limpia
+  };
 
-    if (!foundUser) {
-      return {
-        ok: false,
-        message: "Correo o contraseña incorrectos.",
-      };
+  //EFECTO DE VIGILANCIA: Lee el token y programa el cierre de sesión
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
     }
 
-    const mockToken = "mock-token-frontend";
-    const { password: _password, ...safeUser } = foundUser;
+    try {
+      //Rompemos el candado del JWT para leer sus datos (sin alterarlo)
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(window.atob(base64));
 
-    localStorage.setItem("token", mockToken);
-    localStorage.setItem("user", JSON.stringify(safeUser));
+      //Calculamos el tiempo (JWT guarda la fecha en segundos, JS usa milisegundos)
+      const expirationTime = payload.exp * 1000;
+      const currentTime = Date.now();
+      const timeUntilExpiry = expirationTime - currentTime;
 
-    setUser(safeUser);
+      //i el token ya venció, cerramos sesión inmediatamente por seguridad
+      if (timeUntilExpiry <= 0) {
+        logout();
+      } else {
+        //Si el token es válido, restauramos al usuario y ponemos la alarma
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
 
-    return { ok: true };
-  };
+        const timer = setTimeout(() => {
+          console.warn("[AUTH] El token ha expirado. Cerrando sesión automáticamente.");
+          alert("Tu sesión ha expirado por seguridad. Por favor, ingresa nuevamente.");
+          logout();
+        }, timeUntilExpiry);
+
+        setLoading(false);
+
+        // Limpiamos el reloj si el componente se desmonta o el usuario cierra sesión manual
+        return () => clearTimeout(timer);
+      }
+    } catch (error) {
+      console.error("[ERROR] Failed to parse token:", error);
+      logout(); // Si el token está corrupto o alterado, lo expulsamos por seguridad
+    }
+  }, [token]);
 
   /**
    * Authenticates a user, stores the session token, and updates the context state.
-   *
-   * @param {object} credentials - Objeto con las credenciales del usuario.
-   * @param {string} credentials.email - Correo electrónico del usuario.
-   * @param {string} credentials.password - Contraseña del usuario.
-   * @returns {Promise<{ok: boolean, message?: string}>} Resultado de la operación con mensaje de contexto.
    */
   const login = async ({ email, password }) => {
-    // frontend
-    if (USE_MOCK_AUTH) {
-      return loginWithMock({ email, password });
-    }
-
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -108,39 +85,34 @@ export function AuthProvider({ children }) {
       const data = await response.json();
 
       if (!response.ok) {
-        // Devuelve el mensaje de error contextualizado desde el backend
         return { 
           ok: false, 
           message: data.error || data.message || "Invalid credentials provided." 
         };
       }
 
-      // Si hay exito: Guardamos Token y Usuario
-      const { token, user: userData } = data;
+      const { token: newToken, user: userData } = data;
 
-      localStorage.setItem("token", token);
+      // Guardamos en memoria local
+      localStorage.setItem("token", newToken);
       localStorage.setItem("user", JSON.stringify(userData));
       
+      // Actualizamos los estados (esto dispara el useEffect de vigilancia automáticamente)
       setUser(userData);
+      setToken(newToken);
       
       return { ok: true };
 
     } catch (error) {
       console.error("[ERROR] Network failure during login attempt:", error);
-      // Mensaje al consumidor con contexto útil
       return { ok: false, message: "Network error: Unable to reach the authentication service." };
     }
   };
 
   /**
    * Registers a new user in the system (Admin only access).
-   *
-   * @param {object} userData - Datos del usuario a crear (full_name, email, password).
-   * @returns {Promise<{ok: boolean, message?: string}>} Resultado de la operación.
    */
   const register = async (userData) => {
-    const token = localStorage.getItem("token");
-    
     try {
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
@@ -157,21 +129,11 @@ export function AuthProvider({ children }) {
         return { ok: false, message: data.error || data.message || "Registration failed due to invalid data." };
       }
 
-      return { ok: true, message: "Usuario creado exitosamente" };
+      return { ok: true, message: "Usuario creado exitosamente", user: data.user };
     } catch (error) {
       console.error("[ERROR] Network failure during registration attempt:", error);
       return { ok: false, message: "Network error: Unable to reach the registration service." };
     }
-  };
-
-  /**
-   * Clears the current user session, removes tokens, and redirects to login.
-   */
-  const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    setUser(null);
-    window.location.href = "/login"; // Redirección limpia
   };
 
   const value = useMemo(

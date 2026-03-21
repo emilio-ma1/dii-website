@@ -78,44 +78,51 @@ const login = async (req, res) => {
  * @returns {object} Respuesta JSON con los datos del usuario creado, o un error 400/409/500.
  */
 const register = async (req, res) => {
-  const { full_name, email, password, role } = req.body;
+  const { full_name, email, password, role } = req.body || {};
+
+  if (!full_name || !email || !password) {
+    return res.status(400).json({ message: 'Nombre, correo y contraseña son obligatorios.' });
+  }
+
+  const client = await pool.connect();
 
   try {
-    const existingUser = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    await client.query('BEGIN');
 
-    // Retorno temprano prevención de duplicados
+    const existingUser = await client.query("SELECT id FROM users WHERE email = $1", [email]);
     if (existingUser.rows.length > 0) {
-      return res.status(409).json({ message: "Este correo electrónico ya se encuentra registrado." });
+      await client.query('ROLLBACK');
+      return res.status(409).json({ message: "Este correo ya está registrado." });
     }
 
-    const assignedRole = role || 'egresado';
-    
-    // Encriptación de la contraseña
+    const assignedRole = role || 'teacher'; 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const insertQuery = `
+    //Insertamos en users
+    const insertUserQuery = `
       INSERT INTO users (full_name, email, password_hash, role)
       VALUES ($1, $2, $3, $4)
       RETURNING id, full_name, email, role;
     `;
-      
-    const queryResult = await pool.query(insertQuery, [full_name, email, passwordHash, assignedRole]);
-    
-    return res.status(201).json({ 
-        message: 'Usuario creado exitosamente.', 
-        user: queryResult.rows[0] 
-    });
+    const userResult = await client.query(insertUserQuery, [full_name, email, passwordHash, assignedRole]);
+    const newUser = userResult.rows[0];
+
+    if (assignedRole === 'teacher') {
+      await client.query('INSERT INTO professors (user_id, full_name) VALUES ($1, $2)', [newUser.id, full_name]);
+    } else if (assignedRole === 'alumni') {
+      await client.query('INSERT INTO alumni_profiles (user_id) VALUES ($1)', [newUser.id]);
+    }
+
+    await client.query('COMMIT');
+    return res.status(201).json({ message: 'Usuario y perfil creados exitosamente.', user: newUser });
 
   } catch (error) {
-    console.error('[ERROR] User registration failed:', error);
-    
-    // Manejo específico del código de error de Postgres (Violación de unicidad)
-    if (error.code === '23505') { 
-        return res.status(400).json({ message: 'El correo electrónico ingresado ya está registrado.' });
-    }
-    
-    return res.status(500).json({ message: 'Error interno del servidor al registrar al usuario.' });
+    await client.query('ROLLBACK');
+    console.error('[ERROR] Registration failed:', error);
+    return res.status(500).json({ message: 'Error interno al registrar.' });
+  } finally {
+    client.release();
   }
 };
 
