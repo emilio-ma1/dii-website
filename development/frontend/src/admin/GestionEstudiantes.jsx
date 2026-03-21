@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../auth/authContext";
 import { PERMISSIONS } from "../auth/permisos";
 
@@ -8,27 +8,6 @@ const DEFAULT_PERMISSIONS = {
   deleteStudent: false,
 };
 
-const INITIAL_STUDENTS = [
-  {
-    id: "1",
-    fullName: "Estudiante 1",
-    specialty: "5to año",
-    videoUrlEmbed: "",
-  },
-  {
-    id: "2",
-    fullName: "Estudiante 2",
-    specialty: "Egresado 2024",
-    videoUrlEmbed: "",
-  },
-  {
-    id: "3",
-    fullName: "Estudiante 3",
-    specialty: "4to Año",
-    videoUrlEmbed: "",
-  },
-];
-
 const EMPTY_FORM = {
   id: "",
   fullName: "",
@@ -37,102 +16,19 @@ const EMPTY_FORM = {
 };
 
 /**
- * Ordena la lista de estudiantes alfabéticamente por nombre.
- *
- * @param {Array<object>} students - Lista actual de estudiantes.
- * @returns {Array<object>} Lista ordenada de estudiantes.
- * @throws {Error} Esta función no lanza excepciones controladas.
- */
-function sortStudentsByName(students) {
-  return [...students].sort((firstStudent, secondStudent) =>
-    firstStudent.fullName.localeCompare(secondStudent.fullName)
-  );
-}
-
-/**
- * Normaliza la URL embed del video antes de guardarla.
- *
- * @param {string} videoUrlEmbed - URL embed ingresada en el formulario.
- * @returns {string} URL normalizada sin espacios sobrantes.
- * @throws {Error} Esta función no lanza excepciones controladas.
- */
-function normalizeVideoUrlEmbed(videoUrlEmbed) {
-  return videoUrlEmbed.trim();
-}
-
-/**
- * Construye un objeto de estudiante normalizado a partir de los datos del formulario.
- *
- * @param {object} formData - Datos actuales del formulario.
- * @param {boolean} isEditing - Indica si la operación corresponde a edición.
- * @param {string|null} editingStudentId - Identificador del estudiante en edición.
- * @returns {{ id: string, fullName: string, specialty: string, videoUrlEmbed: string }} Estudiante normalizado.
- * @throws {Error} Esta función no lanza excepciones controladas.
- */
-function buildNormalizedStudent(formData, isEditing, editingStudentId) {
-  return {
-    id: isEditing ? editingStudentId : crypto.randomUUID(),
-    fullName: formData.fullName.trim(),
-    specialty: formData.specialty.trim(),
-    videoUrlEmbed: normalizeVideoUrlEmbed(formData.videoUrlEmbed),
-  };
-}
-
-/**
- * Actualiza un estudiante dentro de la colección actual.
- *
- * @param {Array<object>} students - Lista actual de estudiantes.
- * @param {string} studentId - Identificador del estudiante a actualizar.
- * @param {object} updatedStudent - Estudiante actualizado.
- * @returns {Array<object>} Lista de estudiantes actualizada.
- * @throws {Error} Esta función no lanza excepciones controladas.
- */
-function updateStudentInCollection(students, studentId, updatedStudent) {
-  return students.map((student) =>
-    student.id === studentId ? updatedStudent : student
-  );
-}
-
-/**
- * Agrega un nuevo estudiante a la colección actual.
- *
- * @param {Array<object>} students - Lista actual de estudiantes.
- * @param {object} newStudent - Estudiante a agregar.
- * @returns {Array<object>} Lista de estudiantes actualizada.
- * @throws {Error} Esta función no lanza excepciones controladas.
- */
-function addStudentToCollection(students, newStudent) {
-  return [...students, newStudent];
-}
-
-/**
- * Elimina un estudiante de la colección actual.
- *
- * @param {Array<object>} students - Lista actual de estudiantes.
- * @param {string} studentId - Identificador del estudiante a eliminar.
- * @returns {Array<object>} Lista filtrada de estudiantes.
- * @throws {Error} Esta función no lanza excepciones controladas.
- */
-function removeStudentFromCollection(students, studentId) {
-  return students.filter((student) => student.id !== studentId);
-}
-
-/**
  * Genera el título del iframe para el video de un estudiante.
  *
  * @param {string} fullName - Nombre completo del estudiante.
  * @returns {string} Título accesible para el iframe.
- * @throws {Error} Esta función no lanza excepciones controladas.
  */
 function buildStudentVideoTitle(fullName) {
-  return `Video de ${fullName.trim()}`;
+  return `Video de ${fullName?.trim() || "estudiante"}`;
 }
 
 /**
  * Estado vacío para el caso en que no existan estudiantes registrados.
  *
- * @returns {JSX.Element} Mensaje visual de estado vacío.
- * @throws {Error} Este componente no lanza excepciones controladas.
+ * @returns {JSX.Element}
  */
 function EmptyState() {
   return (
@@ -145,13 +41,12 @@ function EmptyState() {
 /**
  * Tarjeta visual para mostrar la información resumida de un estudiante.
  *
- * @param {object} props - Propiedades del componente.
- * @param {object} props.student - Estudiante a mostrar.
- * @param {Function} props.onEdit - Acción para editar el estudiante.
- * @param {Function} props.onDelete - Acción para eliminar el estudiante.
- * @param {object} props.permissions - Permisos disponibles para el usuario actual.
- * @returns {JSX.Element} Tarjeta de estudiante.
- * @throws {Error} Este componente no lanza excepciones controladas.
+ * @param {object} props
+ * @param {object} props.student
+ * @param {Function} props.onEdit
+ * @param {Function} props.onDelete
+ * @param {object} props.permissions
+ * @returns {JSX.Element}
  */
 function StudentCard({ student, onEdit, onDelete, permissions }) {
   return (
@@ -162,7 +57,9 @@ function StudentCard({ student, onEdit, onDelete, permissions }) {
         </div>
 
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-[#722b4d]">{student.fullName}</h3>
+          <h3 className="text-xl font-bold text-[#722b4d]">
+            {student.fullName}
+          </h3>
 
           <p className="mt-1 text-sm font-medium text-[#1f75b8]">
             {student.specialty}
@@ -216,14 +113,13 @@ function StudentCard({ student, onEdit, onDelete, permissions }) {
 /**
  * Formulario reutilizable para crear o editar estudiantes.
  *
- * @param {object} props - Propiedades del componente.
- * @param {object} props.formData - Datos actuales del formulario.
- * @param {Function} props.onChange - Acción al modificar un campo.
- * @param {Function} props.onSubmit - Acción al enviar el formulario.
- * @param {Function} props.onCancel - Acción al cancelar la operación.
- * @param {boolean} props.isEditing - Indica si el formulario está en modo edición.
- * @returns {JSX.Element} Formulario de estudiante.
- * @throws {Error} Este componente no lanza excepciones controladas.
+ * @param {object} props
+ * @param {object} props.formData
+ * @param {Function} props.onChange
+ * @param {Function} props.onSubmit
+ * @param {Function} props.onCancel
+ * @param {boolean} props.isEditing
+ * @returns {JSX.Element}
  */
 function StudentForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
   return (
@@ -241,7 +137,7 @@ function StudentForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
             name="fullName"
             value={formData.fullName}
             onChange={onChange}
-            placeholder="Nombre del estudiante"
+            placeholder="Ingresa el nombre del estudiante"
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
             required
           />
@@ -256,7 +152,7 @@ function StudentForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
             name="specialty"
             value={formData.specialty}
             onChange={onChange}
-            placeholder="5to año / Egresado 2024 / 4to Año"
+            placeholder="Ingresa el año de cursado"
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
             required
           />
@@ -271,7 +167,7 @@ function StudentForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
             value={formData.videoUrlEmbed}
             onChange={onChange}
             rows={4}
-            placeholder="https://www.youtube.com/embed/..."
+            placeholder="Ingresa la URL embed del video"
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
           />
           <p className="mt-2 text-xs text-gray-500">
@@ -300,19 +196,14 @@ function StudentForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
   );
 }
 
-/**
- * Componente principal para la gestión de estudiantes.
- * Mantiene el estado local y delega la presentación a componentes pequeños
- * para reducir complejidad y facilitar mantenimiento.
- *
- * @returns {JSX.Element} Vista principal de gestión de estudiantes.
- * @throws {Error} Este componente no lanza excepciones controladas.
- */
+
 export default function StudentManagement() {
   const { user } = useAuth();
 
   const permissions = PERMISSIONS[user?.role] || DEFAULT_PERMISSIONS;
-  const [students, setStudents] = useState(INITIAL_STUDENTS);
+
+  const [students] = useState([]);
+
   const [showForm, setShowForm] = useState(false);
   const [editingStudentId, setEditingStudentId] = useState(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
@@ -320,19 +211,7 @@ export default function StudentManagement() {
   const isEditing = Boolean(editingStudentId);
 
   /**
-   * Mantiene el listado ordenado por nombre para una visualización consistente.
-   */
-  const sortedStudents = useMemo(
-    () => sortStudentsByName(students),
-    [students]
-  );
-
-  /**
    * Reinicia el formulario y limpia el modo edición.
-   * Esto evita arrastrar datos de una operación anterior.
-   *
-   * @returns {void}
-   * @throws {Error} Esta función no lanza excepciones controladas.
    */
   const resetFormState = () => {
     setShowForm(false);
@@ -342,9 +221,6 @@ export default function StudentManagement() {
 
   /**
    * Abre el formulario en modo creación.
-   *
-   * @returns {void}
-   * @throws {Error} Esta función no lanza excepciones controladas.
    */
   const handleNewStudent = () => {
     setEditingStudentId(null);
@@ -355,50 +231,35 @@ export default function StudentManagement() {
   /**
    * Carga en el formulario la información del estudiante seleccionado.
    *
-   * @param {object} student - Estudiante seleccionado para edición.
-   * @returns {void}
-   * @throws {Error} Esta función no lanza excepciones controladas.
+   * @param {object} student
    */
   const handleEditStudent = (student) => {
     setEditingStudentId(student.id);
+
     setFormData({
-      id: student.id,
-      fullName: student.fullName,
-      specialty: student.specialty,
-      videoUrlEmbed: student.videoUrlEmbed,
+      id: student.id || "",
+      fullName: student.fullName || "",
+      specialty: student.specialty || "",
+      videoUrlEmbed: student.videoUrlEmbed || "",
     });
+
     setShowForm(true);
   };
 
-  /**
-   * Elimina un estudiante del listado actual.
-   *
-   * @param {string} studentId - Identificador del estudiante a eliminar.
-   * @returns {void}
-   * @throws {Error} Esta función no lanza excepciones controladas.
-   */
-  const handleDeleteStudent = (studentId) => {
-    setStudents((currentStudents) =>
-      removeStudentFromCollection(currentStudents, studentId)
-    );
+  const handleDeleteStudent = () => {
   };
 
   /**
    * Cancela la operación actual y reinicia el formulario.
-   *
-   * @returns {void}
-   * @throws {Error} Esta función no lanza excepciones controladas.
    */
   const handleCancelForm = () => {
     resetFormState();
   };
 
   /**
-   * Actualiza el estado local del formulario según el campo modificado.
+   * Actualiza el estado del formulario según el campo modificado.
    *
-   * @param {object} event - Evento de cambio disparado por un input.
-   * @returns {void}
-   * @throws {Error} Esta función no lanza excepciones controladas.
+   * @param {object} event
    */
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -409,37 +270,8 @@ export default function StudentManagement() {
     }));
   };
 
-  /**
-   * Guarda un estudiante nuevo o actualiza uno existente.
-   * La normalización previa evita almacenar espacios innecesarios y mantiene
-   * consistencia en los valores persistidos.
-   *
-   * @param {object} event - Evento de envío del formulario.
-   * @returns {void}
-   * @throws {Error} Esta función no lanza excepciones controladas.
-   */
   const handleSubmit = (event) => {
     event.preventDefault();
-
-    const normalizedStudent = buildNormalizedStudent(
-      formData,
-      isEditing,
-      editingStudentId
-    );
-
-    if (isEditing) {
-      setStudents((currentStudents) =>
-        updateStudentInCollection(
-          currentStudents,
-          editingStudentId,
-          normalizedStudent
-        )
-      );
-    } else {
-      setStudents((currentStudents) =>
-        addStudentToCollection(currentStudents, normalizedStudent)
-      );
-    }
 
     resetFormState();
   };
@@ -473,8 +305,8 @@ export default function StudentManagement() {
           />
         ) : (
           <div className="space-y-4">
-            {sortedStudents.length > 0 ? (
-              sortedStudents.map((student) => (
+            {students.length > 0 ? (
+              students.map((student) => (
                 <StudentCard
                   key={student.id}
                   student={student}
