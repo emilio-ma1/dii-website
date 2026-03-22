@@ -19,8 +19,26 @@ function ProgramItem({
   description,
   accentColor = "#722b4d",
 }) {
+  const isExternal = to.startsWith("http");
+
+  const Wrapper = ({ children }) =>
+    isExternal ? (
+      <a
+        href={to}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block h-full"
+      >
+        {children}
+      </a>
+    ) : (
+      <Link to={to} className="block h-full">
+        {children}
+      </Link>
+    );
+
   return (
-    <Link to={to} className="block h-full">
+    <Wrapper>
       <article className="h-full rounded-2xl border border-black/10 bg-white p-6 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-7">
         <div className="flex h-full flex-col gap-6 md:flex-row md:items-stretch">
           <div className="flex w-full flex-shrink-0 items-center justify-center md:w-[130px]">
@@ -67,7 +85,7 @@ function ProgramItem({
           </div>
         </div>
       </article>
-    </Link>
+    </Wrapper>
   );
 }
 
@@ -104,25 +122,24 @@ function AcademicoHero() {
 export default function Academico() {
   const programs = [
     {
-      title:( 
-      <> Ingeniería Civil <br />
-      Industrial
-      </>
+      title: (
+        <>
+          Ingeniería Civil <br />
+          Industrial
+        </>
       ),
-      to: "/industrial",
+      to: "https://userena.cl/carreras/ingenieria-civil-industrial",
       imageSrc: "/images/civil-industrial.jpg",
       imageAlt: "Logo de Ingeniería Civil Industrial",
-      description:
-        "Forma profesionales capaces de diseñar, optimizar y gestionar sistemas productivos y organizacionales, integrando herramientas de ingeniería, gestión y mejora continua para aportar valor a la industria y la sociedad.",
+      description:"Forma profesionales capaces de diseñar, optimizar y gestionar sistemas productivos y organizacionales, integrando herramientas de ingeniería, gestión y mejora continua para aportar valor a la industria y la sociedad.",
       accentColor: "#722b4d",
     },
     {
       title: "Ingeniería Civil en Computación e Informática",
-      to: "/computacion",
+      to: "",
       imageSrc: "/images/civil-computacion.png",
       imageAlt: "Logo de Ingeniería Civil en Computación e Informática",
-      description:
-        "Prepara especialistas en desarrollo tecnológico, sistemas de información y transformación digital, con herramientas para resolver desafíos complejos en distintos contextos.",
+      description:"Prepara especialistas en desarrollo tecnológico, sistemas de información y transformación digital, con herramientas para resolver desafíos complejos en distintos contextos.",
       accentColor: "#1f78c1",
     },
   ];
@@ -130,6 +147,7 @@ export default function Academico() {
   return (
     <div className="min-h-screen bg-white">
       <AcademicoHero />
+
       <section className="bg-[#f7f5f6] py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 items-stretch gap-8 xl:grid-cols-2">
