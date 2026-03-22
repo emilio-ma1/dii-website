@@ -6,33 +6,38 @@
  */
 import { useState, useEffect, useCallback } from "react";
 
-export function useTeacherManagement(shouldFetch) {
+export function useTeacherManagement(canCreate) {
   const [teachers, setTeachers] = useState([]);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchTeachers = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const headers = { "Authorization": `Bearer ${token}` };
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/professors`);
+      if (response.ok) {
+        const data = await response.json();
+        
+        const formattedData = data.map(t => ({
+          ...t,
+          fullName: t.user_name || t.full_name,
+          imageUrl: t.image_url,
+          profile_id: t.profile_id 
+        }));
 
-      const profResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/professors`);
-      if (profResponse.ok) {
-        setTeachers(await profResponse.json());
-      }
-      const usersResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/users`, { headers });
-      if (usersResponse.ok) {
-        const users = await usersResponse.json();
-        setAvailableUsers(users.filter(u => u.role === "teacher"));
+        const vinculados = formattedData.filter(t => t.profile_id !== null && t.profile_id !== undefined);
+        setTeachers(vinculados);
+
+        const noVinculados = formattedData.filter(t => t.profile_id === null || t.profile_id === undefined);
+        setAvailableUsers(noVinculados);
       }
     } catch (error) {
-      console.error("[ERROR] Failed to fetch teacher data:", error);
+      console.error("[ERROR] Failed to fetch teachers:", error);
     }
   }, []);
 
   useEffect(() => {
-    if (shouldFetch) fetchData();
-  }, [shouldFetch, fetchData]);
+    fetchTeachers();
+  }, [fetchTeachers]);
 
   const saveTeacherProfile = async (formData, editingId) => {
     setIsSaving(true);
@@ -53,7 +58,7 @@ export function useTeacherManagement(shouldFetch) {
       });
 
       if (response.ok) {
-        await fetchData();
+        await fetchTeachers();
         setIsSaving(false);
         return true;
       }

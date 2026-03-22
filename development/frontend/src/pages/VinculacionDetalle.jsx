@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom";
+import { useEventDetail } from "../hooks/useEventDetail";
 
 const STATUS_LABELS = {
   current: "Vigente",
@@ -6,74 +7,33 @@ const STATUS_LABELS = {
 };
 
 /**
- * Página de detalle de un proyecto de Vinculación con el Medio.
- *
- * Obtiene el identificador del proyecto desde la URL y muestra
- * la información completa del proyecto seleccionado.
- * Si el proyecto no existe, renderiza una vista de error
- * con enlace de retorno a la sección principal.
- *
- * @returns {JSX.Element} La vista de detalle del proyecto o una vista de error.
+ * Página de detalle de un proyecto/noticia de Vinculación con el Medio.
  */
 export default function VinculacionDetalle() {
   const { id } = useParams();
+  
+  // Usamos el Hook para obtener la data real
+  const { eventData: project, isLoading, error } = useEventDetail(id);
 
-  /**
-   * Datos de ejemplo
-   */
-  const fallbackProjects = {
-    "ejemplo-1": {
-      id: "ejemplo-1",
-      status: "current",
-      topic: "Tema",
-      year: "2025",
-      title: "Ejemplo 1",
-      author: "autor",
-      role: "rol",
-      summary:"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
-      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
-      image: "/images/Vinculacion-ejemplo.jpg",
-    },
-    "ejemplo-2": {
-      id: "ejemplo-2",
-      status: "not_current",
-      topic: "Tema",
-      year: "2025",
-      title: "Ejemplo 2",
-      author: "autor",
-      role: "rol",
-      summary:"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
-      image: "/images/Vinculacion-ejemplo.jpg",
-    },
-    "ejemplo-3": {
-      id: "ejemplo-3",
-      status: "not_current",
-      topic: "Tema",
-      year: "2024",
-      title: "Ejemplo 3",
-      author: "autor",
-      role: "rol",
-      summary:"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
-      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
-      image: "/images/Vinculacion-ejemplo.jpg",
-    },
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#f7f5f6] px-6 py-20 flex justify-center items-center text-gray-500 font-medium">
+        Cargando detalles...
+      </div>
+    );
+  }
 
-  const project = fallbackProjects[id];
-
-  if (!project) {
+  if (error || !project) {
     return (
       <div className="min-h-screen bg-[#f7f5f6] px-6 py-16 sm:py-20 lg:py-24">
         <div className="mx-auto flex min-h-[70vh] max-w-3xl items-center justify-center">
           <div className="w-full rounded-2xl border border-[#722b4d]/10 bg-white p-8 shadow-sm sm:p-10">
             <h1 className="text-3xl font-extrabold text-[#722b4d] sm:text-4xl">
-              Proyecto no encontrado
+              Proyecto / Noticia no encontrada
             </h1>
 
             <p className="mt-2 text-base leading-8 text-gray-600">
-              Puede que el proyecto ya no esté disponible o que el enlace sea incorrecto.
+              Puede que la publicación ya no esté disponible o que el enlace sea incorrecto.
             </p>
 
             <div className="mt-8">
@@ -112,7 +72,7 @@ export default function VinculacionDetalle() {
           <div className="mt-8 max-w-4xl">
             <div className="flex flex-wrap gap-2">
               <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
-                {STATUS_LABELS[project.status]}
+                {STATUS_LABELS[project.status] || "Registrado"}
               </span>
 
               <span className="inline-block rounded border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
@@ -137,17 +97,9 @@ export default function VinculacionDetalle() {
 
       <section className="bg-[#f7f5f6] py-16 sm:py-20">
         <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-          <div className="rounded-md border border-black/5 bg-[#f4eff1] p-5 shadow-sm sm:p-6">
-            <div className="border-l-4 border-[#722b4d] pl-5">
-              <p className="text-base italic leading-8 text-gray-700 sm:text-lg">
-                {project.summary}
-              </p>
-            </div>
-          </div>
-
           <div className="mt-10 rounded-xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8">
             <h2 className="text-2xl font-bold text-[#722b4d]">
-              Descripción del Proyecto
+              Contenido
             </h2>
 
             <div className="mt-6 space-y-5 text-base leading-8 text-gray-700">

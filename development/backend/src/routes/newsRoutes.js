@@ -11,7 +11,8 @@ const {
   getNews, 
   createNews, 
   updateNews, 
-  deleteNews 
+  deleteNews,
+  getNewsBySlug
 } = require('../controllers/newsController');
 
 // Importamos los middlewares de seguridad
@@ -43,5 +44,7 @@ router.put('/:id', verifyToken, verifyAdmin, updateNews);
  * Method: DELETE /api/news/:id
  */
 router.delete('/:id', verifyToken, verifyAdmin, deleteNews);
+
+router.get('/slug/:slug', getNewsBySlug);
 
 module.exports = router;

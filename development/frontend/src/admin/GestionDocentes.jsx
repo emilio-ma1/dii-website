@@ -33,6 +33,7 @@ export default function TeacherManagement() {
     setFormData({
       id: teacher.id,
       user_id: teacher.user_id,
+      user_name: teacher.user_name,
       area: teacher.area,
       degree: teacher.degree,
       image_url: teacher.image_url || ""

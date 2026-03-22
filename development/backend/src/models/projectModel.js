@@ -154,7 +154,31 @@ const ProjectModel = {
       console.error(`[ERROR] Failed to delete project ID ${id}:`, error);
       throw error;
     }
-  }
+  },
+  
+  getById: async (id) => {
+    try {
+      const query = `
+        SELECT 
+            p.*, 
+            COALESCE(
+              json_agg(
+                json_build_object('id', u.id, 'name', u.full_name)
+              ) FILTER (WHERE u.id IS NOT NULL), '[]'
+            ) AS authors
+        FROM projects p
+        LEFT JOIN project_authors pa ON p.id = pa.project_id
+        LEFT JOIN users u ON pa.user_id = u.id
+        WHERE p.id = $1
+        GROUP BY p.id;
+      `;
+      const { rows } = await pool.query(query, [id]);
+      return rows.length ? rows[0] : null; // Devolvemos el objeto, no un arreglo
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch project ID ${id}:`, error);
+      throw error;
+    }
+  },
 };
 
 module.exports = ProjectModel;

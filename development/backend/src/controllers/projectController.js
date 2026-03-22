@@ -94,9 +94,26 @@ const deleteProject = async (req, res) => {
   }
 };
 
+const getProjectById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const project = await ProjectModel.getById(id);
+    
+    if (!project) {
+      return res.status(404).json({ message: 'Proyecto no encontrado.' });
+    }
+    
+    return res.status(200).json(project);
+  } catch (error) {
+    console.error(`[ERROR] Failed to fetch project ${id}:`, error);
+    return res.status(500).json({ message: 'Error interno al obtener el proyecto.' });
+  }
+};
+
 module.exports = {
   getAllProjects,
   createProject,
   updateProject,
-  deleteProject
+  deleteProject,
+  getProjectById
 };

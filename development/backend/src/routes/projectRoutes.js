@@ -9,9 +9,10 @@ const router = express.Router();
 
 const { 
   getAllProjects, 
+  getProjectById,
   createProject, 
   updateProject, 
-  deleteProject 
+  deleteProject
 } = require('../controllers/projectController');
 
 const { verifyToken } = require('../middlewares/authMiddleware'); 
@@ -22,6 +23,13 @@ const { verifyToken } = require('../middlewares/authMiddleware');
  * @access Public
  */
 router.get('/', getAllProjects);
+
+/**
+ * @route GET /api/projects/:id
+ * @description Retrieves a specific research project by its ID, including detailed information and authors.
+ * @access Public
+ */
+router.get('/:id', getProjectById);
 
 /**
  * @route POST /api/projects

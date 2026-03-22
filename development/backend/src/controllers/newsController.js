@@ -135,4 +135,19 @@ const deleteNews = async (req, res) => {
   }
 };
 
-module.exports = { getNews, createNews, updateNews, deleteNews };
+const getNewsBySlug = async (req, res) => {
+  const { slug } = req.params;
+  try {
+    const newsItem = await NewsModel.getBySlug(slug);
+    if (!newsItem) {
+      return res.status(404).json({ message: 'Noticia no encontrada.' });
+    }
+    return res.status(200).json(newsItem);
+  } catch (error) {
+    console.error(`[ERROR] Failed to fetch news slug ${slug}:`, error);
+    return res.status(500).json({ message: 'Error interno al obtener la noticia.' });
+  }
+};
+
+  
+module.exports = { getNews, createNews, updateNews, deleteNews, getNewsBySlug };

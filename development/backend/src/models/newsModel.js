@@ -100,7 +100,18 @@ const NewsModel = {
       console.error(`[ERROR] Failed to delete news ID ${id} from database:`, error);
       throw error;
     }
-  }
+  },
+
+  getBySlug: async (slug) => {
+    try {
+      const query = 'SELECT * FROM news WHERE slug = $1;';
+      const { rows } = await pool.query(query, [slug]);
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch news by slug ${slug}:`, error);
+      throw error;
+    }
+  },
 };
 
 module.exports = NewsModel;

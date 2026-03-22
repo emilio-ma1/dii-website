@@ -13,18 +13,29 @@ export function TeacherForm({ formData, onChange, onSubmit, onCancel, availableU
             name="user_id"
             value={formData.user_id}
             onChange={onChange}
-            disabled={isEditing}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] disabled:bg-gray-100"
+            disabled={isEditing} // Bloqueamos el select si estamos editando
+            className={`w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] ${isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'}`}
             required
           >
             <option value="" disabled>Selecciona una cuenta de docente...</option>
-            {availableUsers.map((user) => (
+            
+            {/* MAGIA DE UX: Si estamos editando, mostramos la opción actual fija */}
+            {isEditing && (
+              <option value={formData.user_id}>
+                {formData.user_name ? `${formData.user_name} (Actual)` : "Docente Actual"}
+              </option>
+            )}
+
+            {/* Iteramos sobre los usuarios disponibles para enlazar */}
+            {availableUsers?.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.full_name} ({user.email})
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-gray-500">El nombre y correo se sincronizarán automáticamente con esta cuenta.</p>
+          <p className="mt-1 text-xs text-gray-500">
+            El nombre y correo se sincronizarán automáticamente con esta cuenta.
+          </p>
         </div>
 
         <div>
@@ -74,7 +85,11 @@ export function TeacherForm({ formData, onChange, onSubmit, onCancel, availableU
         >
           {isSaving ? "Guardando..." : isEditing ? "Actualizar Perfil" : "Crear Perfil"}
         </button>
-        <button type="button" onClick={onCancel} className="rounded-xl bg-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-300">
+        <button 
+          type="button" 
+          onClick={onCancel} 
+          className="rounded-xl bg-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-300"
+        >
           Cancelar
         </button>
       </div>

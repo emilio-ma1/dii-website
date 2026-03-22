@@ -4,12 +4,19 @@
  */
 const express = require('express');
 const router = express.Router();
-const { getProfessors, createProfessor, updateProfessor, deleteProfessor } = require('../controllers/professorController');
+
+const { 
+  getProfessors, 
+  upsertProfessor, 
+  deleteProfessor 
+} = require('../controllers/professorController');
+
 const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 
 router.get('/', getProfessors);
-router.post('/', verifyToken, verifyAdmin, createProfessor);
-router.put('/:id', verifyToken, verifyAdmin, updateProfessor);
+router.post('/', verifyToken, verifyAdmin, upsertProfessor);
+router.put('/:id', verifyToken, verifyAdmin, upsertProfessor);
+
 router.delete('/:id', verifyToken, verifyAdmin, deleteProfessor);
 
 module.exports = router;
