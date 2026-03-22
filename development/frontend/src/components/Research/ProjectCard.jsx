@@ -40,7 +40,8 @@ const formatAuthorsText = (authors) => {
   if (!Array.isArray(authors) || authors.length === 0) {
     return "Autores no especificados";
   }
-  return authors.map((author) => author.full_name).join(", ");
+  // ¡Aquí está la magia! Buscamos 'name' (que envía el backend) o 'full_name' como respaldo
+  return authors.map((author) => author.name || author.full_name).join(", ");
 };
 
 /**

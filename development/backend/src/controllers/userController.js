@@ -1,41 +1,39 @@
 /**
- * @file Controlador de Usuarios (userController).
+ * @file userController.js
  * @description
- * Gestiona la lógica de negocio para la administración de usuarios del sistema.
- * Conecta las rutas HTTP con las consultas a la base de datos (UserModel).
+ * Handles business logic for system user administration.
+ * Adheres to Thin Controller architecture by delegating DB operations to UserModel.
  */
 const UserModel = require('../models/userModel');
-const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
+
 /**
- * Obtiene la lista completa de usuarios registrados.
+ * Fetches the complete list of registered users.
  *
- * @param {object} req - Objeto de petición HTTP.
- * @param {object} res - Objeto de respuesta HTTP.
- * @returns {object} Respuesta JSON con el listado de usuarios (Status 200) o un error 500.
+ * @param {object} req Express HTTP request object.
+ * @param {object} res Express HTTP response object.
+ * @returns {Promise<object>} JSON response with the user list or an error message.
  */
 const getAllUsers = async (req, res) => {
   try {
     const usersList = await UserModel.getAll();
     return res.json(usersList);
   } catch (error) {
-    // Trazas técnicas
     console.error('[ERROR] Failed to fetch users in controller:', error);
     return res.status(500).json({ message: 'Error interno del servidor al obtener la lista de usuarios.' });
   }
 };
 
 /**
- * Obtiene una lista de usuarios filtrada por su rol específico.
+ * Fetches a list of users filtered by their specific role.
  *
- * @param {object} req - Objeto de petición HTTP (contiene el 'roleName' en req.params).
- * @param {object} res - Objeto de respuesta HTTP.
- * @returns {object} Respuesta JSON con los usuarios filtrados.
+ * @param {object} req Express HTTP request object (contains 'roleName' in params).
+ * @param {object} res Express HTTP response object.
+ * @returns {Promise<object>} JSON response with the filtered users.
  */
 const getUsersByRole = async (req, res) => {
   const { roleName } = req.params;
 
-  // Retorno temprano: Validación del parámetro
   if (!roleName) {
     return res.status(400).json({ message: 'El parámetro de rol es obligatorio para filtrar.' });
   }
@@ -50,25 +48,23 @@ const getUsersByRole = async (req, res) => {
 };
 
 /**
- * Elimina un usuario del sistema por su ID.
- * Implementa una validación de seguridad para evitar que un admin se elimine a sí mismo.
+ * Deletes a user from the system by their ID.
+ * Prevents an active admin from deleting their own account.
  *
- * @param {object} req - Objeto de petición HTTP (contiene el 'id' a eliminar y datos de sesión en req.user).
- * @param {object} res - Objeto de respuesta HTTP.
- * @returns {object} Respuesta JSON confirmando la eliminación o un error 400/404/500.
+ * @param {object} req Express HTTP request object.
+ * @param {object} res Express HTTP response object.
+ * @returns {Promise<object>} JSON response confirming deletion or an error code.
  */
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    //Evitar el "suicidio" de cuenta del administrador activo
     if (req.user && req.user.id === parseInt(id, 10)) {
        return res.status(400).json({ message: 'Acción denegada: No puedes eliminar tu propia cuenta de administrador.' });
     }
 
     const isDeleted = await UserModel.deleteById(id);
 
-    // Retorno temprano: Si el modelo devuelve falso, el usuario no existía
     if (!isDeleted) {
       return res.status(404).json({ message: 'El usuario solicitado no existe o ya fue eliminado.' });
     }
@@ -81,66 +77,34 @@ const deleteUser = async (req, res) => {
 };
 
 /**
- * Actualiza un usuario del sistema por su ID.
+ * Updates a user's basic information and reassigns roles.
+ *
+ * @param {object} req Express HTTP request object.
+ * @param {object} res Express HTTP response object.
+ * @returns {Promise<object>} JSON response with updated user data.
  */
 const updateUser = async (req, res) => {
   const { id } = req.params;
   const { full_name, email, role, password } = req.body;
-  const client = await pool.connect(); 
 
   try {
-    await client.query('BEGIN');
-
     let passwordHash = null;
     if (password) {
       const salt = await bcrypt.genSalt(10);
       passwordHash = await bcrypt.hash(password, salt);
     }
-    let updateQuery;
-    let values;
-    if (passwordHash) {
-      updateQuery = `UPDATE users SET full_name = $1, email = $2, role = $3, password_hash = $4 WHERE id = $5 RETURNING id, full_name, email, role;`;
-      values = [full_name, email, role, passwordHash, id];
-    } else {
-      updateQuery = `UPDATE users SET full_name = $1, email = $2, role = $3 WHERE id = $4 RETURNING id, full_name, email, role;`;
-      values = [full_name, email, role, id];
-    }
 
-    const result = await client.query(updateQuery, values);
-    if (result.rows.length === 0) {
-      await client.query('ROLLBACK');
+    // Delegamos la transacción al modelo
+    const updatedUser = await UserModel.updateAccountAndCleanProfiles(id, full_name, email, role, passwordHash);
+
+    if (!updatedUser) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
-    const updatedUser = result.rows[0];
 
-    if (role === 'teacher') {
-      await client.query('DELETE FROM alumni_profiles WHERE user_id = $1', [id]);
-      await client.query(`
-        INSERT INTO professors (user_id, full_name) VALUES ($1, $2) 
-        ON CONFLICT (user_id) DO UPDATE SET full_name = EXCLUDED.full_name;
-      `, [id, full_name]);
-      
-    } else if (role === 'alumni') {
-      await client.query('DELETE FROM professors WHERE user_id = $1', [id]);
-      await client.query(`
-        INSERT INTO alumni_profiles (user_id) VALUES ($1) 
-        ON CONFLICT (user_id) DO NOTHING;
-      `, [id]);
-      
-    } else if (role === 'admin') {
-      await client.query('DELETE FROM alumni_profiles WHERE user_id = $1', [id]);
-      await client.query('DELETE FROM professors WHERE user_id = $1', [id]);
-    }
-
-    await client.query('COMMIT');
-    return res.json({ message: 'Usuario actualizado y reasignado exitosamente.', user: updatedUser });
-
+    return res.json({ message: 'Usuario actualizado exitosamente.', user: updatedUser });
   } catch (error) {
-    await client.query('ROLLBACK');
     console.error(`[ERROR] Failed to update user with ID ${id}:`, error);
-    return res.status(500).json({ message: 'Error al actualizar.' });
-  } finally {
-    client.release();
+    return res.status(500).json({ message: 'Error al actualizar el usuario.' });
   }
 };
   

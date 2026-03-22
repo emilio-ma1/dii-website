@@ -1,28 +1,47 @@
 /**
- * @file Rutas de Noticias (newsRoutes).
+ * @file newsRoutes.js
  * @description
- * Define los endpoints de la API para la gestión de noticias.
- * Separa claramente el acceso público de lectura del acceso
- * privado (administrador) para la creación de contenido.
+ * Defines API endpoints for news and community engagement management.
  */
 const express = require('express');
 const router = express.Router();
 
-// Importación de Controladores y Middlewares
-const { getNews, createNews } = require('../controllers/newsController');
+// Importamos todas las funciones del controlador
+const { 
+  getNews, 
+  createNews, 
+  updateNews, 
+  deleteNews 
+} = require('../controllers/newsController');
+
+// Importamos los middlewares de seguridad
 const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 
 /**
- * Endpoint público para obtener el listado de noticias.
- * Método: GET /api/news
+ * Public endpoint to fetch all news.
+ * Method: GET /api/news
  */
 router.get('/', getNews);
 
 /**
- * Endpoint privado para crear una nueva publicación/noticia.
- * Método: POST /api/news
- * Seguridad: Requiere autenticación (JWT) y rol de administrador.
+ * Private endpoint to create a new news item.
+ * Requires authentication and admin privileges.
+ * Method: POST /api/news
  */
 router.post('/', verifyToken, verifyAdmin, createNews);
+
+/**
+ * Private endpoint to update an existing news item.
+ * Requires authentication and admin privileges.
+ * Method: PUT /api/news/:id
+ */
+router.put('/:id', verifyToken, verifyAdmin, updateNews);
+
+/**
+ * Private endpoint to delete a news item.
+ * Requires authentication and admin privileges.
+ * Method: DELETE /api/news/:id
+ */
+router.delete('/:id', verifyToken, verifyAdmin, deleteNews);
 
 module.exports = router;

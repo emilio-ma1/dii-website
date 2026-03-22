@@ -108,12 +108,6 @@ const register = async (req, res) => {
     const userResult = await client.query(insertUserQuery, [full_name, email, passwordHash, assignedRole]);
     const newUser = userResult.rows[0];
 
-    if (assignedRole === 'teacher') {
-      await client.query('INSERT INTO professors (user_id, full_name) VALUES ($1, $2)', [newUser.id, full_name]);
-    } else if (assignedRole === 'alumni') {
-      await client.query('INSERT INTO alumni_profiles (user_id) VALUES ($1)', [newUser.id]);
-    }
-
     await client.query('COMMIT');
     return res.status(201).json({ message: 'Usuario y perfil creados exitosamente.', user: newUser });
 

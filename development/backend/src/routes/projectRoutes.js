@@ -1,38 +1,47 @@
 /**
  * @file projectRoutes.js
- * @description
- * Define los endpoints de la API para la gestión de proyectos de investigación.
+ * @description 
+ * Defines the HTTP routes for the research projects module.
+ * Maps endpoints to their respective controller functions and applies authentication middleware.
  */
 const express = require('express');
 const router = express.Router();
 
-// Importamos el controlador
 const { 
-  createProject, 
   getAllProjects, 
-  getProjectById 
+  createProject, 
+  updateProject, 
+  deleteProject 
 } = require('../controllers/projectController');
 
-// Importamos los middlewares de seguridad
-const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
+const { verifyToken } = require('../middlewares/authMiddleware'); 
 
 /**
- * Endpoint público para obtener el catálogo de proyectos.
- * Método: GET /api/projects
+ * @route GET /api/projects
+ * @description Retrieves the list of all research projects including their authors.
+ * @access Public
  */
 router.get('/', getAllProjects);
 
 /**
- * Endpoint público para obtener el detalle de un proyecto específico.
- * Método: GET /api/projects/:id
+ * @route POST /api/projects
+ * @description Creates a new research project and links the assigned authors.
+ * @access Private (Requires authentication token)
  */
-router.get('/:id', getProjectById);
+router.post('/', verifyToken, createProject);
 
 /**
- * Endpoint privado para crear un nuevo proyecto.
- * Protegido por autenticación y autorización de administrador.
- * Método: POST /api/projects
+ * @route PUT /api/projects/:id
+ * @description Updates an existing research project and refreshes its authors list.
+ * @access Private (Requires authentication token)
  */
-router.post('/', verifyToken, verifyAdmin, createProject);
+router.put('/:id', verifyToken, updateProject);
+
+/**
+ * @route DELETE /api/projects/:id
+ * @description Deletes a research project from the system by its ID.
+ * @access Private (Requires authentication token)
+ */
+router.delete('/:id', verifyToken, deleteProject);
 
 module.exports = router;
