@@ -153,27 +153,41 @@ function SectionIcon({ color }) {
  * @returns {JSX.Element} La tarjeta de contacto renderizada.
  */
 function ContactCard({ contact, accentColor, onOpen }) {
+  const isDirector = contact.role.toLowerCase().includes("director");
+
+  const cardContent = (
+    <div className="flex items-start gap-4">
+      <span
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+        style={{ backgroundColor: accentColor }}
+      >
+        {contact.initials}
+      </span>
+
+      <div>
+        <h3 className="text-lg font-bold leading-tight text-[#722b4d]">
+          {contact.fullName}
+        </h3>
+        <p className="mt-1 text-sm text-gray-600">{contact.role}</p>
+      </div>
+    </div>
+  );
+
+  if (isDirector) {
+    return (
+      <article className="w-full rounded-md border border-black/10 bg-white p-4 text-left shadow-sm">
+        {cardContent}
+      </article>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={() => onOpen(contact)}
       className="w-full rounded-md border border-black/10 bg-white p-4 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
     >
-      <div className="flex items-start gap-4">
-        <span
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-          style={{ backgroundColor: accentColor }}
-        >
-          {contact.initials}
-        </span>
-
-        <div>
-          <h3 className="text-lg font-bold leading-tight text-[#722b4d]">
-            {contact.fullName}
-          </h3>
-          <p className="mt-1 text-sm text-gray-600">{contact.role}</p>
-        </div>
-      </div>
+      {cardContent}
     </button>
   );
 }
