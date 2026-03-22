@@ -5,6 +5,7 @@ import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 
 import Navbar from "./components/navbar.jsx";
 import Footer from "./components/footer.jsx";
+import ScrollToTopButton from "./components/ScrollToTopButton.jsx";
 
 import AdminLayout from "./admin/AdminLayout.jsx";
 //import AdminDashboard from "./admin/AdminDashboard.jsx";
@@ -25,12 +26,11 @@ import QuienesSomos from "./pages/QuienesSomos.jsx";
 import Noticias from "./pages/Noticias.jsx";
 import Estudiantes from "./pages/Estudiantes.jsx";
 import Docentes from "./pages/Docentes.jsx";
-import Industrial from "./pages/Industrial.jsx";
-import Computacion from "./pages/Computacion.jsx";
 import Login from "./pages/Login.jsx";
 import VinculacionConElMedio from "./pages/VinculacionconelMedio.jsx";
 import VinculacionDetalle from "./pages/VinculacionDetalle.jsx";
 import InvestigacionDetalle from "./pages/InvestigacionDetalle.jsx";
+import RecuperarPassword from "./pages/RecuperarContrasena.jsx";
 import { AuthProvider } from "./auth/authContext.jsx";
 
 
@@ -58,6 +58,7 @@ function Layout() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
+      <ScrollToTopButton />
       <main className="flex-1 pt-20 pb-12">
         <Outlet />
       </main>
@@ -95,15 +96,13 @@ export default function App() {
         {/* comunidad académica */}
         <Route path="estudiantes" element={<Estudiantes />} />
         <Route path="docentes" element={<Docentes />} />
-        {/* carreras */}
-        <Route path="industrial" element={<Industrial />} />
-        <Route path="computacion" element={<Computacion />} />
         {/* autenticación */}
         <Route path="login" element={<Login />} />
         {/* detalle de proyecto de vinculación */}
         <Route path="vinculacion-con-el-medio" element={<VinculacionConElMedio />} />
         <Route path="vinculacion-con-el-medio-detalle/:id" element={<VinculacionDetalle />} />
         <Route path="investigacion/:id" element={<InvestigacionDetalle />} />
+        <Route path="/recuperar-password" element={<RecuperarPassword />} />
       </Route>
 
         {/* rutas protegidas del panel administrativo */}

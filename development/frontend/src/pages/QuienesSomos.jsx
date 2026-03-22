@@ -137,11 +137,11 @@ function EquipmentSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 max-w-4xl sm:mb-14">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#722b4d]/80">
-            Infraestructura
+            Equipamiento del Departamento
           </p>
 
           <h2 className="mt-3 text-3xl font-extrabold leading-tight text-[#722b4d] sm:text-4xl lg:text-5xl">
-            Equipamiento del Departamento
+            Infraestructura
           </h2>
 
           <p className="mt-4 max-w-3xl text-sm leading-7 text-gray-600 sm:text-base sm:leading-8 lg:text-lg">

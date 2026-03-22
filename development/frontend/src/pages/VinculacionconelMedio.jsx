@@ -202,17 +202,17 @@ export default function VinculacionConElMedio() {
               </FilterButton>
 
               <FilterButton
-                active={activeFilter === "in_progress"}
-                onClick={() => setActiveFilter("in_progress")}
+                active={activeFilter === "current"}
+                onClick={() => setActiveFilter("current")}
               >
-                En proceso
+                Vigente
               </FilterButton>
 
               <FilterButton
-                active={activeFilter === "completed"}
-                onClick={() => setActiveFilter("completed")}
+                active={activeFilter === "not_current"}
+                onClick={() => setActiveFilter("not_current")}
               >
-                Completado
+                No vigente
               </FilterButton>
             </div>
           </div>

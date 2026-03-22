@@ -36,9 +36,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Sección superior con logos institucionales */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          {/* Logo institucional */}
           <div className="flex justify-center md:justify-start">
             <FooterImage
               src="/images/logo-footer.png"
@@ -46,15 +44,21 @@ export default function Footer() {
               heightClass="h-[98px]"
             />
           </div>
-          {/* Imagen de contacto por unidades */}
+
           <div className="flex justify-center">
+            <a
+              href="https://userena.cl/contactos-uls"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
             <FooterImage
               src="/images/contacto-por-unidades.png"
               alt="Información de contacto por unidades"
               heightClass="h-[115px]"
             />
-          </div>
-          {/* Logo de acreditación CNA */}
+          </a>
+        </div>
+
           <div className="flex justify-center md:justify-end">
             <FooterImage
               src="/images/logo-cna.png"
@@ -63,10 +67,9 @@ export default function Footer() {
             />
           </div>
         </div>
-        {/* Sección inferior con información y créditos */}
+
         <div className="border-t border-gray-700 pt-8">
           <div className="text-center text-xs text-gray-400">
-            {/* Link de acceso a la página de login */}
             <Link
               to="/login"
               className="block text-xs opacity-60 hover:opacity-100 transition"
@@ -75,7 +78,6 @@ export default function Footer() {
             </Link>
 
             <p className="mt-4">© {currentYear} Derechos reservados</p>
-            {/* Créditos de desarrollo */}
             <div className="mt-2">
               <p>Desarrollado por:</p>
               <ul className="mt-1 space-y-0.5">

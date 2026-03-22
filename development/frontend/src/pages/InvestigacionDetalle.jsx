@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom";
+import { useAuth } from "../auth/authContext";
 
 const STATUS_LABELS = {
   in_progress: "En proceso",
@@ -17,6 +18,7 @@ const STATUS_LABELS = {
  */
 export default function InvestigacionDetalle() {
   const { id } = useParams();
+  const { user } = useAuth();
 
   /**
    * Datos de ejemplo
@@ -33,6 +35,7 @@ export default function InvestigacionDetalle() {
       summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
       image: "/images/Inve-ejemplo1.png",
+      pdf_url: "/proyecto-ejemplo-1.pdf",
     },
     "ejemplo-2": {
       id: "ejemplo-2",
@@ -45,6 +48,7 @@ export default function InvestigacionDetalle() {
       summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
       image: "/images/Inve-ejemplo2.jpg",
+      pdf_url: "/proyecto-ejemplo-2.pdf",
     },
     "ejemplo-3": {
       id: "ejemplo-3",
@@ -57,10 +61,14 @@ export default function InvestigacionDetalle() {
       summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
       image: "/images/Inve-ejemplo2.jpg",
+      pdf_url: "proyecto-ejemplo-3.pdf",
     },
   };
 
   const project = fallbackProjects[id];
+
+  const canDownloadProject =
+    user?.role === "egresado" && Boolean(project?.pdf_url);
 
   if (!project) {
     return (
@@ -160,6 +168,17 @@ export default function InvestigacionDetalle() {
                 ))}
             </div>
           </div>
+          {canDownloadProject && (
+              <div className="mt-8 w-full flex justify-center">
+                <a
+                  href={project.pdf_url}
+                  download
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#722b4d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#5e2340]"
+                >
+                  Descargar proyecto
+                </a>
+              </div>
+            )}
         </div>
       </section>
     </div>

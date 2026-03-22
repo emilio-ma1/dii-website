@@ -10,18 +10,33 @@ const MOCK_STUDENTS = [
     fullName: "Estudiante 1",
     specialty: "5to año",
     videoUrlEmbed: "",
+    imageUrl: "/images/foto-docente.png",
+    degree: "Ingeniería Civil Industrial",
+    email: "@userena.cl",
+    projects: ["Proyecto 1", "Proyecto 2"],
+    isProfilePublic: true,
   },
   {
     id: 2,
     fullName: "Estudiante 2",
     specialty: "Egresado 2024",
     videoUrlEmbed: "",
+    imageUrl: "/images/foto-docente.png",
+    degree: "Ingeniería Civil en Computación e Informática",
+    email: "@userena.cl",
+    projects: ["Proyecto 1", "Proyecto 2"],
+    isProfilePublic: false,
   },
   {
     id: 3,
     fullName: "Estudiante 3",
     specialty: "4to Año",
     videoUrlEmbed: "",
+    imageUrl: "/images/foto-docente.png",
+    degree: "Ingeniería Civil Industrial",
+    email: "@userena.cl",
+    projects: [],
+    isProfilePublic: true,
   },
 ];
 
@@ -34,14 +49,12 @@ async function fetchStudents() {
 
 /**
  * Renderiza el hero principal de la página de estudiantes.
- *
- * @returns {JSX.Element} La sección hero renderizada.
  */
 function StudentsHero() {
   return (
     <section className="bg-[#722b4d] text-white">
-      <div className="mx-auto max-w-7xl px-6 pt-28 pb-24 lg:pt-32 lg:pb-28">
-        <div className="max-w-3xl text-center mx-auto">
+      <div className="mx-auto max-w-7xl px-6 pb-24 pt-28 lg:pb-28 lg:pt-32">
+        <div className="mx-auto max-w-3xl text-center">
           <span className="inline-block rounded bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white/90">
             Comunidad
           </span>
@@ -51,7 +64,8 @@ function StudentsHero() {
           </h1>
 
           <p className="mt-6 text-lg leading-8 text-white/80 sm:text-xl">
-            Presencia los testimonios y experiencias de los estudiantes que estudian y estudiaron en las carreras de este departamento.
+            Presencia los testimonios y experiencias de los estudiantes que
+            estudian y estudiaron en las carreras de este departamento.
           </p>
         </div>
       </div>
@@ -60,40 +74,193 @@ function StudentsHero() {
 }
 
 /**
- * Renderiza una tarjeta testimonial con la información y video de un estudiante.
- *
- * @param {Object} props - Propiedades del componente.
- * @param {Object} props.student - Información del estudiante.
- * @param {string} props.student.fullName - Nombre completo del estudiante.
- * @param {string} props.student.specialty - Curso, generación o categoría del estudiante.
- * @param {string} props.student.videoUrlEmbed - URL del video testimonial.
- * @returns {JSX.Element} La tarjeta testimonial renderizada.
+ * Modal cuando el perfil es público
  */
-function StudentTestimonialCard({ student }) {
+function StudentModal({ student, onClose }) {
+  if (!student) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="bg-[#722b4d] px-6 py-5 text-white">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar modal"
+            className="absolute right-5 top-5 text-2xl leading-none text-white/90 transition hover:text-white"
+          >
+            x
+          </button>
+
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-white/20 bg-white/10 shadow-sm">
+              <img
+                src={student.imageUrl}
+                alt={student.fullName}
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div>
+              <h3 className="text-3xl font-extrabold leading-tight">
+                {student.fullName}
+              </h3>
+
+              <p className="mt-1 text-base text-white/90">{student.degree}</p>
+
+              <p className="mt-1 text-base text-white/90">{student.specialty}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-8 px-6 py-7">
+          <div>
+            <p className="text-sm font-extrabold uppercase tracking-wide text-[#722b4d]/80">
+              Contacto
+            </p>
+            <p className="mt-3 text-base text-gray-700">{student.email}</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-extrabold uppercase tracking-wide text-[#722b4d]/80">
+              Proyectos involucrados
+            </p>
+
+            <div className="mt-4 space-y-3">
+              {student.projects && student.projects.length > 0 ? (
+                student.projects.map((project, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5"
+                  >
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#722b4d]" />
+                    <span className="text-sm text-gray-700">{project}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">
+                  No hay proyectos asociados.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl bg-[#722b4d] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Modal cuando el perfil es privado
+ */
+function PrivateProfileModal({ student, onClose }) {
+  if (!student) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="bg-[#722b4d] px-6 py-5 text-white">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar modal"
+            className="absolute right-5 top-5 text-2xl leading-none text-white/90 transition hover:text-white"
+          >
+            x
+          </button>
+
+          <div className="flex items-center gap-4">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-3xl font-bold text-white shadow-sm">
+              {student.fullName?.charAt(0)?.toUpperCase() || "E"}
+            </div>
+
+            <div>
+              <h3 className="text-3xl font-extrabold leading-tight">
+                Perfil privado
+              </h3>
+              <p className="mt-2 text-base text-white/90">
+                {student.fullName} ha decidido mantener su información privada.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 py-7">
+          <p className="text-base leading-7 text-gray-600">
+            Este egresado no tiene su perfil disponible para visualización
+            pública en este momento.
+          </p>
+
+          <div className="mt-8 flex justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl bg-[#722b4d] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Renderiza una tarjeta testimonial con la información y video de un estudiante.
+ */
+function StudentTestimonialCard({ student, onOpenModal }) {
   const hasVideo = Boolean(
     student.videoUrlEmbed && student.videoUrlEmbed.trim().length > 0
   );
 
   return (
-    <article className="rounded-xl bg-white shadow-md border border-black/5 overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <div className="flex items-center justify-between gap-4 px-5 pt-5 pb-4">
+    <article className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <div className="flex items-center justify-between gap-4 px-5 pb-4 pt-5">
         <div>
-          <h3 className="text-xl font-bold text-[#722b4d] leading-tight">
+          <button
+            type="button"
+            onClick={() => onOpenModal(student)}
+            className="text-left text-xl font-bold leading-tight text-[#722b4d] transition hover:text-[#722b4d]"
+          >
             {student.fullName}
-          </h3>
+          </button>
+
           <p className="mt-1 text-sm font-semibold text-[#1f78c1]">
             {student.specialty}
           </p>
         </div>
 
-        <span className="text-5xl leading-none text-[#722b4d]/10 font-bold">
+        <span className="text-5xl font-bold leading-none text-[#722b4d]/10">
           ”
         </span>
       </div>
 
       <div className="px-5 pb-5">
         {hasVideo ? (
-          <div className="overflow-hidden rounded-lg bg-black aspect-video">
+          <div className="aspect-video overflow-hidden rounded-lg bg-black">
             <iframe
               className="h-full w-full"
               src={student.videoUrlEmbed}
@@ -103,7 +270,7 @@ function StudentTestimonialCard({ student }) {
             />
           </div>
         ) : (
-          <div className="flex aspect-video items-center justify-center rounded-lg bg-gray-100 border border-gray-200">
+          <div className="flex aspect-video items-center justify-center rounded-lg border border-gray-200 bg-gray-100">
             <p className="text-sm text-gray-500">Video no disponible</p>
           </div>
         )}
@@ -114,17 +281,11 @@ function StudentTestimonialCard({ student }) {
 
 /**
  * Renderiza la página de testimonios de estudiantes.
- *
- * Responsabilidades:
- * - Obtener la lista de estudiantes.
- * - Mostrar estado de carga mientras se resuelven los datos.
- * - Renderizar testimonios disponibles o un mensaje vacío cuando no existan registros.
- *
- * @returns {JSX.Element} La página de estudiantes renderizada.
  */
 export default function Estudiantes() {
   const [students, setStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
     async function loadStudents() {
@@ -142,9 +303,27 @@ export default function Estudiantes() {
     loadStudents();
   }, []);
 
+  useEffect(() => {
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setSelectedStudent(null);
+      }
+    }
+
+    if (selectedStudent) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "auto";
+    };
+  }, [selectedStudent]);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <p className="text-gray-600">Cargando estudiantes...</p>
       </div>
     );
@@ -182,12 +361,29 @@ export default function Estudiantes() {
           ) : (
             <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
               {students.map((student) => (
-                <StudentTestimonialCard key={student.id} student={student} />
+                <StudentTestimonialCard
+                  key={student.id}
+                  student={student}
+                  onOpenModal={setSelectedStudent}
+                />
               ))}
             </div>
           )}
         </div>
       </section>
+
+      {selectedStudent &&
+        (selectedStudent.isProfilePublic ? (
+          <StudentModal
+            student={selectedStudent}
+            onClose={() => setSelectedStudent(null)}
+          />
+        ) : (
+          <PrivateProfileModal
+            student={selectedStudent}
+            onClose={() => setSelectedStudent(null)}
+          />
+        ))}
     </div>
   );
 }
