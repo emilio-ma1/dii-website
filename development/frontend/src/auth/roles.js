@@ -29,6 +29,7 @@ export const MENU_BY_ROLE = {
     { label: "Gestión de Estudiantes", to: "/admin/estudiantes" },
     { label: "Gestión de Contacto", to: "/admin/contacto" },
     { label: "Gestión de Equipamiento", to: "/admin/equipamiento" },
+    { label: "Trazabilidad", to: "/admin/trazabilidad" },
   ],
 
   [ROLES.EGRESADO]: [
