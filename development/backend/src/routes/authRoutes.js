@@ -1,28 +1,30 @@
 /**
- * @file Rutas de Autenticación (authRoutes).
+ * @file authRoutes.js
  * @description
- * Define los endpoints de la API para el inicio de sesión y el registro de usuarios.
- * Aplica los middlewares de seguridad correspondientes para proteger el acceso
- * a la creación de nuevas cuentas.
+ * Defines API endpoints for user authentication and registration.
+ * Applies security middlewares to protect the creation of new accounts,
+ * ensuring only authorized personnel can provision access.
  */
 const express = require('express');
 const router = express.Router();
 
-// Controladores y Middlewares
+// Controllers and Middlewares
 const { login, register } = require('../controllers/authController');
 const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 
 /**
- * Endpoint público para iniciar sesión.
- * Método: POST /login
+ * @route POST /api/auth/login
+ * @description Public endpoint to authenticate a user and issue a JWT session token.
+ * @access Public
  */
 router.post('/login', login);
 
 /**
- * Endpoint privado para registrar un nuevo usuario (egresado o admin).
- * Método: POST /register
- * Seguridad: Requiere un token JWT válido y permisos de administrador.
+ * @route POST /api/auth/register
+ * @description Private endpoint to register a new user (admin, teacher, or alumni).
+ * @access Private (Requires valid JWT and Admin privileges)
  */
+// Strict security enforced for account creation
 router.post('/register', verifyToken, verifyAdmin, register);
 
 module.exports = router;

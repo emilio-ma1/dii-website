@@ -2,11 +2,12 @@
  * @file newsRoutes.js
  * @description
  * Defines API endpoints for news and community engagement management.
+ * Maps endpoints to their respective controller functions and applies security middlewares.
  */
 const express = require('express');
 const router = express.Router();
 
-// Importamos todas las funciones del controlador
+// Import controller functions
 const { 
   getNews, 
   createNews, 
@@ -15,36 +16,42 @@ const {
   getNewsBySlug
 } = require('../controllers/newsController');
 
-// Importamos los middlewares de seguridad
+// Import security middlewares
 const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 
 /**
- * Public endpoint to fetch all news.
- * Method: GET /api/news
+ * @route GET /api/news
+ * @description Retrieves a list of all news and events.
+ * @access Public
  */
 router.get('/', getNews);
 
 /**
- * Private endpoint to create a new news item.
- * Requires authentication and admin privileges.
- * Method: POST /api/news
+ * @route GET /api/news/slug/:slug
+ * @description Retrieves a specific news item by its unique URL-friendly slug.
+ * @access Public
+ */
+router.get('/slug/:slug', getNewsBySlug);
+
+/**
+ * @route POST /api/news
+ * @description Creates a new news item or event.
+ * @access Private (Requires Admin privileges)
  */
 router.post('/', verifyToken, verifyAdmin, createNews);
 
 /**
- * Private endpoint to update an existing news item.
- * Requires authentication and admin privileges.
- * Method: PUT /api/news/:id
+ * @route PUT /api/news/:id
+ * @description Updates an existing news item by its ID.
+ * @access Private (Requires Admin privileges)
  */
 router.put('/:id', verifyToken, verifyAdmin, updateNews);
 
 /**
- * Private endpoint to delete a news item.
- * Requires authentication and admin privileges.
- * Method: DELETE /api/news/:id
+ * @route DELETE /api/news/:id
+ * @description Deletes a news item from the database.
+ * @access Private (Requires Admin privileges)
  */
 router.delete('/:id', verifyToken, verifyAdmin, deleteNews);
-
-router.get('/slug/:slug', getNewsBySlug);
 
 module.exports = router;

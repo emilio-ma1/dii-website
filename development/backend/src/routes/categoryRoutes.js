@@ -1,7 +1,8 @@
 /**
- * @file Rutas de Categorías (categoryRoutes).
+ * @file categoryRoutes.js
  * @description
- * Define los endpoints de la API para consultar las categorías de los proyectos.
+ * Defines API endpoints for querying project categories.
+ * Provides public access to retrieve research lines for frontend filters and forms.
  */
 const express = require('express');
 const router = express.Router();
@@ -9,8 +10,9 @@ const router = express.Router();
 const { getAllCategories } = require('../controllers/categoryController');
 
 /**
- * Endpoint público para listar las categorías disponibles.
- * Método: GET /
+ * @route GET /api/categories
+ * @description Public endpoint to list all available project categories.
+ * @access Public
  */
 router.get('/', getAllCategories);
 

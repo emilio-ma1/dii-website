@@ -1,12 +1,14 @@
 /**
  * @file professorModel.js
- * @description DAO for the 'professors' entity. Handles joins with users and projects tables.
+ * @description 
+ * Data Access Object (DAO) for the 'professors' entity. 
+ * Handles joins with the users and projects tables to build complete portfolios.
  */
 const pool = require('../config/db');
 
 const ProfessorModel = {
   /**
-   * Retrieves all users with the 'professor' role, including their base user data 
+   * Retrieves all users with the 'teacher' role, including their base user data 
    * and project portfolio if they have a linked profile.
    *
    * @returns {Promise<Array<object>>} List of professor profiles and eligible users.
@@ -40,15 +42,16 @@ const ProfessorModel = {
       return rows;
     } catch (error) {
       console.error('[ERROR] Failed to fetch professors:', error);
-      throw error; // Propagamos el error para no silenciarlo (Swallowing exceptions prohibido)
+      // Propagate error to avoid swallowing exceptions
+      throw error; 
     }
   },
 
   /**
    * Upserts (Inserts or Updates) a professor profile linked to a user account.
    *
-   * @param {object} profileData The professor profile data.
-   * @returns {Promise<object>} The newly created or updated profile.
+   * @param {object} profileData - The professor profile data payload.
+   * @returns {Promise<object>} The newly created or updated profile record.
    * @throws {Error} If the database query fails.
    */
   upsert: async (profileData) => {
@@ -79,16 +82,19 @@ const ProfessorModel = {
 
   /**
    * Deletes a professor profile based on the user_id.
+   * Note: This only deletes the extended profile data, NOT the base user account.
    *
-   * @param {number|string} id The user ID associated with the profile.
-   * @returns {Promise<object>} The deleted profile.
+   * @param {number|string} id - The user ID associated with the profile.
+   * @returns {Promise<object|null>} The deleted profile record, or null if not found.
    * @throws {Error} If the database query fails.
    */
   delete: async (id) => {
     try {
       const query = 'DELETE FROM professors WHERE user_id = $1 RETURNING *;';
       const { rows } = await pool.query(query, [id]);
-      return rows[0];
+      
+      // Explicitly return null if no rows were deleted
+      return rows.length ? rows[0] : null; 
     } catch (error) {
       console.error(`[ERROR] Failed to delete professor for user_id ${id}:`, error);
       throw error;

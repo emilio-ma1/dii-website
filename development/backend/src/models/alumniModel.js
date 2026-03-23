@@ -8,10 +8,10 @@ const pool = require('../config/db');
 
 const AlumniModel = {
   /**
-   * Retrieves ALL users with the 'student' role, pulling their profile data 
+   * Retrieves ALL users with the 'alumni' role, pulling their profile data 
    * (if it exists) and their dynamic project portfolio via LEFT JOINs.
    *
-   * @returns {Promise<Array<object>>} List of all students with nested projects.
+   * @returns {Promise<Array<object>>} List of all alumni with nested projects.
    */
   getAll: async () => {
     try {
@@ -44,16 +44,16 @@ const AlumniModel = {
       return rows;
     } catch (error) {
       console.error('[ERROR] Failed to fetch alumni:', error);
-      throw error;
+      throw error; // Models throw, Controllers catch
     }
   },
 
   /**
    * Upserts (Inserts or Updates) an alumni profile.
-   * Si el perfil no existe lo crea. Si ya existe, lo actualiza.
+   * If the profile does not exist, it creates it. If it exists, it updates it.
    *
-   * @param {object} profileData The alumni profile data.
-   * @returns {Promise<object>} The saved profile.
+   * @param {object} profileData - The alumni profile data payload.
+   * @returns {Promise<object>} The saved profile record.
    */
   upsert: async (profileData) => {
     try {
@@ -87,10 +87,11 @@ const AlumniModel = {
   },
 
   /**
-   * Deletes an alumni profile (Solo borra el perfil, NO la cuenta de usuario).
+   * Deletes an alumni profile.
+   * Note: This only deletes the extended profile data, NOT the base user account.
    *
-   * @param {number|string} id The user ID associated with the profile.
-   * @returns {Promise<object|null>} The deleted profile.
+   * @param {number|string} id - The user ID associated with the profile.
+   * @returns {Promise<object|null>} The deleted profile record, or null if not found.
    */
   delete: async (id) => {
     try {

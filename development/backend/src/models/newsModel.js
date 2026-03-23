@@ -9,18 +9,24 @@ const pool = require('../config/db');
 const NewsModel = {
   /**
    * Retrieves all news records ordered by publication date (descending).
+   * Explicitly selects columns to optimize database performance.
    *
-   * @returns {Promise<Array>} An array of news objects.
+   * @returns {Promise<Array<object>>} An array of news objects.
    * @throws {Error} If the database query fails.
    */
   getAll: async () => {
     try {
-      const query = 'SELECT * FROM news ORDER BY published_at DESC;';
+      // Explicit column selection instead of SELECT *
+      const query = `
+        SELECT id, title, slug, content, image_url, is_active, published_at, created_by 
+        FROM news 
+        ORDER BY published_at DESC;
+      `;
       const { rows } = await pool.query(query);
       return rows;
     } catch (error) {
       console.error('[ERROR] Failed to fetch all news from database:', error);
-      throw error;
+      throw error; // Controllers catch the errors thrown by Models
     }
   },
 
@@ -102,9 +108,22 @@ const NewsModel = {
     }
   },
 
+  /**
+   * Retrieves a specific news post by its unique URL slug.
+   * Used for public-facing detailed views.
+   *
+   * @param {string} slug The unique URL-friendly string.
+   * @returns {Promise<object|null>} The news object, or null if not found.
+   * @throws {Error} If the database query fails.
+   */
   getBySlug: async (slug) => {
     try {
-      const query = 'SELECT * FROM news WHERE slug = $1;';
+      // Explicit column selection
+      const query = `
+        SELECT id, title, slug, content, image_url, is_active, published_at, created_by 
+        FROM news 
+        WHERE slug = $1;
+      `;
       const { rows } = await pool.query(query, [slug]);
       return rows.length ? rows[0] : null;
     } catch (error) {

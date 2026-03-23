@@ -7,7 +7,7 @@
 const pool = require('../config/db');
 
 const ProjectModel = {
-/**
+  /**
    * Retrieves all projects including their associated authors and category name.
    *
    * @returns {Promise<Array<object>>} An array of project objects.
@@ -15,10 +15,11 @@ const ProjectModel = {
    */
   getAll: async () => {
     try {
+      // Explicit column selection instead of p.*
       const query = `
         SELECT 
-          p.*,
-          c.name AS category_name, -- ¡Aquí extraemos el texto de la categoría!
+          p.id, p.title, p.abstract, p.year, p.category_id, p.pdf_url, p.image_url, p.status,
+          c.name AS category_name, -- Extracts the category text
           COALESCE(
             json_agg(
               json_build_object(
@@ -28,10 +29,10 @@ const ProjectModel = {
             ) FILTER (WHERE u.id IS NOT NULL), '[]'
           ) AS authors
         FROM projects p
-        LEFT JOIN categories c ON p.category_id = c.id -- Puente hacia la tabla de categorías
+        LEFT JOIN categories c ON p.category_id = c.id
         LEFT JOIN project_authors pa ON p.id = pa.project_id
         LEFT JOIN users u ON pa.user_id = u.id
-        GROUP BY p.id, c.name -- ¡Importante agrupar también por c.name!
+        GROUP BY p.id, c.name -- Crucial: Group by c.name as well
         ORDER BY p.id DESC;
       `;
       const { rows } = await pool.query(query);
@@ -43,11 +44,43 @@ const ProjectModel = {
   },
 
   /**
+   * Retrieves a specific project by its ID, including its associated authors.
+   *
+   * @param {number|string} id - The unique identifier of the project.
+   * @returns {Promise<object|null>} The project object, or null if not found.
+   * @throws {Error} If the database query fails.
+   */
+  getById: async (id) => {
+    try {
+      // Explicit column selection
+      const query = `
+        SELECT 
+            p.id, p.title, p.abstract, p.year, p.category_id, p.pdf_url, p.image_url, p.status,
+            COALESCE(
+              json_agg(
+                json_build_object('id', u.id, 'name', u.full_name)
+              ) FILTER (WHERE u.id IS NOT NULL), '[]'
+            ) AS authors
+        FROM projects p
+        LEFT JOIN project_authors pa ON p.id = pa.project_id
+        LEFT JOIN users u ON pa.user_id = u.id
+        WHERE p.id = $1
+        GROUP BY p.id;
+      `;
+      const { rows } = await pool.query(query, [id]);
+      return rows.length ? rows[0] : null; // Returns the object directly, not an array
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch project ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
    * Creates a new project and links the assigned authors.
    * Executes within a database transaction to ensure data integrity.
    *
-   * @param {object} projectData The details of the project to insert.
-   * @param {Array<number|string>} authorIds An array of user IDs to link as authors.
+   * @param {object} projectData - The details of the project to insert.
+   * @param {Array<number>} authorIds - An array of user IDs to link as authors.
    * @returns {Promise<object>} The newly created project record.
    * @throws {Error} If the database transaction fails.
    */
@@ -93,10 +126,10 @@ const ProjectModel = {
    * Updates an existing project and refreshes its associated authors.
    * Executes within a database transaction to prevent duplicate links.
    *
-   * @param {number|string} id The unique identifier of the project.
-   * @param {object} projectData The updated project details.
-   * @param {Array<number|string>} authorIds An array of user IDs to link as authors.
-   * @returns {Promise<object>} The updated project data including the ID.
+   * @param {number|string} id - The unique identifier of the project.
+   * @param {object} projectData - The updated project details.
+   * @param {Array<number>} authorIds - An array of user IDs to link as authors.
+   * @returns {Promise<object>} The updated project record from the database.
    * @throws {Error} If the database transaction fails.
    */
   update: async (id, projectData, authorIds) => {
@@ -113,7 +146,9 @@ const ProjectModel = {
         projectData.title, projectData.abstract, projectData.year, 
         projectData.category_id, projectData.pdf_url, projectData.image_url, projectData.status, id
       ];
-      await client.query(updateQuery, values);
+      // Capture the actual returning row from the DB
+      const res = await client.query(updateQuery, values);
+      const updatedProject = res.rows[0];
       
       await client.query('DELETE FROM project_authors WHERE project_id = $1', [id]);
 
@@ -127,7 +162,7 @@ const ProjectModel = {
       }
 
       await client.query('COMMIT');
-      return { id, ...projectData }; 
+      return updatedProject; // Returns the true DB representation
     } catch (error) {
       await client.query('ROLLBACK');
       console.error(`[ERROR] Failed to update project ID ${id}:`, error);
@@ -141,7 +176,7 @@ const ProjectModel = {
    * Deletes a project from the database.
    * Relies on the ON DELETE CASCADE constraint to clean up the project_authors table automatically.
    *
-   * @param {number|string} id The unique identifier of the project to delete.
+   * @param {number|string} id - The unique identifier of the project to delete.
    * @returns {Promise<object|null>} The deleted project record, or null if not found.
    * @throws {Error} If the database deletion fails.
    */
@@ -154,31 +189,7 @@ const ProjectModel = {
       console.error(`[ERROR] Failed to delete project ID ${id}:`, error);
       throw error;
     }
-  },
-  
-  getById: async (id) => {
-    try {
-      const query = `
-        SELECT 
-            p.*, 
-            COALESCE(
-              json_agg(
-                json_build_object('id', u.id, 'name', u.full_name)
-              ) FILTER (WHERE u.id IS NOT NULL), '[]'
-            ) AS authors
-        FROM projects p
-        LEFT JOIN project_authors pa ON p.id = pa.project_id
-        LEFT JOIN users u ON pa.user_id = u.id
-        WHERE p.id = $1
-        GROUP BY p.id;
-      `;
-      const { rows } = await pool.query(query, [id]);
-      return rows.length ? rows[0] : null; // Devolvemos el objeto, no un arreglo
-    } catch (error) {
-      console.error(`[ERROR] Failed to fetch project ID ${id}:`, error);
-      throw error;
-    }
-  },
+  }
 };
 
 module.exports = ProjectModel;

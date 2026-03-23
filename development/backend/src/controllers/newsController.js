@@ -5,6 +5,7 @@
  * Interacts with NewsModel for database transactions. Adheres to Thin Controller principles.
  */
 const NewsModel = require('../models/newsModel');
+const AuditLogModel = require('../models/auditLogModel');
 
 /**
  * Generates a URL-friendly slug from a text string.
@@ -33,7 +34,7 @@ const createSlug = (text) => {
 const getNews = async (req, res) => {
   try {
     const newsList = await NewsModel.getAll();
-    return res.json(newsList);
+    return res.status(200).json(newsList);
   } catch (error) {
     console.error('[ERROR] Failed to fetch news list from database:', error);
     return res.status(500).json({ message: 'Error interno del servidor al obtener las noticias.' });
@@ -46,7 +47,6 @@ const getNews = async (req, res) => {
  * @param {object} req Express HTTP request object.
  * @param {object} res Express HTTP response object.
  * @returns {Promise<object>} JSON response with the created news or an error message.
- * @throws {Error} Implicitly catches database errors and returns 500.
  */
 const createNews = async (req, res) => {
   const { title, content, image_url, is_active } = req.body;
@@ -70,9 +70,19 @@ const createNews = async (req, res) => {
       isActive
     ); 
     
+    if (req.user && req.user.id) {
+      await AuditLogModel.logAction(
+        req.user.id,
+        'CREATE',
+        'news',
+        newPost.id,
+        { title: newPost.title }
+      );
+    }
+
     return res.status(201).json({ message: 'Noticia creada exitosamente.', news: newPost });
   } catch (error) {
-    console.error('[ERROR] Failed to create news post:', error.message);
+    console.error('[ERROR] Failed to create news post:', error);
     return res.status(500).json({ message: 'Error interno del servidor al crear la noticia.' });
   }
 };
@@ -83,31 +93,39 @@ const createNews = async (req, res) => {
  * @param {object} req Express HTTP request object.
  * @param {object} res Express HTTP response object.
  * @returns {Promise<object>} JSON response with success message.
- * @throws {Error} Implicitly catches database errors and returns 500.
  */
 const updateNews = async (req, res) => {
   const { id } = req.params;
-  const { title, content, image_url, is_active } = req.body;
+  const { title, content, image_url, is_active, slug } = req.body;
 
   if (!title || !content) {
     return res.status(400).json({ message: 'El título y el contenido son campos obligatorios.' });
   }
 
   try {
-    // Si editan el título, regeneramos el slug
-    const generatedSlug = `${createSlug(title)}-${Date.now()}`;
+    const finalSlug = slug ? slug : createSlug(title);
     
     const updatedPost = await NewsModel.update(
-      id, title, generatedSlug, content, image_url || null, is_active
+      id, title, finalSlug, content, image_url || null, is_active
     );
     
     if (!updatedPost) {
        return res.status(404).json({ message: 'Noticia no encontrada.' });
     }
+
+    if (req.user && req.user.id) {
+      await AuditLogModel.logAction(
+        req.user.id,
+        'UPDATE',
+        'news',
+        id,
+        { title: updatedPost.title, status: updatedPost.is_active }
+      );
+    }
     
     return res.status(200).json({ message: 'Noticia actualizada exitosamente.', news: updatedPost });
   } catch (error) {
-    console.error(`[ERROR] Failed to update news ID ${id}:`, error.message);
+    console.error(`[ERROR] Failed to update news ID ${id}:`, error);
     return res.status(500).json({ message: 'Error interno del servidor al actualizar la noticia.' });
   }
 };
@@ -118,7 +136,6 @@ const updateNews = async (req, res) => {
  * @param {object} req Express HTTP request object.
  * @param {object} res Express HTTP response object.
  * @returns {Promise<object>} JSON response confirming deletion.
- * @throws {Error} Implicitly catches database errors and returns 500.
  */
 const deleteNews = async (req, res) => {
   const { id } = req.params;
@@ -128,13 +145,35 @@ const deleteNews = async (req, res) => {
     if (!deletedPost) {
         return res.status(404).json({ message: 'Noticia no encontrada.' });
     }
+
+    if (req.user && req.user.id) {
+      await AuditLogModel.logAction(
+        req.user.id,
+        'DELETE',
+        'news',
+        id,
+        { 
+          title: deletedPost.title, 
+          deleted_at: new Date().toISOString() 
+        }
+      );
+    }
+
     return res.status(200).json({ message: 'Noticia eliminada exitosamente.' });
   } catch (error) {
-    console.error(`[ERROR] Failed to delete news ID ${id}:`, error.message);
+    console.error(`[ERROR] Failed to delete news ID ${id}:`, error);
     return res.status(500).json({ message: 'Error interno del servidor al eliminar la noticia.' });
   }
 };
 
+/**
+ * Retrieves a specific news post by its unique URL slug.
+ * Used primarily for public-facing detail pages.
+ *
+ * @param {object} req Express HTTP request object.
+ * @param {object} res Express HTTP response object.
+ * @returns {Promise<object>} JSON response with the news details.
+ */
 const getNewsBySlug = async (req, res) => {
   const { slug } = req.params;
   try {
@@ -144,10 +183,9 @@ const getNewsBySlug = async (req, res) => {
     }
     return res.status(200).json(newsItem);
   } catch (error) {
-    console.error(`[ERROR] Failed to fetch news slug ${slug}:`, error);
+    console.error(`[ERROR] Failed to fetch news by slug ${slug}:`, error);
     return res.status(500).json({ message: 'Error interno al obtener la noticia.' });
   }
 };
 
-  
 module.exports = { getNews, createNews, updateNews, deleteNews, getNewsBySlug };

@@ -15,7 +15,7 @@ const {
   deleteProject
 } = require('../controllers/projectController');
 
-const { verifyToken } = require('../middlewares/authMiddleware'); 
+const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware'); 
 
 /**
  * @route GET /api/projects
@@ -34,22 +34,22 @@ router.get('/:id', getProjectById);
 /**
  * @route POST /api/projects
  * @description Creates a new research project and links the assigned authors.
- * @access Private (Requires authentication token)
+ * @access Private (Requires Admin privileges)
  */
-router.post('/', verifyToken, createProject);
+router.post('/', verifyToken, verifyAdmin, createProject);
 
 /**
  * @route PUT /api/projects/:id
  * @description Updates an existing research project and refreshes its authors list.
- * @access Private (Requires authentication token)
+ * @access Private (Requires Admin privileges)
  */
-router.put('/:id', verifyToken, updateProject);
+router.put('/:id', verifyToken, verifyAdmin, updateProject);
 
 /**
  * @route DELETE /api/projects/:id
  * @description Deletes a research project from the system by its ID.
- * @access Private (Requires authentication token)
+ * @access Private (Requires Admin privileges)
  */
-router.delete('/:id', verifyToken, deleteProject);
+router.delete('/:id', verifyToken, verifyAdmin, deleteProject);
 
 module.exports = router;
