@@ -3,95 +3,111 @@ import { useAuth } from "../auth/authContext";
 import { PERMISSIONS } from "../auth/permisos";
 
 const DEFAULT_PERMISSIONS = {
-  createTeacher: false,
-  editTeacher: false,
-  deleteTeacher: false,
+  createEquipment: false,
+  editEquipment: false,
+  deleteEquipment: false,
 };
 
-const DEFAULT_TEACHER_IMAGE = "/images/foto-docente.png";
+const DEFAULT_ACCENT_COLOR = "#722b4d";
+const DEFAULT_EQUIPMENT_IMAGE = "/images/impresora3d.jpg";
 
 const EMPTY_FORM = {
-  id: "",
-  fullName: "",
-  role: "",
-  area: "",
-  email: "",
-  degree: "",
-  projectsText: "",
-  imageUrl: "",
+  title: "",
+  description: "",
+  imageSrc: "",
 };
 
 /**
- * Obtiene una URL de imagen válida para el docente.
+ * Construye el texto alternativo de la imagen a partir del título del equipo.
  *
- * @param {string} imageUrl
+ * @param {string} title
  * @returns {string}
  */
-function resolveTeacherImageUrl(imageUrl) {
-  return imageUrl?.trim() || DEFAULT_TEACHER_IMAGE;
+function buildEquipmentImageAlt(title) {
+  return `Imagen de ${title.trim()}`;
 }
 
 /**
- * Estado vacío para cuando no existen docentes registrados.
+ * Resuelve la URL de imagen final del equipamiento.
  *
- * @returns {JSX.Element}
+ * @param {string} imageSrc
+ * @returns {string}
  */
+function resolveEquipmentImageSrc(imageSrc) {
+  return imageSrc.trim() || DEFAULT_EQUIPMENT_IMAGE;
+}
+
+/**
+ * Construye un objeto de equipamiento a partir de los datos del formulario.
+ *
+ * @param {object} formData
+ * @param {boolean} isEditing
+ * @param {string|null} editingId
+ * @returns {{
+ *   id?: string,
+ *   title: string,
+ *   description: string,
+ *   imageSrc: string,
+ *   imageAlt: string,
+ *   accentColor: string
+ * }}
+ */
+function buildNormalizedEquipment(formData, isEditing, editingId) {
+  const normalizedTitle = formData.title.trim();
+
+  return {
+    ...(isEditing && editingId ? { id: editingId } : {}),
+    title: normalizedTitle,
+    description: formData.description.trim(),
+    imageSrc: resolveEquipmentImageSrc(formData.imageSrc),
+    imageAlt: buildEquipmentImageAlt(normalizedTitle),
+    accentColor: DEFAULT_ACCENT_COLOR,
+  };
+}
+
 function EmptyState() {
   return (
     <div className="rounded-2xl border border-dashed border-[#722b4d]/20 bg-white p-8 text-center text-gray-500">
-      No hay docentes registrados todavía.
+      No hay equipamiento registrado todavía.
     </div>
   );
 }
 
-/**
- * Tarjeta visual para mostrar la información resumida de un docente.
- *
- * @param {object} props
- * @param {object} props.teacher
- * @param {Function} props.onEdit
- * @param {Function} props.onDelete
- * @param {object} props.permissions
- * @returns {JSX.Element}
- */
-function TeacherCard({ teacher, onEdit, onDelete, permissions }) {
+function EquipmentCard({ item, onEdit, onDelete, permissions }) {
   return (
     <article className="rounded-2xl border border-[#722b4d]/20 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="h-24 w-24 overflow-hidden rounded-full bg-[#722b4d]/10 ring-2 ring-[#722b4d]/10">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+        <div className="h-32 w-full overflow-hidden rounded-xl bg-gray-100 lg:w-40 lg:min-w-40">
           <img
-            src={resolveTeacherImageUrl(teacher.imageUrl)}
-            alt={teacher.fullName}
+            src={item.imageSrc}
+            alt={item.imageAlt}
             className="h-full w-full object-cover"
           />
         </div>
 
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-[#722b4d]">
-            {teacher.fullName}
-          </h3>
-          <p className="mt-1 text-sm font-medium text-[#1f75b8]">
-            {teacher.role}
+          <h3 className="text-2xl font-bold text-[#722b4d]">{item.title}</h3>
+
+          <p className="mt-3 text-sm leading-7 text-gray-600">
+            {item.description}
           </p>
-          <p className="mt-2 text-sm text-gray-600">{teacher.area}</p>
-          <p className="mt-1 text-sm text-gray-500">{teacher.email}</p>
         </div>
 
-        <div className="flex items-center gap-3 self-end md:self-center">
-          {permissions.editTeacher && (
+        <div className="flex items-center gap-3 self-end lg:self-center">
+          {permissions.editEquipment && (
             <button
               type="button"
-              onClick={() => onEdit(teacher)}
+              onClick={() => onEdit(item)}
               className="rounded-lg px-3 py-2 text-sm font-medium text-[#1f75b8] transition hover:bg-[#1f75b8]/10"
             >
               Editar
             </button>
           )}
 
-          {permissions.deleteTeacher && (
+          {permissions.deleteEquipment && (
             <button
               type="button"
-              onClick={() => onDelete(teacher.id)}
+              onClick={() => onDelete(item.id)}
               className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
             >
               Eliminar
@@ -103,34 +119,23 @@ function TeacherCard({ teacher, onEdit, onDelete, permissions }) {
   );
 }
 
-/**
- * Formulario reutilizable para crear o editar docentes.
- *
- * @param {object} props
- * @param {object} props.formData
- * @param {Function} props.onChange
- * @param {Function} props.onSubmit
- * @param {Function} props.onCancel
- * @param {boolean} props.isEditing
- * @returns {JSX.Element}
- */
-function TeacherForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
+function EquipmentForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
   return (
     <form
       onSubmit={onSubmit}
       className="rounded-2xl border border-[#722b4d]/30 bg-white p-6 shadow-sm"
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Nombre completo
+            Título
           </label>
           <input
             type="text"
-            name="fullName"
-            value={formData.fullName}
+            name="title"
+            value={formData.title}
             onChange={onChange}
-            placeholder="Ingresa el nombre completo"
+            placeholder="Ej: Impresora 3D"
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
             required
           />
@@ -138,59 +143,14 @@ function TeacherForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
 
         <div>
           <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Rol
+            Descripción
           </label>
-          <input
-            type="text"
-            name="role"
-            value={formData.role}
+          <textarea
+            name="description"
+            value={formData.description}
             onChange={onChange}
-            placeholder="Ingresa el rol"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Área de especialización
-          </label>
-          <input
-            type="text"
-            name="area"
-            value={formData.area}
-            onChange={onChange}
-            placeholder="Ingresa el área de especialización"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Correo electrónico
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={onChange}
-            placeholder="Ingresa el correo electrónico"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Grado académico
-          </label>
-          <input
-            type="text"
-            name="degree"
-            value={formData.degree}
-            onChange={onChange}
-            placeholder="Ingresa el grado académico"
+            rows={4}
+            placeholder="Descripción del equipamiento"
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
             required
           />
@@ -202,29 +162,12 @@ function TeacherForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
           </label>
           <input
             type="text"
-            name="imageUrl"
-            value={formData.imageUrl}
+            name="imageSrc"
+            value={formData.imageSrc}
             onChange={onChange}
-            placeholder="Ingresa la URL de la imagen"
+            placeholder="URL imagen"
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
           />
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Proyectos
-          </label>
-          <textarea
-            name="projectsText"
-            value={formData.projectsText}
-            onChange={onChange}
-            placeholder="Ingresa un proyecto por línea"
-            rows={5}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-          />
-          <p className="mt-2 text-xs text-gray-500">
-            Escribe un proyecto por línea.
-          </p>
         </div>
       </div>
 
@@ -248,78 +191,63 @@ function TeacherForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
   );
 }
 
-
-export default function TeacherManagement() {
+/**
+ * Componente principal para la gestión de equipamiento.
+ *
+ * @param {object} props
+ * @param {Array<object>} props.items 
+ * @param {(equipment: object) => void | Promise<void>} props.onCreate
+ * @param {(id: string, equipment: object) => void | Promise<void>} props.onUpdate
+ * @param {(id: string) => void | Promise<void>} props.onDelete
+ * @returns {JSX.Element}
+ */
+export default function EquipmentManagement({
+  items = [],
+  onCreate,
+  onUpdate,
+  onDelete,
+}) {
   const { user } = useAuth();
 
   const permissions = PERMISSIONS[user?.role] || DEFAULT_PERMISSIONS;
-
-  const [teachers] = useState([]);
-
   const [showForm, setShowForm] = useState(false);
-  const [editingTeacherId, setEditingTeacherId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
 
-  const isEditing = Boolean(editingTeacherId);
+  const isEditing = Boolean(editingId);
 
-  /**
-   * Reinicia el formulario y sale del modo edición.
-   */
   const resetFormState = () => {
     setShowForm(false);
-    setEditingTeacherId(null);
+    setEditingId(null);
     setFormData(EMPTY_FORM);
   };
 
-  /**
-   * Abre el formulario en modo creación.
-   */
-  const handleNewTeacher = () => {
-    setEditingTeacherId(null);
+  const handleNewEquipment = () => {
+    setEditingId(null);
     setFormData(EMPTY_FORM);
     setShowForm(true);
   };
 
-  /**
-   * Carga en el formulario la información del docente seleccionado.
-   *
-   * @param {object} teacher
-   */
-  const handleEditTeacher = (teacher) => {
-    setEditingTeacherId(teacher.id);
-
+  const handleEditEquipment = (item) => {
+    setEditingId(item.id);
     setFormData({
-      id: teacher.id || "",
-      fullName: teacher.fullName || "",
-      role: teacher.role || "",
-      area: teacher.area || "",
-      email: teacher.email || "",
-      degree: teacher.degree || "",
-      projectsText: Array.isArray(teacher.projects)
-        ? teacher.projects.join("\n")
-        : "",
-      imageUrl: teacher.imageUrl || "",
+      title: item.title ?? "",
+      description: item.description ?? "",
+      imageSrc: item.imageSrc ?? "",
     });
-
     setShowForm(true);
   };
 
-
-  const handleDeleteTeacher = () => {
+  const handleDeleteEquipment = async (itemId) => {
+    if (onDelete) {
+      await onDelete(itemId);
+    }
   };
 
-  /**
-   * Cancela la operación actual y reinicia el formulario.
-   */
   const handleCancelForm = () => {
     resetFormState();
   };
 
-  /**
-   * Actualiza el estado del formulario según el campo modificado.
-   *
-   * @param {object} event
-   */
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -329,8 +257,20 @@ export default function TeacherManagement() {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const normalizedEquipment = buildNormalizedEquipment(
+      formData,
+      isEditing,
+      editingId
+    );
+
+    if (isEditing) {
+      await onUpdate?.(editingId, normalizedEquipment);
+    } else {
+      await onCreate?.(normalizedEquipment);
+    }
 
     resetFormState();
   };
@@ -339,23 +279,23 @@ export default function TeacherManagement() {
     <section className="w-full">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-extrabold text-[#722b4d] sm:text-4xl">
-          Gestión de Docentes
+          Gestión de Equipamiento
         </h1>
 
-        {permissions.createTeacher && (
+        {permissions.createEquipment && (
           <button
             type="button"
-            onClick={handleNewTeacher}
+            onClick={handleNewEquipment}
             className="rounded-xl bg-[#722b4d] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-90"
           >
-            + Nuevo Docente
+            + Nuevo Equipamiento
           </button>
         )}
       </div>
 
       <div className="mt-8">
         {showForm ? (
-          <TeacherForm
+          <EquipmentForm
             formData={formData}
             onChange={handleChange}
             onSubmit={handleSubmit}
@@ -364,13 +304,13 @@ export default function TeacherManagement() {
           />
         ) : (
           <div className="space-y-4">
-            {teachers.length > 0 ? (
-              teachers.map((teacher) => (
-                <TeacherCard
-                  key={teacher.id}
-                  teacher={teacher}
-                  onEdit={handleEditTeacher}
-                  onDelete={handleDeleteTeacher}
+            {items.length > 0 ? (
+              items.map((item) => (
+                <EquipmentCard
+                  key={item.id}
+                  item={item}
+                  onEdit={handleEditEquipment}
+                  onDelete={handleDeleteEquipment}
                   permissions={permissions}
                 />
               ))
