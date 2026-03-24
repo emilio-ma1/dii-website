@@ -36,21 +36,17 @@ export function useResearchData(shouldFetch) {
           throw new Error("No se pudieron cargar las dependencias del formulario.");
         }
 
-        // Parse JSON concurrently as well
         const [usersData, catData] = await Promise.all([
           usersRes.json(),
           catRes.json()
         ]);
 
-        // Process Authors (Users filtered by role)
-        const authorsOnly = usersData.filter(u => u.role === 'teacher' || u.role === 'alumni');
-        setAvailableAuthors(authorsOnly.map(u => ({
+        setAvailableAuthors(usersData.map(u => ({
           id: u.id,
           full_name: u.full_name, 
           role: u.role
         })));
 
-        // Process Categories
         setCategories(catData);
 
       } catch (err) {
