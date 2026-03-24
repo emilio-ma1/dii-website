@@ -1,0 +1,136 @@
+/**
+ * @file newsModel.js
+ * @description
+ * Data Access Object (DAO) for the 'news' entity.
+ * Handles database queries and abstracts the data layer from controllers.
+ */
+const pool = require('../config/db');
+
+const NewsModel = {
+  /**
+   * Retrieves all news records ordered by publication date (descending).
+   * Explicitly selects columns to optimize database performance.
+   *
+   * @returns {Promise<Array<object>>} An array of news objects.
+   * @throws {Error} If the database query fails.
+   */
+  getAll: async () => {
+    try {
+      // Explicit column selection instead of SELECT *
+      const query = `
+        SELECT id, title, slug, content, image_url, is_active, published_at, created_by 
+        FROM news 
+        ORDER BY published_at DESC;
+      `;
+      const { rows } = await pool.query(query);
+      return rows;
+    } catch (error) {
+      console.error('[ERROR] Failed to fetch all news from database:', error);
+      throw error; // Controllers catch the errors thrown by Models
+    }
+  },
+
+  /**
+   * Inserts a new news post into the database.
+   *
+   * @param {string} title The title of the news.
+   * @param {string} slug The URL-friendly identifier.
+   * @param {string} content The main body of the news.
+   * @param {string|null} imageUrl The URL of the attached image.
+   * @param {number|null} userId The ID of the admin user creating the post.
+   * @param {boolean} isActive The visibility status of the news.
+   * @returns {Promise<object>} The newly created news object.
+   * @throws {Error} If the database insertion fails.
+   */
+  create: async (title, slug, content, imageUrl, userId, isActive) => {
+    try {
+      const query = `
+        INSERT INTO news (title, slug, content, image_url, created_by, is_active, published_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        RETURNING *;
+      `;
+      const values = [title, slug, content, imageUrl, userId, isActive];
+      
+      const { rows } = await pool.query(query, values);
+      return rows[0];
+    } catch (error) {
+      console.error('[ERROR] Failed to insert news into database:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Updates an existing news post in the database.
+   *
+   * @param {number|string} id The ID of the news to update.
+   * @param {string} title The new title.
+   * @param {string} slug The new slug.
+   * @param {string} content The new content.
+   * @param {string|null} imageUrl The new image URL.
+   * @param {boolean} isActive The new visibility status.
+   * @returns {Promise<object|null>} The updated news object, or null if not found.
+   * @throws {Error} If the database update fails.
+   */
+  update: async (id, title, slug, content, imageUrl, isActive) => {
+    try {
+      const query = `
+        UPDATE news 
+        SET title = $1, slug = $2, content = $3, image_url = $4, is_active = $5
+        WHERE id = $6
+        RETURNING *;
+      `;
+      const values = [title, slug, content, imageUrl, isActive, id];
+      const { rows } = await pool.query(query, values);
+      
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to update news ID ${id} in database:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Deletes a news post from the database.
+   *
+   * @param {number|string} id The ID of the news to delete.
+   * @returns {Promise<object|null>} The deleted news object, or null if not found.
+   * @throws {Error} If the database deletion fails.
+   */
+  delete: async (id) => {
+    try {
+      const query = 'DELETE FROM news WHERE id = $1 RETURNING *;';
+      const { rows } = await pool.query(query, [id]);
+      
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to delete news ID ${id} from database:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Retrieves a specific news post by its unique URL slug.
+   * Used for public-facing detailed views.
+   *
+   * @param {string} slug The unique URL-friendly string.
+   * @returns {Promise<object|null>} The news object, or null if not found.
+   * @throws {Error} If the database query fails.
+   */
+  getBySlug: async (slug) => {
+    try {
+      // Explicit column selection
+      const query = `
+        SELECT id, title, slug, content, image_url, is_active, published_at, created_by 
+        FROM news 
+        WHERE slug = $1;
+      `;
+      const { rows } = await pool.query(query, [slug]);
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch news by slug ${slug}:`, error);
+      throw error;
+    }
+  },
+};
+
+module.exports = NewsModel;

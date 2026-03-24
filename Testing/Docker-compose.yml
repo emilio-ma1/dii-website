@@ -4,7 +4,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: frontend-qa
+    container_name: frontend-dev
     ports:
       - "5173:5173"
     volumes:
@@ -14,11 +14,11 @@ services:
       - VITE_API_URL=http://localhost:3000
     command: npm run dev -- --host 0.0.0.0
     networks:
-      - qa-net
+      - dev-net
 
   backend:
     build: ./backend
-    container_name: backend-qa
+    container_name: backend-dev
     ports:
       - "3000:3000"
     volumes:
@@ -32,11 +32,11 @@ services:
     depends_on:
       - postgres
     networks:
-      - qa-net
+      - dev-net
 
   postgres:
     image: postgres:16
-    container_name: postgres-qa
+    container_name: postgres-dev
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -46,24 +46,8 @@ services:
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
     networks:
-      - qa-net
-
-  playwright-qa:
-    image: mcr.microsoft.com/playwright:v1.58.0-jammy
-    container_name: playwright-qa
-    depends_on:
-      - frontend
-    environment:
-      - BASE_URL=http://localhost:5173
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: sleep infinity
-    ports:
-      - "36575:36575"
-    networks:
-      - qa-net
+      - dev-net
 
 networks:
-  qa-net:
+  dev-net:
     driver: bridge
