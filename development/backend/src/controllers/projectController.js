@@ -28,15 +28,26 @@ const extractAuthorIds = (authorsArray) => {
 };
 
 /**
- * Retrieves all research projects.
+ * Retrieves research projects based on user role (Data Isolation).
+ * - Admins see all projects.
+ * - Teachers and Alumni only see projects where they are listed as authors.
  *
  * @param {object} req - Express request object.
  * @param {object} res - Express response object.
- * @returns {Promise<object>} JSON response with the projects list.
+ * @returns {Promise<object>} JSON response with the filtered projects list.
  */
 const getAllProjects = async (req, res) => {
   try {
-    const projectsList = await ProjectModel.getAll();
+    const { id, role } = req.user; 
+
+    let projectsList;
+
+    if (role === 'admin') {
+      projectsList = await ProjectModel.getAll();
+    } else {
+      projectsList = await ProjectModel.getByAuthorId(id);
+    }
+
     return res.status(200).json(projectsList);
   } catch (error) {
     console.error('[ERROR] Controller failed to fetch projects:', error);

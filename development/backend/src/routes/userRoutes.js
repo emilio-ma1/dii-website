@@ -1,16 +1,38 @@
 /**
  * @file userRoutes.js
  * @description
- * Defines API endpoints for internal user management.
- * Allows listing profiles, filtering by roles, updating data, and deleting accounts.
- * All routes are strictly protected for exclusive use by administrators.
+ * Defines API endpoints for system user management.
+ * Includes public/internal routes for profile retrieval and author listings,
+ * as well as strictly protected routes for administrative tasks.
  */
 const express = require('express');
 const router = express.Router();
 
 // Import controllers and security middlewares
-const { getAllUsers, getUsersByRole, deleteUser, updateUser } = require('../controllers/userController');
+const { 
+  getAllUsers, 
+  getUsersByRole, 
+  deleteUser, 
+  updateUser, 
+  getCurrentUserProfile, 
+  getAuthorsList 
+} = require('../controllers/userController');
+
 const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
+
+/**
+ * @route GET /api/users/me
+ * @description Retrieves the merged profile of the currently authenticated user.
+ * @access Private (Requires ANY valid token)
+ */
+router.get('/me', verifyToken, getCurrentUserProfile);
+
+/**
+ * @route GET /api/users/authors
+ * @description Retrieves a basic list of users (teachers and alumni) eligible to be project authors.
+ * @access Private (Requires ANY valid token)
+ */
+router.get('/authors', verifyToken, getAuthorsList);
 
 /**
  * @route GET /api/users

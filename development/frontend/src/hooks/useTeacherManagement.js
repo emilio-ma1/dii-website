@@ -6,10 +6,24 @@
  */
 import { useState, useEffect, useCallback } from "react";
 
-export function useTeacherManagement(canCreate) {
+/**
+ * Custom hook to manage teacher profiles and eligible base accounts.
+ *
+ * @param {boolean} shouldFetch - Determines if the initial data fetch should execute.
+ * @returns {object} Object containing lists, feedback states, and operational methods.
+ */
+export function useTeacherManagement(shouldFetch = true) {
   const [teachers, setTeachers] = useState([]);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  
+  const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const clearFeedbackMessages = useCallback(() => {
+    setMessage("");
+    setErrorMessage("");
+  }, []);
 
   const fetchTeachers = useCallback(async () => {
     try {
@@ -24,11 +38,13 @@ export function useTeacherManagement(canCreate) {
           profile_id: t.profile_id 
         }));
 
-        const vinculados = formattedData.filter(t => t.profile_id !== null && t.profile_id !== undefined);
-        setTeachers(vinculados);
+        const linkedProfiles = formattedData.filter(t => t.profile_id !== null && t.profile_id !== undefined);
+        setTeachers(linkedProfiles);
 
-        const noVinculados = formattedData.filter(t => t.profile_id === null || t.profile_id === undefined);
-        setAvailableUsers(noVinculados);
+        const unlinkedUsers = formattedData.filter(t => t.profile_id === null || t.profile_id === undefined);
+        setAvailableUsers(unlinkedUsers);
+      } else {
+        console.warn("[WARN] Failed to fetch teachers from server.");
       }
     } catch (error) {
       console.error("[ERROR] Failed to fetch teachers:", error);
@@ -36,11 +52,22 @@ export function useTeacherManagement(canCreate) {
   }, []);
 
   useEffect(() => {
-    fetchTeachers();
-  }, [fetchTeachers]);
+    if (shouldFetch) {
+      fetchTeachers();
+    }
+  }, [shouldFetch, fetchTeachers]);
 
-  const saveTeacherProfile = async (formData, editingId) => {
+  /**
+   * Saves (creates or updates) a teacher profile.
+   *
+   * @param {object} formData - The payload containing profile details.
+   * @param {number|string|null} editingId - The user ID if updating, null if creating.
+   * @returns {Promise<boolean>} True if successful, false otherwise.
+   */
+  const saveTeacherProfile = useCallback(async (formData, editingId) => {
     setIsSaving(true);
+    clearFeedbackMessages();
+
     try {
       const token = localStorage.getItem("token");
       const method = editingId ? "PUT" : "POST";
@@ -58,37 +85,65 @@ export function useTeacherManagement(canCreate) {
       });
 
       if (response.ok) {
-        await fetchTeachers();
+        await fetchTeachers(); // Silently reload the list
+        setMessage(editingId ? "Perfil actualizado correctamente." : "Perfil creado exitosamente.");
         setIsSaving(false);
         return true;
       }
+
+      const errorData = await response.json();
+      setErrorMessage(errorData.message || "Error al guardar el perfil del docente.");
       setIsSaving(false);
       return false;
+
     } catch (error) {
       console.error("[ERROR] Failed to save profile:", error);
+      setErrorMessage("Error de conexión al intentar guardar.");
       setIsSaving(false);
       return false;
     }
-  };
+  }, [fetchTeachers, clearFeedbackMessages]);
 
-  const deleteTeacherProfile = async (profileId) => {
+  /**
+   * Deletes a teacher profile from the database.
+   *
+   * @param {number|string} userId - The user ID associated with the profile.
+   * @returns {Promise<boolean>} True if successful, false otherwise.
+   */
+  const deleteTeacherProfile = useCallback(async (userId) => {
+    clearFeedbackMessages();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/professors/${profileId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/professors/${userId}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
 
       if (response.ok) {
-        setTeachers(current => current.filter(t => t.id !== profileId));
+        await fetchTeachers(); 
+        setMessage("Perfil eliminado exitosamente.");
         return true;
       }
+
+      const errorData = await response.json();
+      setErrorMessage(errorData.message || "Error al eliminar el perfil.");
       return false;
+
     } catch (error) {
       console.error("[ERROR] Failed to delete profile:", error);
+      setErrorMessage("Error de red al intentar comunicarse con el servidor.");
       return false;
     }
-  };
+  }, [fetchTeachers, clearFeedbackMessages]);
 
-  return { teachers, availableUsers, isSaving, saveTeacherProfile, deleteTeacherProfile };
+  return { 
+    teachers, 
+    availableUsers, 
+    isSaving, 
+    message, 
+    errorMessage, 
+    clearFeedbackMessages,
+    saveTeacherProfile, 
+    deleteTeacherProfile 
+  };
 }

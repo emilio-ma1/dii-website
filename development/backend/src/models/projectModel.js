@@ -189,7 +189,35 @@ const ProjectModel = {
       console.error(`[ERROR] Failed to delete project ID ${id}:`, error);
       throw error;
     }
-  }
+  },
+
+/**
+   * Obtiene exclusivamente los proyectos donde un usuario específico es autor.
+   * @param {number} userId - ID del usuario autenticado.
+   */
+  getByAuthorId: async (userId) => {
+    const query = `
+      SELECT 
+        p.*, 
+        c.name as category_name,
+        COALESCE(
+          json_agg(
+            json_build_object('id', u.id, 'full_name', u.full_name, 'role', u.role)
+          ) FILTER (WHERE u.id IS NOT NULL), '[]'
+        ) as authors
+      FROM projects p
+      LEFT JOIN categories c ON p.category_id = c.id
+      JOIN project_authors pa ON p.id = pa.project_id
+      LEFT JOIN project_authors pa_all ON p.id = pa_all.project_id
+      LEFT JOIN users u ON pa_all.user_id = u.id
+      WHERE pa.user_id = $1
+      GROUP BY p.id, c.name
+      ORDER BY p.year DESC, p.id DESC;
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  },
+
 };
 
 module.exports = ProjectModel;

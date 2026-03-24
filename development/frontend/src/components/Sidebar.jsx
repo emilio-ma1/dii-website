@@ -1,80 +1,57 @@
+/**
+ * @file Sidebar.jsx
+ * @description
+ * Sidebar navigation component for the administrative dashboard.
+ * Renders user profile information and navigation links.
+ */
 import { NavLink } from "react-router-dom";
 import { MENU_BY_ROLE, ROLE_LABELS } from "../auth/roles";
-import { useAuth } from "../auth/authContext";
+import { useUserProfile } from "../hooks/useUserProfile"; 
 
-/**
- * Obtiene el nombre visible del usuario.
- */
-function getUserName(user) {
-  return user?.full_name || user?.name || "Usuario";
-}
-
-/**
- * Obtiene la etiqueta del rol para mostrar.
- */
-function getUserRoleLabel(role) {
-  if (role === "admin") return "Secretaria del Departamento";
-  if (role === "docente") return "Docente";
-  return "Egresado";
-}
-
-/**
- * Sidebar del panel administrativo.
- * Muestra datos del usuario y navegación según su rol.
- *
- * @param {Object} props
- * @param {Function} props.onNavigate - Se ejecuta al navegar desde el menú 
- */
 export default function Sidebar({ onNavigate }) {
-  const { user } = useAuth();
-
-  const role = user?.role || "egresado";
-
-  const currentUser = {
-    name: getUserName(user),
-    role,
-    roleLabel: getUserRoleLabel(role),
-    avatar: "/images/foto-docente.png",
-  };
-
+  const { profileData, role } = useUserProfile();
   const menuItems = MENU_BY_ROLE[role] || [];
 
   return (
-    <aside className="flex h-full flex-col overflow-y-auto">
+    <aside className="flex h-full flex-col overflow-y-auto bg-white border-r border-gray-200 shadow-sm">
       <div className="border-b border-black/5 px-6 py-8">
         <div className="flex flex-col items-center text-center">
-          <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-[#722b4d]/15 shadow-sm">
+          
+          <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-[#722b4d]/15 shadow-sm bg-gray-100">
             <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
+              src={profileData.avatar}
+              alt={`Avatar de ${profileData.name}`}
               className="h-full w-full object-cover"
             />
           </div>
 
-          <h2 className="mt-4 text-3xl font-bold leading-tight text-[#722b4d]">
-            {currentUser.name}
+          <h2 className="mt-4 text-2xl font-bold leading-tight text-[#722b4d] capitalize">
+            {profileData.name}
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">{currentUser.roleLabel}</p>
+          <p className="mt-1 text-sm font-medium text-gray-500">
+            {profileData.title}
+          </p>
 
-          <span className="mt-4 inline-flex items-center rounded-full bg-[#722b4d] px-4 py-2 text-sm font-semibold text-white shadow-sm">
-            {ROLE_LABELS[role]}
+          <span className="mt-4 inline-flex items-center rounded-full bg-[#722b4d] px-4 py-1 text-xs font-semibold text-white shadow-sm uppercase tracking-wider">
+            {ROLE_LABELS[role] || "Usuario"}
           </span>
+          
         </div>
       </div>
 
       <nav className="flex-1 px-4 py-6">
-        <div className="space-y-3">
+        <div className="space-y-2">
           {menuItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               onClick={onNavigate}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? "bg-[#722b4d] text-white shadow-md"
-                    : "text-gray-700 hover:bg-[#722b4d]/5 hover:text-[#722b4d]"
+                    : "text-gray-600 hover:bg-[#722b4d]/10 hover:text-[#722b4d]"
                 }`
               }
             >

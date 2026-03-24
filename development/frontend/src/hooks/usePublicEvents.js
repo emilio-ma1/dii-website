@@ -1,47 +1,57 @@
 /**
  * @file usePublicEvents.js
- * @description Custom hook para obtener los eventos o noticias de Vinculación con el Medio.
+ * @description 
+ * Custom hook to fetch and format public news and community engagement events.
+ * Acts as an adapter to map database fields to UI card properties.
  */
 import { useState, useEffect } from "react";
 
+/**
+ * Retrieves a list of all active public events and news.
+ *
+ * @returns {object} An object containing the formatted events list, loading state, and error message.
+ */
 export function usePublicEvents() {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/news`);
         
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Mapeamos los datos de la Base de Datos al formato de las tarjetas
-          const formattedEvents = data.map(e => ({
-            id: e.id,
-            status: e.is_active ? "current" : "not_current",
-
-            slug: e.slug, // Para construir la URL de detalle
-            
-            topic: "Noticia", 
-            
-            year: e.published_at ? new Date(e.published_at).getFullYear().toString() : new Date().getFullYear().toString(),
-            
-            title: e.title,
-            
-            author:"Depto. de Ingeniería Industrial",
-            role: "Publicador",
-            
-            summary: e.content || "Sin contenido disponible.",
-            
-            // Guardamos la imagen por si la necesitas en la vista de Detalles
-            imageUrl: e.image_url 
-          }));
-
-          setEvents(formattedEvents);
+        if (!response.ok) {
+          throw new Error("No se pudieron cargar las noticias.");
         }
-      } catch (error) {
-        console.error("[ERROR] Failed to fetch public events:", error);
+
+        const data = await response.json();
+        
+        // Map Database payload to UI Card format
+        const formattedEvents = data.map(e => ({
+          id: e.id,
+          status: e.is_active ? "current" : "not_current",
+          slug: e.slug, // Used to build the detail view URL
+          topic: "Noticia", 
+          // Dynamic year fallback
+          year: e.published_at 
+            ? new Date(e.published_at).getFullYear().toString() 
+            : new Date().getFullYear().toString(),
+          title: e.title,
+          author: "Depto. de Ingeniería Industrial",
+          role: "Publicador",
+          summary: e.content || "Sin contenido disponible.",
+          // Keep the raw image URL for detailed views
+          imageUrl: e.image_url 
+        }));
+
+        setEvents(formattedEvents);
+      } catch (err) {
+        console.error("[ERROR] Failed to fetch public events:", err);
+        setError(err.message || "Error de red al intentar comunicarse con el servidor.");
       } finally {
         setIsLoading(false);
       }
@@ -50,5 +60,5 @@ export function usePublicEvents() {
     fetchEvents();
   }, []);
 
-  return { events, isLoading };
+  return { events, isLoading, error };
 }
