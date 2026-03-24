@@ -11,7 +11,7 @@ import { useAuth } from "../auth/authContext";
 /**
  * Custom hook to manage user accounts data and API interactions.
  *
- * @param {boolean} shouldFetch Determines if the initial data fetch should execute.
+ * @param {boolean} shouldFetch - Determines if the initial data fetch should execute.
  * @returns {object} Object containing users list, feedback states, and operational methods.
  */
 export function useAccountManagement(shouldFetch) {
@@ -42,9 +42,12 @@ export function useAccountManagement(shouldFetch) {
           role: u.role
         }));
         setUsers(normalizedData);
+      } else {
+        const errorData = await response.json();
+        console.error("[WARN] Failed to load users:", errorData.message);
       }
     } catch (error) {
-      console.error("[ERROR] Failed to fetch users:", error);
+      console.error("[ERROR] Network failure during loadUsers:", error);
     }
   }, []);
 
@@ -55,11 +58,10 @@ export function useAccountManagement(shouldFetch) {
   /**
    * Deletes a user from the system and updates the local state.
    *
-   * @param {string|number} userId The unique identifier of the user to delete.
+   * @param {string|number} userId - The unique identifier of the user to delete.
    * @returns {Promise<void>}
-   * @throws {Error} Implicitly catches network errors.
    */
-  const deleteUser = async (userId) => {
+  const deleteUser = useCallback(async (userId) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}`, {
@@ -69,25 +71,25 @@ export function useAccountManagement(shouldFetch) {
 
       if (response.ok) {
         setUsers((currentUsers) => currentUsers.filter((u) => u.id !== userId));
-        setMessage("Usuario eliminado de la base de datos.");
+        setMessage("Usuario eliminado exitosamente del sistema.");
       } else {
-        setErrorMessage("Error al eliminar el usuario en el servidor.");
+        const errorData = await response.json();
+        setErrorMessage(errorData.message || "Error al eliminar el usuario en el servidor.");
       }
     } catch (error) {
       console.error("[ERROR] Network failure during user deletion:", error);
-      setErrorMessage("Error de red al intentar eliminar.");
+      setErrorMessage("Error de red al intentar comunicarse con el servidor.");
     }
-  };
+  }, []);
 
   /**
    * Updates an existing user's information.
    *
-   * @param {string|number} userId The ID of the user to update.
-   * @param {object} userData The new data payload for the user.
+   * @param {string|number} userId - The ID of the user to update.
+   * @param {object} userData - The new data payload for the user.
    * @returns {Promise<boolean>} True if successful, false otherwise.
-   * @throws {Error} Implicitly catches network errors.
    */
-  const updateUser = async (userId, userData) => {
+  const updateUser = useCallback(async (userId, userData) => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem("token");
@@ -114,27 +116,30 @@ export function useAccountManagement(shouldFetch) {
             role: data.user.role
         };
         setUsers((currentUsers) => currentUsers.map((u) => (u.id === userId ? updatedUser : u)));
-        setMessage("Usuario actualizado correctamente.");
+        setMessage(data.message || "Usuario actualizado correctamente.");
         return true;
       }
-      setErrorMessage("No se pudo actualizar el usuario.");
+      
+      const errorData = await response.json();
+      setErrorMessage(errorData.message || "No se pudo actualizar el usuario.");
       return false;
+
     } catch (error) {
       console.error("[ERROR] Network failure during user update:", error);
-      setErrorMessage("Error de conexión al actualizar.");
+      setErrorMessage("Error de conexión al actualizar el perfil.");
       return false;
     } finally {
       setIsSaving(false);
     }
-  };
+  }, []);
 
   /**
    * Creates a new user using the authentication context registration.
    *
-   * @param {object} userData The data payload for the new user.
+   * @param {object} userData - The data payload for the new user.
    * @returns {Promise<boolean>} True if successful, false otherwise.
    */
-  const createUser = async (userData) => {
+  const createUser = useCallback(async (userData) => {
     setIsSaving(true);
     const result = await register({
       full_name: userData.fullName.trim(),
@@ -158,13 +163,13 @@ export function useAccountManagement(shouldFetch) {
       };
       setUsers((currentUsers) => [...currentUsers, newUser]);
     } else {
-      window.location.reload(); 
+      await loadUsers(); 
     }
 
     setMessage(result.message || "Usuario creado exitosamente.");
     setIsSaving(false);
     return true;
-  };
+  }, [register, loadUsers]);
 
   return {
     users,
