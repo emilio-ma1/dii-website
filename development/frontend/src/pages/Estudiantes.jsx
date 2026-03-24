@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { usePublicStudents } from "../hooks/usePublicStudents";
 
 /**
- * Transformador de URLs de YouTube a formato Embed
+ * Converts a YouTube URL into embed format.
+ *
+ * @param {string} url - Original YouTube URL.
+ * @returns {string} Embed-ready YouTube URL or the original value.
  */
 const getYouTubeEmbedUrl = (url) => {
   if (!url) return "";
@@ -16,7 +19,9 @@ const getYouTubeEmbedUrl = (url) => {
 };
 
 /**
- * Renderiza el hero principal de la página de estudiantes.
+ * Renders the main hero section of the students page.
+ *
+ * @returns {JSX.Element} Rendered hero section.
  */
 function StudentsHero() {
   return (
@@ -40,7 +45,12 @@ function StudentsHero() {
 }
 
 /**
- * Modal cuando el perfil es público
+ * Renders the modal for a public student profile.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object|null} props.student - Currently selected student.
+ * @param {Function} props.onClose - Function that closes the modal.
+ * @returns {JSX.Element|null} Rendered modal or null when no student is selected.
  */
 function StudentModal({ student, onClose }) {
   if (!student) return null;
@@ -117,7 +127,12 @@ function StudentModal({ student, onClose }) {
 }
 
 /**
- * Modal cuando el perfil es privado
+ * Renders the modal for a private student profile.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object|null} props.student - Currently selected student.
+ * @param {Function} props.onClose - Function that closes the modal.
+ * @returns {JSX.Element|null} Rendered modal or null when no student is selected.
  */
 function PrivateProfileModal({ student, onClose }) {
   if (!student) return null;
@@ -173,10 +188,15 @@ function PrivateProfileModal({ student, onClose }) {
 }
 
 /**
- * Renderiza una tarjeta testimonial con la información y video de un estudiante.
+ * Renders a testimonial card with student information and video.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.student - Student information to display.
+ * @param {Function} props.onOpenModal - Function that opens the student modal.
+ * @returns {JSX.Element} Rendered testimonial card.
  */
 function StudentTestimonialCard({ student, onOpenModal }) {
-  // Verificamos si tiene video y aplicamos la conversión de YouTube
+  // Applies YouTube URL normalization before rendering the iframe.
   const finalVideoUrl = getYouTubeEmbedUrl(student.videoUrlEmbed);
   const hasVideo = Boolean(finalVideoUrl && finalVideoUrl.trim().length > 0);
 
@@ -220,12 +240,21 @@ function StudentTestimonialCard({ student, onOpenModal }) {
 }
 
 /**
- * Renderiza la página de testimonios de estudiantes (Thin Controller).
+ * Renders the students testimonials page.
+ *
+ * This component handles the public students list,
+ * the loading state, and the profile modal flow.
+ *
+ * @returns {JSX.Element} Rendered students page.
  */
 export default function Estudiantes() {
   const { students, isLoading } = usePublicStudents();
   const [selectedStudent, setSelectedStudent] = useState(null);
 
+  /**
+   * Handles Escape key behavior and body scroll lock
+   * while a modal is open.
+   */
   useEffect(() => {
     function handleEscape(event) {
       if (event.key === "Escape") setSelectedStudent(null);

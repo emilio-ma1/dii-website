@@ -1,15 +1,15 @@
 import { Link } from "react-router-dom";
 
 /**
- * Tarjeta de carrera del área académica.
- * Muestra logo, información principal y acceso a la carrera.
+ * Academic program card component.
+ * Displays logo, main information, and access to the program.
  *
- * @param {string} title - Nombre de la carrera
- * @param {string} to - Ruta de navegación
- * @param {string} imageSrc - Imagen o logo de la carrera
- * @param {string} imageAlt - Texto alternativo
- * @param {string} description - Descripción breve
- * @param {string} accentColor - Color principal de la tarjeta
+ * @param {string} title - Program name
+ * @param {string} to - Navigation route
+ * @param {string} imageSrc - Program image or logo
+ * @param {string} imageAlt - Alternative text
+ * @param {string} description - Short description
+ * @param {string} accentColor - Main card color
  */
 function ProgramItem({
   title,
@@ -19,8 +19,17 @@ function ProgramItem({
   description,
   accentColor = "#722b4d",
 }) {
+
+    /**
+   * Determines whether the link is external.
+   */
   const isExternal = to.startsWith("http");
 
+    /**
+   * Wrapper component:
+   * - Uses <a> for external links
+   * - Uses <Link> for internal navigation
+   */
   const Wrapper = ({ children }) =>
     isExternal ? (
       <a
@@ -90,7 +99,8 @@ function ProgramItem({
 }
 
 /**
- * Hero del área académica.
+ * Academic section hero component.
+ * Displays the main title and description of the section.
  */
 function AcademicoHero() {
   return (
@@ -117,7 +127,8 @@ function AcademicoHero() {
 }
 
 /**
- * Página del área académica del departamento.
+ * Academic area page.
+ * Renders the list of available programs.
  */
 export default function Academico() {
   const programs = [

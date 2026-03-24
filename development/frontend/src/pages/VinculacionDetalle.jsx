@@ -7,12 +7,17 @@ const STATUS_LABELS = {
 };
 
 /**
- * Página de detalle de un proyecto/noticia de Vinculación con el Medio.
+ * Detail page for a "Vinculación con el Medio" project or publication.
+ *
+ * Fetches the selected item using the route parameter
+ * and renders its full content and metadata.
+ *
+ * @returns {JSX.Element} Rendered detail page.
  */
 export default function VinculacionDetalle() {
   const { id } = useParams();
   
-  // Usamos el Hook para obtener la data real
+  // Fetches the event/project detail from the public detail hook.
   const { eventData: project, isLoading, error } = useEventDetail(id);
 
   if (isLoading) {

@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 
 /**
- * Noticias destacadas mostradas en la página de inicio.
- * Cada elemento contiene la información básica para
- * mostrar una tarjeta de noticia.
+ * Featured news displayed on the homepage.
+ *
+ * Each item contains the basic information required
+ * to render a news preview card.
  */
 const NEWS_PREVIEW_ITEMS = [
   {
@@ -42,9 +43,9 @@ const NEWS_PREVIEW_ITEMS = [
 ];
 
 /**
- * Renderiza el ícono de calendario utilizado para mostrar la fecha de la noticia.
+ * Calendar icon used to display the publication date of a news item.
  *
- * @returns {JSX.Element} El ícono de calendario renderizado.
+ * @returns {JSX.Element} Rendered calendar icon.
  */
 function CalendarIcon() {
   return (
@@ -66,20 +67,24 @@ function CalendarIcon() {
 }
 
 /**
- * Renderiza una tarjeta individual de noticia.
+ * Renders a single news card.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {Object} props.item - Información de la noticia.
- * @param {number} props.item.id - Identificador único de la noticia.
- * @param {string} props.item.title - Título de la noticia.
- * @param {string} props.item.summary - Resumen breve de la noticia.
- * @param {string} props.item.imageSrc - Ruta de la imagen principal.
- * @param {string} props.item.imageAlt - Texto alternativo de la imagen.
- * @param {string} props.item.category - Categoría de la noticia.
- * @param {string} props.item.categoryColor - Color visual de la categoría.
- * @param {string} props.item.date - Fecha de publicación de la noticia.
- * @param {string} props.item.to - Ruta de navegación al detalle o listado de noticias.
- * @returns {JSX.Element} La tarjeta de noticia renderizada.
+ * Displays image, category, date, title, summary,
+ * and a link to the full news page.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.item - News item data.
+ * @param {number} props.item.id - Unique identifier.
+ * @param {string} props.item.title - News title.
+ * @param {string} props.item.summary - Short summary.
+ * @param {string} props.item.imageSrc - Image path.
+ * @param {string} props.item.imageAlt - Image alt text.
+ * @param {string} props.item.category - News category.
+ * @param {string} props.item.categoryColor - Category badge color.
+ * @param {string} props.item.date - Publication date.
+ * @param {string} props.item.to - Navigation route.
+ *
+ * @returns {JSX.Element} Rendered news card.
  */
 function NewsCard({ item }) {
   return (
@@ -126,14 +131,14 @@ function NewsCard({ item }) {
 }
 
 /**
- * Renderiza la sección de noticias mostrada en la página de inicio.
+ * Renders the news section displayed on the homepage.
  *
- * Responsabilidades:
- * - Mostrar una vista previa de noticias destacadas.
- * - Presentar un encabezado de contexto para la sección.
- * - Renderizar una grilla con tarjetas de noticias.
+ * Responsibilities:
+ * - Display featured news previews.
+ * - Provide contextual section header.
+ * - Render a grid of news cards.
  *
- * @returns {JSX.Element} La sección de noticias renderizada.
+ * @returns {JSX.Element} Rendered news section.
  */
 export default function NoticiasHome() {
   return (

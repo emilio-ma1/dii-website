@@ -8,7 +8,9 @@ const STATUS_LABELS = {
 };
 
 /**
- * Renderiza el ícono de calendario utilizado para mostrar el año del proyecto.
+ * Calendar icon used to display the project year.
+ *
+ * @returns {JSX.Element} Rendered calendar icon.
  */
 function CalendarIcon() {
   return (
@@ -19,7 +21,13 @@ function CalendarIcon() {
 }
 
 /**
- * Botón de filtro
+ * Filter button component.
+ *
+ * @param {Object} props
+ * @param {boolean} props.active - Indicates if the filter is active.
+ * @param {React.ReactNode} props.children - Button label.
+ * @param {Function} props.onClick - Click handler.
+ * @returns {JSX.Element} Rendered filter button.
  */
 function FilterButton({ active, children, onClick }) {
   return (
@@ -38,7 +46,14 @@ function FilterButton({ active, children, onClick }) {
 }
 
 /**
- * Tarjeta del proyecto/evento
+ * Project/Event card component.
+ *
+ * Displays basic information about a project and provides
+ * navigation to its detail page.
+ *
+ * @param {Object} props
+ * @param {Object} props.project - Project data.
+ * @returns {JSX.Element} Rendered project card.
  */
 function ProjectCard({ project }) {
   return (
@@ -69,12 +84,12 @@ function ProjectCard({ project }) {
           <span>{project.role}</span>
         </div>
 
-        {/* Truncado de texto a 3 líneas */}
+        {/* Text truncated to 3 lines */}
         <p className="mt-4 text-sm leading-7 text-gray-600 line-clamp-3">
           {project.summary}
         </p>
 
-        {/* Empujamos el botón al final de la tarjeta */}
+        {/* Push link to bottom */}
         <div className="mt-auto pt-5">
           <Link
             to={`/vinculacion-con-el-medio-detalle/${project.slug}`}
@@ -90,7 +105,9 @@ function ProjectCard({ project }) {
 }
 
 /**
- * Hero principal
+ * Hero section for the "Vinculación con el Medio" page.
+ *
+ * @returns {JSX.Element} Rendered hero section.
  */
 function VinculacionHero() {
   return (
@@ -113,13 +130,23 @@ function VinculacionHero() {
 }
 
 /**
- * Página principal
+ * Main page for "Vinculación con el Medio".
+ *
+ * Responsibilities:
+ * - Fetch and display public events/projects.
+ * - Allow filtering by status.
+ * - Render project cards.
+ *
+ * @returns {JSX.Element} Rendered page.
  */
 export default function VinculacionConElMedio() {
   const [activeFilter, setActiveFilter] = useState("all");
   
   const { events, isLoading } = usePublicEvents();
 
+  /**
+   * Filters projects based on selected status.
+   */
   const filteredProjects = useMemo(() => {
     if (activeFilter === "all") return events;
     return events.filter((project) => project.status === activeFilter);

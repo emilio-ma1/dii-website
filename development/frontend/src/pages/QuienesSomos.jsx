@@ -1,12 +1,12 @@
 /**
- * Renderiza una tarjeta con una de las funciones principales del departamento.
+ * Renders a card with one of the department's main functions.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.title - Título de la función.
- * @param {string} props.description - Descripción de la función.
- * @param {string} props.accentColor - Color aplicado al ícono.
- * @param {JSX.Element} props.icon - Ícono representativo de la función.
- * @returns {JSX.Element} La tarjeta de función renderizada.
+ * @param {Object} props - Component props.
+ * @param {string} props.title - Function title.
+ * @param {string} props.description - Function description.
+ * @param {string} props.accentColor - Color applied to the icon.
+ * @param {JSX.Element} props.icon - Representative function icon.
+ * @returns {JSX.Element} Rendered function card.
  */
 function FunctionCard({ title, description, accentColor, icon }) {
   return (
@@ -30,13 +30,13 @@ function FunctionCard({ title, description, accentColor, icon }) {
 }
 
 /**
- * Renderiza un bloque de actividades agrupadas bajo un mismo título.
+ * Renders a grouped activities block under a shared title.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.title - Título del bloque.
- * @param {string[]} props.items - Lista de actividades a mostrar.
- * @param {string} props.color - Color de acento aplicado al encabezado y viñetas.
- * @returns {JSX.Element} El bloque de actividades renderizado.
+ * @param {Object} props - Component props.
+ * @param {string} props.title - Block title.
+ * @param {string[]} props.items - List of activities to display.
+ * @param {string} props.color - Accent color applied to the header and bullets.
+ * @returns {JSX.Element} Rendered activities block.
  */
 function ActivityBlock({ title, items, color }) {
   return (
@@ -68,9 +68,9 @@ function ActivityBlock({ title, items, color }) {
 }
 
 /**
- * Renderiza el hero principal de la página "Quiénes Somos".
+ * Renders the main hero section of the "About Us" page.
  *
- * @returns {JSX.Element} La sección superior de presentación renderizada.
+ * @returns {JSX.Element} Rendered top presentation section.
  */
 function AboutHero() {
   return (
@@ -104,14 +104,16 @@ function AboutHero() {
 }
 
 /**
- * Renderiza una sección de equipamientos destacados del departamento.
+ * Renders a section with the department's featured equipment.
  *
- * @returns {JSX.Element} La sección de equipamientos renderizada.
+ * @returns {JSX.Element} Rendered equipment section.
  */
 function EquipmentSection() {
   /**
-   * Lista de equipamientos destacados del departamento.
-   */
+ * Renders a section with the department's featured equipment.
+ *
+ * @returns {JSX.Element} Rendered equipment section.
+ */
   const equipmentItems = [
     {
       id: "01",
@@ -195,19 +197,19 @@ function EquipmentSection() {
 }
 
 /**
- * Renderiza la página "Quiénes Somos" del departamento.
+ * Renders the department "About Us" page.
  *
- * Responsabilidades:
- * - Presentar la identidad y propósito del departamento.
- * - Mostrar su historia institucional.
- * - Destacar sus funciones principales.
- * - Exponer actividades que se realizan.
+ * Responsibilities:
+ * - Present the identity and purpose of the department.
+ * - Show its institutional history.
+ * - Highlight its main functions.
+ * - Present the activities carried out by the department.
  *
- * @returns {JSX.Element} La página "Quiénes Somos" renderizada.
+ * @returns {JSX.Element} Rendered "About Us" page.
  */
 export default function QuienesSomos() {
   /**
-   * Lista de funciones estratégicas del departamento.
+   * List of the department's strategic functions.
    */
   const functions = [
     {
@@ -302,9 +304,8 @@ export default function QuienesSomos() {
     },
   ];
 
-  /**
-   * Lista de actividades que representan la vida académica y profesional
-   * desarrollada por el departamento.
+/**
+   * List of the department's strategic functions.
    */
   const activities = [
     "Formación de ingenieros industriales mediante programas de pregrado y posgrado.",

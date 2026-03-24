@@ -8,7 +8,13 @@ const STATUS_LABELS = {
 };
 
 /**
- * Página de detalle de un proyecto de investigación.
+ * Research project detail page.
+ *
+ * Fetches the selected project by route parameter
+ * and renders its detailed information, status,
+ * and document download access based on user role.
+ *
+ * @returns {JSX.Element} Rendered project detail page.
  */
 export default function InvestigacionDetalle() {
   const { id } = useParams();
@@ -16,6 +22,10 @@ export default function InvestigacionDetalle() {
   
   const { project, isLoading, error } = useProjectDetail(id);
 
+    /**
+   * Defines which roles are allowed to download
+   * the full project document.
+   */
   const ALLOWED_ROLES = ["admin", "teacher", "alumni"]; 
   const canDownloadProject = user?.role && ALLOWED_ROLES.includes(user.role) && Boolean(project?.pdf_url);
 
@@ -113,6 +123,7 @@ export default function InvestigacionDetalle() {
             </div>
           </div>
 
+          {/* Download access depends on user role and PDF availability */}
           {canDownloadProject ? (
             <div className="mt-8 w-full flex justify-center">
               <a

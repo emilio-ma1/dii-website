@@ -8,7 +8,9 @@ const STATUS_LABELS = {
 };
 
 /**
- * Ícono calendario
+ * Calendar icon component used to display the project year.
+ *
+ * @returns {JSX.Element} Calendar SVG icon.
  */
 function CalendarIcon() {
   return (
@@ -19,7 +21,13 @@ function CalendarIcon() {
 }
 
 /**
- * Botón filtro
+ * Reusable filter button for project status selection.
+ *
+ * @param {Object} props - Component props.
+ * @param {boolean} props.active - Indicates if the filter is active.
+ * @param {React.ReactNode} props.children - Button label.
+ * @param {Function} props.onClick - Click handler function.
+ * @returns {JSX.Element} Rendered filter button.
  */
 function FilterButton({ active, children, onClick }) {
   return (
@@ -38,7 +46,14 @@ function FilterButton({ active, children, onClick }) {
 }
 
 /**
- * Tarjeta proyecto
+ * Renders a research project card.
+ *
+ * Displays project metadata such as status, topic, year,
+ * researcher information, and a short summary.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.project - Project data to display.
+ * @returns {JSX.Element} Rendered project card.
  */
 function ResearchCard({ project }) {
   return (
@@ -69,7 +84,7 @@ function ResearchCard({ project }) {
           <span>{project.role}</span>
         </div>
 
-        {/* Usamos line-clamp para truncar textos muy largos visualmente */}
+        {/* Truncate long summaries visually using line-clamp */}
         <p className="mt-4 text-sm leading-7 text-gray-600 line-clamp-3">
           {project.summary}
         </p>
@@ -87,6 +102,11 @@ function ResearchCard({ project }) {
   );
 }
 
+/**
+ * Renders the hero section for the research page.
+ *
+ * @returns {JSX.Element} Rendered hero section.
+ */
 function ResearchHero() {
   return (
     <section className="bg-[#722b4d] text-white">
@@ -107,11 +127,23 @@ function ResearchHero() {
   );
 }
 
+
+/**
+ * Research projects page.
+ *
+ * Handles filtering, loading state, and rendering
+ * of public research projects.
+ *
+ * @returns {JSX.Element} Rendered research page.
+ */
 export default function Investigaciones() {
   const [activeFilter, setActiveFilter] = useState("all");
   
   const { projects, isLoading } = usePublicProjects();
 
+    /**
+   * Filters projects based on selected status.
+   */
   const filteredProjects = useMemo(() => {
     if (activeFilter === "all") return projects;
     return projects.filter((project) => project.status === activeFilter);

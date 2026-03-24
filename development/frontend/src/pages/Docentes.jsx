@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
 import { usePublicTeachers } from "../hooks/usePublicTeachers";
 /**
- * Renderiza una tarjeta con la información principal de un docente.
+ * Renders a card with the main teacher information.
  *
- * Esta tarjeta muestra el nombre, cargo y área del docente.
- * Además incluye un botón que permite abrir un modal con
- * información detallada del profesor seleccionado.
+ * This card displays the teacher name, role, and academic area.
+ * It also includes an action button that opens a modal
+ * with detailed information about the selected teacher.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {Object} props.teacher - Información del docente a mostrar.
- * @param {string} props.teacher.fullName - Nombre completo del docente.
- * @param {string} props.teacher.role - Cargo o rol del docente.
- * @param {string} props.teacher.area - Área académica o de especialización.
- * @param {string} props.teacher.imageUrl - Ruta de la imagen del docente.
- * @param {Function} props.onOpen - Función que abre el modal del docente.
- *
- * @returns {JSX.Element} Tarjeta visual del docente.
+ * @param {Object} props - Component props.
+ * @param {Object} props.teacher - Teacher information to display.
+ * @param {string} props.teacher.fullName - Teacher full name.
+ * @param {string} props.teacher.role - Teacher position or role.
+ * @param {string} props.teacher.area - Academic or specialization area.
+ * @param {string} props.teacher.imageUrl - Teacher image path.
+ * @param {Function} props.onOpen - Function that opens the teacher modal.
+ * @returns {JSX.Element} Rendered teacher card.
  */
 function TeacherCard({ teacher, onOpen }) {
   return (
@@ -43,10 +42,18 @@ function TeacherCard({ teacher, onOpen }) {
 }
 
 /**
- * Modal que muestra la información detallada de un docente.
+ * Renders the modal with detailed teacher information.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object|null} props.teacher - Currently selected teacher.
+ * @param {Function} props.onClose - Function that closes the modal.
+ * @returns {JSX.Element|null} Rendered modal or null when no teacher is selected.
  */
 function TeacherModal({ teacher, onClose }) {
-  // Manejo de la tecla Escape para cerrar
+    /**
+   * Handles Escape key behavior and page scroll lock
+   * while the modal is open.
+   */
   useEffect(() => {
     if (!teacher) return;
     const handleEscape = (event) => { if (event.key === "Escape") onClose(); };
@@ -124,8 +131,14 @@ function TeacherModal({ teacher, onClose }) {
   );
 }
 
+
 /**
- * Página principal de docentes del departamento.
+ * Main department teachers page.
+ *
+ * Fetches the public teacher list and renders
+ * the corresponding loading, empty, or content state.
+ *
+ * @returns {JSX.Element} Rendered teachers page.
  */
 export default function Docentes() {
   const [selectedTeacher, setSelectedTeacher] = useState(null);

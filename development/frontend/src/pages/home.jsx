@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import Noticias from "./NoticiasHome.jsx";
 
+
 /**
- * Renderiza el hero principal de la página de inicio.
- * Incluye imagen institucional, mensaje principal y botones.
+ * Renders the main hero section of the home page.
+ * Includes the institutional image, headline, and primary actions.
  *
- * @returns {JSX.Element} Sección hero renderizada.
+ * @returns {JSX.Element} Rendered hero section.
  */
 function HeroSection() {
   return (
@@ -59,14 +60,14 @@ function HeroSection() {
 }
 
 /**
- * Renderiza una tarjeta que representa una de las áreas del departamento.
+ * Renders a card representing one of the department areas.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.title - Título del área.
- * @param {string} props.description - Descripción del área.
- * @param {string} props.image - Ruta de la imagen representativa.
- * @param {string} props.to - Ruta de navegación asociada al área.
- * @returns {JSX.Element} Tarjeta del área renderizada.
+ * @param {Object} props - Component props.
+ * @param {string} props.title - Area title.
+ * @param {string} props.description - Area description.
+ * @param {string} props.image - Path to the representative image.
+ * @param {string} props.to - Navigation route associated with the area.
+ * @returns {JSX.Element} Rendered area card.
  */
 function AreaCard({ title, description, image, to }) {
   return (
@@ -101,11 +102,10 @@ function AreaCard({ title, description, image, to }) {
   );
 }
 
-
 /**
- * Renderiza la sección que presenta las áreas principales del departamento.
+ * Renders the section that introduces the main department areas.
  *
- * @returns {JSX.Element} Sección de áreas renderizada.
+ * @returns {JSX.Element} Rendered areas section.
  */
 function AreasSection() {
   const areas = [
@@ -168,7 +168,7 @@ function AreasSection() {
 }
 
 /**
- * Realiza desplazamiento suave hacia la sección de áreas del departamento.
+ * Performs a smooth scroll to the department areas section.
  */
 const scrollToAreas = () => {
   const section = document.getElementById("areas");
@@ -178,9 +178,9 @@ const scrollToAreas = () => {
 };
 
 /**
- * Renderiza la página principal del sitio del Departamento de Ingeniería Industrial.
+ * Renders the main home page of the Department of Industrial Engineering website.
  *
- * @returns {JSX.Element} Página de inicio renderizada.
+ * @returns {JSX.Element} Rendered home page.
  */
 export default function Home() {
   return (
