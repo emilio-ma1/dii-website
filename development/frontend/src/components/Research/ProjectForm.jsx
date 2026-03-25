@@ -148,16 +148,27 @@ export function ProjectForm({
 
         <div>
           <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            URL de la Imagen
+            Imagen del proyecto
           </label>
-          <input
-            type="url"
-            name="image_url"
-            placeholder="https://ejemplo.com/imagen.jpg"
-            value={formData.image_url}
-            onChange={onChange}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-          />
+
+          <label className="inline-flex cursor-pointer items-center rounded-xl bg-[#722b4d] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90">
+            Seleccionar imagen
+            <input
+              type="file"
+              name="image_file"
+              accept="image/*"
+              onChange={onChange}
+              className="hidden"
+            />
+          </label>
+
+          <p className="mt-2 text-sm text-gray-500">
+            {formData.image_file
+              ? formData.image_file.name
+              : formData.image_url
+              ? "Ya hay una imagen cargada para este proyecto"
+              : "No se ha seleccionado ninguna imagen"}
+          </p>
         </div>
 
         <div>

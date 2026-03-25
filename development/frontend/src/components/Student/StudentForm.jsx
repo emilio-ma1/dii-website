@@ -58,15 +58,28 @@ export function StudentForm({ formData, onChange, onSubmit, onCancel, isEditing,
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">URL de imagen</label>
-          <input
-            type="text"
-            name="imageUrl"
-            value={formData.imageUrl}
-            onChange={onChange}
-            placeholder="/images/foto-docente.png"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20 transition"
-          />
+          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
+            Imagen del Estudiante
+          </label>
+
+          <label className="inline-flex cursor-pointer items-center rounded-xl bg-[#722b4d] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90">
+            Seleccionar imagen
+            <input
+              type="file"
+              name="image_file"
+              accept="image/*"
+              onChange={onChange}
+              className="hidden"
+            />
+          </label>
+
+          <p className="mt-2 text-sm text-gray-500">
+            {formData.image_file
+              ? formData.image_file.name
+              : formData.image_url
+              ? "Ya hay una imagen cargada para este estudiante"
+              : "No se ha seleccionado ninguna imagen"}
+          </p>
         </div>
 
         <div>
