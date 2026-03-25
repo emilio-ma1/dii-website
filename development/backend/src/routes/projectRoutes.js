@@ -6,6 +6,13 @@
  */
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } 
+});
 
 const { 
   getAllProjects, 
@@ -60,5 +67,8 @@ router.put('/:id', verifyToken, updateProject);
  * @access Private (Controller enforces Admin or Author ownership)
  */
 router.delete('/:id', verifyToken, deleteProject);
+
+router.post('/', verifyToken, upload.single('image'), createProject);
+router.put('/:id', verifyToken, upload.single('image'), updateProject);
 
 module.exports = router;

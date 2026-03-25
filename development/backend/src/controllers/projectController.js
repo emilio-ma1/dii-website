@@ -8,14 +8,35 @@ const ProjectModel = require('../models/projectModel');
 const AuditLogModel = require('../models/auditLogModel');
 
 /**
- * Helper function to extract integer IDs from a mixed array of authors.
+ * Helper function to extract integer IDs from a mixed array or JSON string of authors.
+ * * @param {Array|string} authorsInput - The authors data from the request body (array or JSON string).
+ * @returns {Array<number>} An array of valid, clean author integer IDs.
+ * @throws {Error} Safely catches parsing errors and logs a warning instead of halting.
  */
-const extractAuthorIds = (authorsArray) => {
-  if (!authorsArray || !Array.isArray(authorsArray)) return [];
+const extractAuthorIds = (authorsInput) => {
+  if (!authorsInput) return [];
+  
+  let authorsArray = authorsInput;
+  
+  if (typeof authorsInput === 'string') {
+    try {
+      authorsArray = JSON.parse(authorsInput);
+    } catch (error) {
+      console.warn('[WARN] Failed to parse authors string from FormData:', error.message);
+      return [];
+    }
+  }
+
+  if (!Array.isArray(authorsArray)) return [];
   
   return authorsArray.map(author => {
     if (typeof author === 'string' && author.startsWith('{')) {
-      try { return JSON.parse(author).id; } catch (e) { return null; }
+      try { 
+        return JSON.parse(author).id; 
+      } catch (e) { 
+        console.warn('[WARN] Failed to parse individual author object:', e.message);
+        return null; 
+      }
     }
     if (typeof author === 'object' && author !== null) {
       return author.id;
@@ -25,9 +46,11 @@ const extractAuthorIds = (authorsArray) => {
 };
 
 /**
- * Retrieves research projects.
- * - Public Page: Returns all projects without exception.
- * - Admin Panel (?scope=admin): Isolates data. Admins see all, others see their own.
+ * Retrieves research projects for the public website.
+ * * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<Object>} JSON response containing the list of all projects.
+ * @throws {Error} Catches internal database errors and returns a 500 status.
  */
 const getAllProjects = async (req, res) => {
   try {
@@ -39,6 +62,13 @@ const getAllProjects = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves a specific research project by its ID.
+ * * @param {Object} req - The HTTP request object containing params.id.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<Object>} JSON response containing the project data.
+ * @throws {Error} Catches internal database errors and returns a 500 status.
+ */
 const getProjectById = async (req, res) => {
   const { id } = req.params;
   try {
@@ -51,6 +81,13 @@ const getProjectById = async (req, res) => {
   }
 };
 
+/**
+ * Creates a new research project, handling multipart/form-data images.
+ * * @param {Object} req - The HTTP request object containing body and file.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<Object>} JSON response confirming creation.
+ * @throws {Error} Catches internal database errors and returns a 500 status.
+ */
 const createProject = async (req, res) => {
   const { authors, ...projectData } = req.body;
 
@@ -60,8 +97,21 @@ const createProject = async (req, res) => {
 
   const cleanAuthorIds = extractAuthorIds(authors);
 
+  let imageData = null;
+  let imageMimetype = null;
+  if (req.file) {
+    imageData = req.file.buffer;
+    imageMimetype = req.file.mimetype;
+  }
+
+  const finalProjectData = {
+    ...projectData,
+    image_data: imageData,
+    image_mimetype: imageMimetype
+  };
+
   try {
-    const newProject = await ProjectModel.create(projectData, cleanAuthorIds);
+    const newProject = await ProjectModel.create(finalProjectData, cleanAuthorIds);
 
     if (req.user && req.user.id) {
       await AuditLogModel.logAction(req.user.id, 'CREATE', 'projects', newProject.id, { title: newProject.title });
@@ -75,8 +125,11 @@ const createProject = async (req, res) => {
 };
 
 /**
- * Updates an existing research project.
- * SECURITY: Enforces ownership. Only Admins or project Authors can edit.
+ * Updates an existing research project. Enforces ownership rules.
+ * * @param {Object} req - The HTTP request object containing params.id, body, and file.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<Object>} JSON response confirming update.
+ * @throws {Error} Catches internal database errors and returns a 500 status.
  */
 const updateProject = async (req, res) => {
   const { id } = req.params;
@@ -101,7 +154,14 @@ const updateProject = async (req, res) => {
     }
 
     const cleanAuthorIds = extractAuthorIds(authors);
-    const updatedProject = await ProjectModel.update(id, projectData, cleanAuthorIds);
+
+    let finalProjectData = { ...projectData };
+    if (req.file) {
+      finalProjectData.image_data = req.file.buffer;
+      finalProjectData.image_mimetype = req.file.mimetype;
+    }
+
+    const updatedProject = await ProjectModel.update(id, finalProjectData, cleanAuthorIds);
 
     if (req.user && req.user.id) {
       await AuditLogModel.logAction(req.user.id, 'UPDATE', 'projects', id, { title: updatedProject.title });
@@ -115,8 +175,11 @@ const updateProject = async (req, res) => {
 };
 
 /**
- * Deletes a research project.
- * SECURITY: Enforces ownership. Only Admins or project Authors can delete.
+ * Deletes a research project. Enforces ownership rules.
+ * * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<Object>} JSON response confirming deletion.
+ * @throws {Error} Catches internal database errors and returns a 500 status.
  */
 const deleteProject = async (req, res) => {
   const { id } = req.params;
@@ -148,6 +211,13 @@ const deleteProject = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves projects for the Admin panel with Data Isolation logic.
+ * * @param {Object} req - The HTTP request object containing req.user.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<Object>} JSON array of filtered projects based on role.
+ * @throws {Error} Catches internal database errors and returns a 500 status.
+ */
 const getPanelProjects = async (req, res) => {
   try {
     const { role, id } = req.user; 

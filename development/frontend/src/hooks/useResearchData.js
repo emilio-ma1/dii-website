@@ -7,10 +7,26 @@
 import { useState, useEffect } from "react";
 
 /**
+ * Formats the raw user data into the required author shape for the UI.
+ * * @param {Array<object>} rawUsers - The raw list of users from the API.
+ * @returns {Array<object>} The mapped array containing only necessary fields.
+ * @throws {Error} No explicit errors thrown; handles non-array inputs gracefully.
+ */
+const formatAuthors = (rawUsers) => {
+  if (!Array.isArray(rawUsers)) return [];
+  return rawUsers.map((user) => ({
+    id: user.id,
+    full_name: user.full_name, 
+    role: user.role
+  }));
+};
+
+/**
  * Retrieves the necessary data arrays (authors and categories) to populate form selectors.
  *
  * @param {boolean} shouldFetch - Determines if the fetch should be executed based on mount or permissions.
  * @returns {object} Object containing available authors, categories, loading state, and error message.
+ * @throws {Error} Internally catches fetch errors and sets the error state.
  */
 export function useResearchData(shouldFetch) {
   const [availableAuthors, setAvailableAuthors] = useState([]);
@@ -41,12 +57,7 @@ export function useResearchData(shouldFetch) {
           catRes.json()
         ]);
 
-        setAvailableAuthors(usersData.map(u => ({
-          id: u.id,
-          full_name: u.full_name, 
-          role: u.role
-        })));
-
+        setAvailableAuthors(formatAuthors(usersData));
         setCategories(catData);
 
       } catch (err) {
