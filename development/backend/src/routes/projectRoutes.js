@@ -14,13 +14,20 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } 
 });
 
+const uploadFields = upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'pdf', maxCount: 1 }
+]);
+
 const { 
   getAllProjects, 
   getPanelProjects,
   getProjectById,
   createProject, 
   updateProject, 
-  deleteProject
+  deleteProject,
+  getProjectImage,
+  getProjectPdf
 } = require('../controllers/projectController');
 
 const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware'); 
@@ -46,20 +53,33 @@ router.get('/panel', verifyToken, getPanelProjects);
  */
 router.get('/:id', getProjectById);
 
+/**
+ * @route GET /api/projects/:id/image
+ * @description Serves the binary image file of a project.
+ * @access Public
+ */
+router.get('/:id/image', getProjectImage);
+
+/**
+ * @route GET /api/projects/:id/pdf
+ * @description Serves the binary PDF document of a project.
+ * @access Public
+ */
+router.get('/:id/pdf', getProjectPdf);
 
 /**
  * @route POST /api/projects
  * @description Creates a new research project and links the assigned authors.
  * @access Private 
  */
-router.post('/', verifyToken, createProject); 
+router.post('/', verifyToken, uploadFields, createProject); 
 
 /**
  * @route PUT /api/projects/:id
  * @description Updates an existing research project. 
  * @access Private (Controller enforces Admin or Author ownership)
  */
-router.put('/:id', verifyToken, updateProject);
+router.put('/:id', verifyToken, uploadFields, updateProject);
 
 /**
  * @route DELETE /api/projects/:id
@@ -67,8 +87,5 @@ router.put('/:id', verifyToken, updateProject);
  * @access Private (Controller enforces Admin or Author ownership)
  */
 router.delete('/:id', verifyToken, deleteProject);
-
-router.post('/', verifyToken, upload.single('image'), createProject);
-router.put('/:id', verifyToken, upload.single('image'), updateProject);
 
 module.exports = router;
