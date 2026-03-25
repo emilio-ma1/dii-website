@@ -9,6 +9,7 @@ const router = express.Router();
 
 const { 
   getAllProjects, 
+  getPanelProjects,
   getProjectById,
   createProject, 
   updateProject, 
@@ -25,31 +26,39 @@ const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 router.get('/', getAllProjects);
 
 /**
+ * @route GET /api/projects/panel
+ * @description Retrieves isolated projects for the admin panel (Admins see all, Authors see their own).
+ * @access Private (Requires ANY valid token)
+ */
+router.get('/panel', verifyToken, getPanelProjects);
+
+/**
  * @route GET /api/projects/:id
  * @description Retrieves a specific research project by its ID, including detailed information and authors.
  * @access Public
  */
 router.get('/:id', getProjectById);
 
+
 /**
  * @route POST /api/projects
  * @description Creates a new research project and links the assigned authors.
- * @access Private (Requires Admin privileges)
+ * @access Private 
  */
-router.post('/', verifyToken, verifyAdmin, createProject);
+router.post('/', verifyToken, createProject); 
 
 /**
  * @route PUT /api/projects/:id
- * @description Updates an existing research project and refreshes its authors list.
- * @access Private (Requires Admin privileges)
+ * @description Updates an existing research project. 
+ * @access Private (Controller enforces Admin or Author ownership)
  */
-router.put('/:id', verifyToken, verifyAdmin, updateProject);
+router.put('/:id', verifyToken, updateProject);
 
 /**
  * @route DELETE /api/projects/:id
  * @description Deletes a research project from the system by its ID.
- * @access Private (Requires Admin privileges)
+ * @access Private (Controller enforces Admin or Author ownership)
  */
-router.delete('/:id', verifyToken, verifyAdmin, deleteProject);
+router.delete('/:id', verifyToken, deleteProject);
 
 module.exports = router;

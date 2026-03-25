@@ -110,12 +110,26 @@ const loadProjectForEditing = (project) => {
   };
 
 // Función para buscar los proyectos en la BD
-  const fetchProjects = async () => {
+const fetchProjects = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`);
+      const token = localStorage.getItem("token"); 
+      
+      if (!token) {
+        console.log("[QA INFO] Esperando token de autenticación...");
+        return;
+      }
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/panel`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
       if (response.ok) {
         const data = await response.json();
-        setProjects(data); // Guardamos los proyectos en React
+        setProjects(data); 
+      } else if (response.status === 401 || response.status === 403) {
+        console.warn("Sesión expirada. Por favor, inicia sesión de nuevo.");
       }
     } catch (error) {
       console.error("[ERROR] No se pudieron cargar los proyectos:", error);

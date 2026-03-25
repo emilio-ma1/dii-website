@@ -2,16 +2,13 @@
  * @file projectController.js
  * @description
  * Handles incoming HTTP requests for research projects.
- * Adheres strictly to the Thin Controller pattern by delegating DB logic to ProjectModel.
+ * Enforces strict Data Isolation and Ownership Security for updates and deletions.
  */
 const ProjectModel = require('../models/projectModel');
-const AuditLogModel = require('../models/auditLogModel'); //Added Audit Trail
+const AuditLogModel = require('../models/auditLogModel');
 
 /**
  * Helper function to extract integer IDs from a mixed array of authors.
- * Handles JSON strings, objects, or raw numbers.
- * * @param {Array} authorsArray - Mixed array of author representations.
- * @returns {Array<number>} An array of clean integer IDs.
  */
 const extractAuthorIds = (authorsArray) => {
   if (!authorsArray || !Array.isArray(authorsArray)) return [];
@@ -28,49 +25,25 @@ const extractAuthorIds = (authorsArray) => {
 };
 
 /**
- * Retrieves research projects based on user role (Data Isolation).
- * - Admins see all projects.
- * - Teachers and Alumni only see projects where they are listed as authors.
- *
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
- * @returns {Promise<object>} JSON response with the filtered projects list.
+ * Retrieves research projects.
+ * - Public Page: Returns all projects without exception.
+ * - Admin Panel (?scope=admin): Isolates data. Admins see all, others see their own.
  */
 const getAllProjects = async (req, res) => {
   try {
-    const { id, role } = req.user; 
-
-    let projectsList;
-
-    if (role === 'admin') {
-      projectsList = await ProjectModel.getAll();
-    } else {
-      projectsList = await ProjectModel.getByAuthorId(id);
-    }
-
+    const projectsList = await ProjectModel.getAll();
     return res.status(200).json(projectsList);
   } catch (error) {
-    console.error('[ERROR] Controller failed to fetch projects:', error);
+    console.error('[ERROR] Controller failed to fetch public projects:', error);
     return res.status(500).json({ message: 'Error interno al obtener las investigaciones.' });
   }
 };
 
-/**
- * Retrieves a specific research project by its ID.
- *
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
- * @returns {Promise<object>} JSON response with the project details.
- */
 const getProjectById = async (req, res) => {
   const { id } = req.params;
   try {
     const project = await ProjectModel.getById(id);
-    
-    if (!project) {
-      return res.status(404).json({ message: 'Proyecto no encontrado.' });
-    }
-    
+    if (!project) return res.status(404).json({ message: 'Proyecto no encontrado.' });
     return res.status(200).json(project);
   } catch (error) {
     console.error(`[ERROR] Failed to fetch project ${id}:`, error);
@@ -78,17 +51,9 @@ const getProjectById = async (req, res) => {
   }
 };
 
-/**
- * Creates a new research project and links its authors.
- *
- * @param {object} req - Express request object containing project data and authors.
- * @param {object} res - Express response object.
- * @returns {Promise<object>} JSON response with the newly created project.
- */
 const createProject = async (req, res) => {
   const { authors, ...projectData } = req.body;
 
-  // Defensive programming
   if (!projectData.title || !projectData.category_id) {
     return res.status(400).json({ message: 'El título y la categoría son obligatorios.' });
   }
@@ -98,15 +63,8 @@ const createProject = async (req, res) => {
   try {
     const newProject = await ProjectModel.create(projectData, cleanAuthorIds);
 
-    // Inject Audit Log for traceability
     if (req.user && req.user.id) {
-      await AuditLogModel.logAction(
-        req.user.id,
-        'CREATE',
-        'projects',
-        newProject.id,
-        { title: newProject.title, authors_count: cleanAuthorIds.length }
-      );
+      await AuditLogModel.logAction(req.user.id, 'CREATE', 'projects', newProject.id, { title: newProject.title });
     }
 
     return res.status(201).json(newProject);
@@ -117,39 +75,36 @@ const createProject = async (req, res) => {
 };
 
 /**
- * Updates an existing research project and refreshes its authors list.
- *
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
- * @returns {Promise<object>} JSON response with the updated project.
+ * Updates an existing research project.
+ * SECURITY: Enforces ownership. Only Admins or project Authors can edit.
  */
 const updateProject = async (req, res) => {
   const { id } = req.params;
   const { authors, ...projectData } = req.body;
 
-  // Defensive programming
   if (!projectData.title) {
     return res.status(400).json({ message: 'El título de la investigación es obligatorio.' });
   }
 
-  const cleanAuthorIds = extractAuthorIds(authors);
-
   try {
-    const updatedProject = await ProjectModel.update(id, projectData, cleanAuthorIds);
-    
-    if (!updatedProject) {
-      return res.status(404).json({ message: 'La investigación solicitada no existe.' });
+    const existingProject = await ProjectModel.getById(id);
+    if (!existingProject) return res.status(404).json({ message: 'La investigación solicitada no existe.' });
+
+    const role = req.user ? req.user.role : 'guest';
+    const userId = req.user ? req.user.id : null;
+
+    if (role !== 'admin') {
+      const currentAuthorIds = extractAuthorIds(existingProject.authors);
+      if (!currentAuthorIds.includes(userId)) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo puedes editar las investigaciones donde participas.' });
+      }
     }
 
-    // Inject Audit Log for traceability
+    const cleanAuthorIds = extractAuthorIds(authors);
+    const updatedProject = await ProjectModel.update(id, projectData, cleanAuthorIds);
+
     if (req.user && req.user.id) {
-      await AuditLogModel.logAction(
-        req.user.id,
-        'UPDATE',
-        'projects',
-        id,
-        { title: updatedProject.title, status: updatedProject.status }
-      );
+      await AuditLogModel.logAction(req.user.id, 'UPDATE', 'projects', id, { title: updatedProject.title });
     }
 
     return res.status(200).json(updatedProject);
@@ -160,34 +115,30 @@ const updateProject = async (req, res) => {
 };
 
 /**
- * Deletes a research project from the system.
- *
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
- * @returns {Promise<object>} JSON response confirming the deletion.
+ * Deletes a research project.
+ * SECURITY: Enforces ownership. Only Admins or project Authors can delete.
  */
 const deleteProject = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedProject = await ProjectModel.delete(id);
+    const existingProject = await ProjectModel.getById(id);
+    if (!existingProject) return res.status(404).json({ message: 'La investigación solicitada no existe o ya fue eliminada.' });
 
-    if (!deletedProject) {
-      return res.status(404).json({ message: 'La investigación solicitada no existe o ya fue eliminada.' });
+    const role = req.user ? req.user.role : 'guest';
+    const userId = req.user ? req.user.id : null;
+
+    if (role !== 'admin') {
+      const currentAuthorIds = extractAuthorIds(existingProject.authors);
+      if (!currentAuthorIds.includes(userId)) {
+        return res.status(403).json({ message: 'Acceso denegado: No tienes permiso para eliminar esta investigación.' });
+      }
     }
 
-    // Inject Audit Log for traceability
+    const deletedProject = await ProjectModel.delete(id);
+
     if (req.user && req.user.id) {
-      await AuditLogModel.logAction(
-        req.user.id,
-        'DELETE',
-        'projects',
-        id,
-        { 
-          title: deletedProject.title, 
-          deleted_at: new Date().toISOString() 
-        }
-      );
+      await AuditLogModel.logAction(req.user.id, 'DELETE', 'projects', id, { title: deletedProject.title });
     }
 
     return res.status(200).json({ message: 'Investigación eliminada exitosamente.' });
@@ -197,10 +148,22 @@ const deleteProject = async (req, res) => {
   }
 };
 
-module.exports = {
-  getAllProjects,
-  getProjectById,
-  createProject,
-  updateProject,
-  deleteProject
+const getPanelProjects = async (req, res) => {
+  try {
+    const { role, id } = req.user; 
+    let projectsList;
+
+    if (role === 'admin') {
+      projectsList = await ProjectModel.getAll();
+    } else {
+      projectsList = await ProjectModel.getByAuthorId(id);
+    }
+
+    return res.status(200).json(projectsList);
+  } catch (error) {
+    console.error('[ERROR] Controller failed to fetch panel projects:', error);
+    return res.status(500).json({ message: 'Error interno al cargar el panel.' });
+  }
 };
+
+module.exports = { getAllProjects, getProjectById, createProject, updateProject, deleteProject, getPanelProjects };
