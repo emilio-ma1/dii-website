@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import { PERMISSIONS } from "../auth/permisos";
 import { useProjectDetail } from "../hooks/useProjectDetail";
 
 const STATUS_LABELS = {
@@ -7,27 +9,21 @@ const STATUS_LABELS = {
   completed: "Completado",
 };
 
+const DEFAULT_PROJECT_IMAGE = "/images/Inve-ejemplo1.png";
+
 /**
  * Research project detail page.
- *
- * Fetches the selected project by route parameter
- * and renders its detailed information, status,
- * and document download access based on user role.
- *
- * @returns {JSX.Element} Rendered project detail page.
  */
 export default function InvestigacionDetalle() {
   const { id } = useParams();
   const { user } = useAuth();
+  const [imageError, setImageError] = useState(false);
   
   const { project, isLoading, error } = useProjectDetail(id);
 
-    /**
-   * Defines which roles are allowed to download
-   * the full project document.
-   */
-  const ALLOWED_ROLES = ["admin", "teacher", "alumni"]; 
-  const canDownloadProject = user?.role && ALLOWED_ROLES.includes(user.role) && Boolean(project?.pdf_url);
+  const userPermissions = user?.role ? PERMISSIONS[user.role] : { downloadPdf: false };
+  
+  const canDownloadProject = userPermissions.downloadPdf;
 
   if (isLoading) {
     return (
@@ -62,13 +58,17 @@ export default function InvestigacionDetalle() {
     );
   }
 
+  const imageApiUrl = `${import.meta.env.VITE_API_URL}/api/projects/${project.id}/image`;
+  const pdfApiUrl = `${import.meta.env.VITE_API_URL}/api/projects/${project.id}/pdf`;
+
   return (
     <div className="min-h-screen bg-[#f7f5f6]">
       <section className="relative overflow-hidden">
         <img
-          src={project.image}
+          src={imageError ? DEFAULT_PROJECT_IMAGE : imageApiUrl}
           alt={project.title}
           className="absolute inset-0 h-full w-full object-cover"
+          onError={() => setImageError(true)}
         />
         <div className="absolute inset-0 bg-[#722b4d]/80" />
 
@@ -113,7 +113,7 @@ export default function InvestigacionDetalle() {
             </h2>
 
             <div className="mt-6 space-y-5 text-base leading-8 text-gray-700">
-              {(project.summary || "")
+              {(project.summary || project.abstract || "")
                 .trim()
                 .split("\n\n")
                 .filter(Boolean)
@@ -123,23 +123,21 @@ export default function InvestigacionDetalle() {
             </div>
           </div>
 
-          {/* Download access depends on user role and PDF availability */}
           {canDownloadProject ? (
             <div className="mt-8 w-full flex justify-center">
               <a
-                href={project.pdf_url}
-                download
+                href={pdfApiUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg bg-[#722b4d] px-8 py-4 text-base font-semibold text-white transition hover:bg-[#5e2340] shadow-md"
               >
-                Descargar Documento Completo ↓
+                Descargar Documento Completo (PDF) ↓
               </a>
             </div>
           ) : (
             <div className="mt-8 w-full flex justify-center">
-              <div className="rounded-lg border border-gray-300 bg-gray-50 px-6 py-4 text-center text-sm text-gray-500 shadow-sm">
-                Inicia sesión como docente, alumno o administrador para descargar el documento completo.
+              <div className="rounded-lg border border-gray-300 bg-gray-50 px-6 py-4 text-center text-sm text-gray-500 shadow-sm max-w-md">
+                <strong>Acceso Restringido:</strong> Inicia sesión como docente, egresado o administrador para descargar el documento técnico de esta investigación.
               </div>
             </div>
           )}

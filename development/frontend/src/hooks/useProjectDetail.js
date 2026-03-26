@@ -7,10 +7,17 @@
 import { useState, useEffect } from "react";
 
 /**
+ * Formats an ISO date string into DD-MM-YYYY.
+ */
+const formatDate = (dateString) => {
+  if (!dateString) return "Fecha no especificada";
+  // Extraemos solo la parte de la fecha antes de la 'T'
+  const [year, month, day] = dateString.split('T')[0].split('-');
+  return `${day}-${month}-${year}`;
+};
+
+/**
  * Retrieves the detailed information of a research project by its ID.
- *
- * @param {string|number} id - The unique identifier of the project.
- * @returns {object} An object containing the formatted project data, loading state, and error message.
  */
 export function useProjectDetail(id) {
   const [project, setProject] = useState(null);
@@ -18,7 +25,6 @@ export function useProjectDetail(id) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Early return if no ID is provided
     if (!id) return;
 
     const fetchProject = async () => {
@@ -26,7 +32,6 @@ export function useProjectDetail(id) {
         setIsLoading(true);
         setError(null);
 
-        // Fetch data from the specific project endpoint
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/${id}`);
         
         if (!response.ok) {
@@ -35,24 +40,25 @@ export function useProjectDetail(id) {
 
         const data = await response.json();
 
-        // Extract and format the researchers list as done in the general view
+        // Formateo de autores
         const researchersList = data.authors && data.authors.length > 0
           ? data.authors.map(a => a.name || a.full_name || a.user_name || "Autor").join(", ")
           : "Equipo de Investigación";
 
-        // Transform API data to match frontend component props
         const formattedProject = {
           id: data.id,
           status: data.status || "in_progress",
           topic: data.category_name || "Investigación",
-          year: data.year || new Date().getFullYear().toString(),
+          
+          year: formatDate(data.year),
+          
           title: data.title,
           researcher: researchersList,
           role: "Investigador(es)",
-          // Use abstract for summary/description if a long description isn't available
-          summary: data.abstract || "Sin resumen disponible.",
-          image: data.image_url || "/images/Inve-ejemplo1.png",
-          pdf_url: data.pdf_url || null, // Ensure PDF URL is captured
+          summary: data.abstract || data.summary || "Sin resumen disponible.",
+          
+          image: `${import.meta.env.VITE_API_URL}/api/projects/${data.id}/image`,
+          pdf_url: `${import.meta.env.VITE_API_URL}/api/projects/${data.id}/pdf`,
         };
 
         setProject(formattedProject);

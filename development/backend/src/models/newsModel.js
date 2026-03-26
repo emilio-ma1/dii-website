@@ -2,23 +2,22 @@
  * @file newsModel.js
  * @description
  * Data Access Object (DAO) for the 'news' entity.
- * Handles database queries and abstracts the data layer from controllers.
+ * Handles database queries, optimized for binary file storage (BYTEA).
  */
 const pool = require('../config/db');
 
 const NewsModel = {
   /**
    * Retrieves all news records ordered by publication date (descending).
-   * Explicitly selects columns to optimize database performance.
+   * Excludes heavy binary fields (image_data) to preserve memory.
    *
    * @returns {Promise<Array<object>>} An array of news objects.
    * @throws {Error} If the database query fails.
    */
   getAll: async () => {
     try {
-      // Explicit column selection instead of SELECT *
       const query = `
-        SELECT id, title, slug, content, image_url, is_active, published_at, created_by 
+        SELECT id, title, slug, content, is_active, published_at, created_by 
         FROM news 
         ORDER BY published_at DESC;
       `;
@@ -26,30 +25,31 @@ const NewsModel = {
       return rows;
     } catch (error) {
       console.error('[ERROR] Failed to fetch all news from database:', error);
-      throw error; // Controllers catch the errors thrown by Models
+      throw error;
     }
   },
 
   /**
-   * Inserts a new news post into the database.
+   * Inserts a new news post into the database with binary image support.
    *
    * @param {string} title The title of the news.
    * @param {string} slug The URL-friendly identifier.
    * @param {string} content The main body of the news.
-   * @param {string|null} imageUrl The URL of the attached image.
+   * @param {Buffer|null} imageData The binary buffer of the image.
+   * @param {string|null} imageMimetype The MIME type of the image.
    * @param {number|null} userId The ID of the admin user creating the post.
    * @param {boolean} isActive The visibility status of the news.
-   * @returns {Promise<object>} The newly created news object.
+   * @returns {Promise<object>} The newly created news object (without binary data).
    * @throws {Error} If the database insertion fails.
    */
-  create: async (title, slug, content, imageUrl, userId, isActive) => {
+  create: async (title, slug, content, imageData, imageMimetype, userId, isActive) => {
     try {
       const query = `
-        INSERT INTO news (title, slug, content, image_url, created_by, is_active, published_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW())
-        RETURNING *;
+        INSERT INTO news (title, slug, content, image_data, image_mimetype, created_by, is_active, published_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+        RETURNING id, title, slug, content, is_active, published_at, created_by;
       `;
-      const values = [title, slug, content, imageUrl, userId, isActive];
+      const values = [title, slug, content, imageData, imageMimetype, userId, isActive];
       
       const { rows } = await pool.query(query, values);
       return rows[0];
@@ -60,26 +60,34 @@ const NewsModel = {
   },
 
   /**
-   * Updates an existing news post in the database.
+   * Updates an existing news post.
+   * Uses COALESCE to keep the existing image if a new one is not provided.
    *
    * @param {number|string} id The ID of the news to update.
    * @param {string} title The new title.
    * @param {string} slug The new slug.
    * @param {string} content The new content.
-   * @param {string|null} imageUrl The new image URL.
+   * @param {Buffer|null} imageData The new binary image buffer.
+   * @param {string|null} imageMimetype The new image MIME type.
    * @param {boolean} isActive The new visibility status.
-   * @returns {Promise<object|null>} The updated news object, or null if not found.
+   * @returns {Promise<object|null>} The updated news object.
    * @throws {Error} If the database update fails.
    */
-  update: async (id, title, slug, content, imageUrl, isActive) => {
+  update: async (id, title, slug, content, imageData, imageMimetype, isActive) => {
     try {
       const query = `
         UPDATE news 
-        SET title = $1, slug = $2, content = $3, image_url = $4, is_active = $5
-        WHERE id = $6
-        RETURNING *;
+        SET 
+          title = $1, 
+          slug = $2, 
+          content = $3, 
+          is_active = $4,
+          image_data = COALESCE($5, image_data),
+          image_mimetype = COALESCE($6, image_mimetype)
+        WHERE id = $7
+        RETURNING id, title, slug, content, is_active, published_at;
       `;
-      const values = [title, slug, content, imageUrl, isActive, id];
+      const values = [title, slug, content, isActive, imageData, imageMimetype, id];
       const { rows } = await pool.query(query, values);
       
       return rows.length ? rows[0] : null;
@@ -93,12 +101,12 @@ const NewsModel = {
    * Deletes a news post from the database.
    *
    * @param {number|string} id The ID of the news to delete.
-   * @returns {Promise<object|null>} The deleted news object, or null if not found.
+   * @returns {Promise<object|null>} The deleted news object.
    * @throws {Error} If the database deletion fails.
    */
   delete: async (id) => {
     try {
-      const query = 'DELETE FROM news WHERE id = $1 RETURNING *;';
+      const query = 'DELETE FROM news WHERE id = $1 RETURNING id, title;';
       const { rows } = await pool.query(query, [id]);
       
       return rows.length ? rows[0] : null;
@@ -110,17 +118,15 @@ const NewsModel = {
 
   /**
    * Retrieves a specific news post by its unique URL slug.
-   * Used for public-facing detailed views.
    *
    * @param {string} slug The unique URL-friendly string.
-   * @returns {Promise<object|null>} The news object, or null if not found.
+   * @returns {Promise<object|null>} The news object.
    * @throws {Error} If the database query fails.
    */
   getBySlug: async (slug) => {
     try {
-      // Explicit column selection
       const query = `
-        SELECT id, title, slug, content, image_url, is_active, published_at, created_by 
+        SELECT id, title, slug, content, is_active, published_at, created_by 
         FROM news 
         WHERE slug = $1;
       `;
@@ -131,6 +137,23 @@ const NewsModel = {
       throw error;
     }
   },
+
+  /**
+   * Retrieves exclusively the binary image data for a specific news post.
+   * Used for the image serving tunnel.
+   * * @param {number|string} id The news ID.
+   * @returns {Promise<object|null>} Object containing image_data and image_mimetype.
+   */
+  getImage: async (id) => {
+    try {
+      const query = 'SELECT image_data, image_mimetype FROM news WHERE id = $1;';
+      const { rows } = await pool.query(query, [id]);
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch image for news ID ${id}:`, error);
+      throw error;
+    }
+  }
 };
 
 module.exports = NewsModel;

@@ -18,7 +18,6 @@ export function useEventDetail(slugOrId) {
   const [error, setError] = useState(null); 
 
   useEffect(() => {
-    // Early return if no identifier is provided
     if (!slugOrId) return;
 
     const fetchEvent = async () => {
@@ -34,7 +33,8 @@ export function useEventDetail(slugOrId) {
 
         const data = await response.json();
 
-        // Transform API data to match frontend component props
+        const binaryImageUrl = `${import.meta.env.VITE_API_URL}/api/news/${data.id}/image`;
+
         const formattedEvent = {
           id: data.id,
           status: data.is_active ? "current" : "not_current",
@@ -46,7 +46,7 @@ export function useEventDetail(slugOrId) {
           author: "Depto. de Ingeniería Industrial",
           role: "Publicador",
           description: data.content || "Sin descripción detallada disponible.",
-          image: data.image_url || "/images/Vinculacion-ejemplo.jpg",
+          image: binaryImageUrl,
         };
 
         setEventData(formattedEvent);

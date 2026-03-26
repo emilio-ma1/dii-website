@@ -8,6 +8,7 @@ function createBasePermissions() {
     createProject: false,
     editProject: false,
     deleteProject: false,
+    downloadPdf: false,
     manageAccounts: false,
     createTeacher: false,
     editTeacher: false,
@@ -32,6 +33,7 @@ const ADMIN_PERMISSIONS = {
   createProject: true,
   editProject: true,
   deleteProject: true,
+  downloadPdf: true,
   manageAccounts: true,
   createTeacher: true,
   editTeacher: true,
@@ -54,6 +56,7 @@ const GRADUATE_PERMISSIONS = {
   ...createBasePermissions(),
   createProject: true,
   editProject: true,
+  downloadPdf: true,
 };
 
 /**
@@ -63,6 +66,7 @@ const TEACHER_PERMISSIONS = {
   ...createBasePermissions(),
   createProject: true,
   editProject: true,
+  downloadPdf: true,
 };
 
 /**
