@@ -53,10 +53,28 @@ export function ProjectForm({
       authors: prev.authors.filter((a) => a.id !== userId),
     }));
   };
+
+  /**
+   * Sets the publication date field to today's date (YYYY-MM-DD format).
+   */
+  const setDateToToday = () => {
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    const formattedDate = today.toISOString().split('T')[0];
+
+    onChange({
+      target: {
+        name: 'year',
+        value: formattedDate,
+        type: 'date'
+      }
+    });
+  };
   
   return (
     <form
       onSubmit={onSubmit}
+      noValidate
       className="rounded-2xl border border-[#722b4d]/30 bg-white p-6 shadow-sm"
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -68,7 +86,7 @@ export function ProjectForm({
             type="text"
             name="title"
             placeholder="Ingresa el título del proyecto"
-            value={formData.title}
+            value={formData.title || ''}
             onChange={onChange}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
             required
@@ -90,7 +108,7 @@ export function ProjectForm({
           </label>
           <select
             name="category_id"
-            value={formData.category_id}
+            value={formData.category_id || ''}
             onChange={onChange}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
             required
@@ -104,17 +122,26 @@ export function ProjectForm({
 
         <div>
           <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Año
+            Fecha de Publicación
           </label>
-          <input
-            type="number"
-            name="year"
-            placeholder="Ej: 2026"
-            value={formData.year}
-            onChange={onChange}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-            required
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              name="year" 
+              value={formData.year || ''}
+              onChange={onChange}
+              className="w-full flex-1 rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
+              required
+            />
+            <button
+              type="button"
+              onClick={setDateToToday}
+              className="shrink-0 rounded-xl bg-gray-100 px-4 py-3 text-sm font-semibold text-[#722b4d] transition hover:bg-gray-200"
+              title="Establecer fecha de hoy"
+            >
+              Hoy
+            </button>
+          </div>
         </div>
 
         <div className="md:col-span-2">
@@ -123,8 +150,8 @@ export function ProjectForm({
           </label>
           <textarea
             name="abstract"
-            placeholder="Ingresa el resumen público"
-            value={formData.abstract}
+            placeholder="Ingresa el resumen público de la investigación"
+            value={formData.abstract || ''}
             onChange={onChange}
             rows={4}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
@@ -134,16 +161,27 @@ export function ProjectForm({
 
         <div>
           <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            URL del PDF (Documento)
+            Documento del Proyecto (PDF)
           </label>
-          <input
-            type="url"
-            name="pdf_url"
-            placeholder="https://ejemplo.com/documento.pdf"
-            value={formData.pdf_url}
-            onChange={onChange}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-          />
+
+          <label className="inline-flex cursor-pointer items-center rounded-xl bg-[#722b4d] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90">
+            Seleccionar PDF
+            <input
+              type="file"
+              name="pdf_file"
+              accept="application/pdf"
+              onChange={onChange}
+              className="hidden"
+            />
+          </label>
+
+          <p className="mt-2 text-sm text-gray-500">
+            {formData.pdf_file
+              ? formData.pdf_file.name
+              : isEditing
+              ? "Ya hay un documento guardado. Sube otro para reemplazarlo."
+              : "No se ha seleccionado ningún documento (Max 5MB)"}
+          </p>
         </div>
 
         <div>
@@ -165,24 +203,24 @@ export function ProjectForm({
           <p className="mt-2 text-sm text-gray-500">
             {formData.image_file
               ? formData.image_file.name
-              : formData.image_url
-              ? "Ya hay una imagen cargada para este proyecto"
-              : "No se ha seleccionado ninguna imagen"}
+              : isEditing
+              ? "Ya hay una imagen guardada. Sube otra para reemplazarla."
+              : "No se ha seleccionado ninguna imagen (Max 2MB)"}
           </p>
         </div>
 
-        <div>
+        <div className="md:col-span-2">
           <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Estado
+            Estado de la Investigación
           </label>
           <select
             name="status"
-            value={formData.status}
+            value={formData.status || 'in_progress'}
             onChange={onChange}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
           >
             <option value="in_progress">En proceso</option>
-            <option value="completed">Completado</option>
+            <option value="completed">Completada</option>
           </select>
         </div>
       </div>
