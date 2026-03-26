@@ -3,9 +3,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
 
 /**
- * Página de inicio de sesión del panel administrativo.
- * Permite a los usuarios autenticarse para acceder a las
- * funciones de administración del sitio.
+ * Administrative panel login page.
+ *
+ * Allows users to authenticate in order to access
+ * the site's administrative features.
+ *
+ * @returns {JSX.Element} Rendered login page.
  */
 export default function Login() {
   const navigate = useNavigate();
@@ -16,7 +19,13 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState("");
 
   /**
-   * Maneja el envío del formulario de login
+   * Handles login form submission.
+   *
+   * Clears previous error messages, performs the authentication request,
+   * and redirects the user to the admin section on success.
+   *
+   * @param {React.FormEvent<HTMLFormElement>} event - Form submit event.
+   * @returns {Promise<void>} Promise resolved after login flow completes.
    */
   const handleSubmit = async (event) => {
     event.preventDefault();

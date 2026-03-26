@@ -1,68 +1,36 @@
 import { useEffect, useState } from "react";
+import { usePublicStudents } from "../hooks/usePublicStudents";
 
 /**
- * Datos simulados de estudiantes.
- * Cada estudiante incluye nombre, generación y video testimonial.
+ * Converts a YouTube URL into embed format.
+ *
+ * @param {string} url - Original YouTube URL.
+ * @returns {string} Embed-ready YouTube URL or the original value.
  */
-const MOCK_STUDENTS = [
-  {
-    id: 1,
-    fullName: "Estudiante 1",
-    specialty: "5to año",
-    videoUrlEmbed: "",
-    imageUrl: "/images/foto-docente.png",
-    degree: "Ingeniería Civil Industrial",
-    email: "@userena.cl",
-    projects: ["Proyecto 1", "Proyecto 2"],
-    isProfilePublic: true,
-  },
-  {
-    id: 2,
-    fullName: "Estudiante 2",
-    specialty: "Egresado 2024",
-    videoUrlEmbed: "",
-    imageUrl: "/images/foto-docente.png",
-    degree: "Ingeniería Civil en Computación e Informática",
-    email: "@userena.cl",
-    projects: ["Proyecto 1", "Proyecto 2"],
-    isProfilePublic: false,
-  },
-  {
-    id: 3,
-    fullName: "Estudiante 3",
-    specialty: "4to Año",
-    videoUrlEmbed: "",
-    imageUrl: "/images/foto-docente.png",
-    degree: "Ingeniería Civil Industrial",
-    email: "@userena.cl",
-    projects: [],
-    isProfilePublic: true,
-  },
-];
+const getYouTubeEmbedUrl = (url) => {
+  if (!url) return "";
+  if (url.includes("/embed/")) return url;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 11) {
+    return `https://www.youtube.com/embed/${match[2]}`;
+  }
+  return url;
+};
 
 /**
- * Obtiene la lista de estudiantes.
- */
-async function fetchStudents() {
-  return MOCK_STUDENTS;
-}
-
-/**
- * Renderiza el hero principal de la página de estudiantes.
+ * Renders the main hero section of the students page.
+ *
+ * @returns {JSX.Element} Rendered hero section.
  */
 function StudentsHero() {
   return (
     <section className="bg-[#722b4d] text-white">
       <div className="mx-auto max-w-7xl px-6 pb-24 pt-28 lg:pb-28 lg:pt-32">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-block rounded bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white/90">
-            Comunidad
-          </span>
-
           <h1 className="mt-5 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
             Nuestros Estudiantes
           </h1>
-
           <p className="mt-6 text-lg leading-8 text-white/80 sm:text-xl">
             Presencia los testimonios y experiencias de los estudiantes que
             estudian y estudiaron en las carreras de este departamento.
@@ -74,14 +42,19 @@ function StudentsHero() {
 }
 
 /**
- * Modal cuando el perfil es público
+ * Renders the modal for a public student profile.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object|null} props.student - Currently selected student.
+ * @param {Function} props.onClose - Function that closes the modal.
+ * @returns {JSX.Element|null} Rendered modal or null when no student is selected.
  */
 function StudentModal({ student, onClose }) {
   if (!student) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -97,23 +70,17 @@ function StudentModal({ student, onClose }) {
           >
             x
           </button>
-
           <div className="flex items-center gap-4">
-            <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-white/20 bg-white/10 shadow-sm">
+            <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-white/20 bg-white/10 shadow-sm shrink-0">
               <img
                 src={student.imageUrl}
                 alt={student.fullName}
                 className="h-full w-full object-cover"
               />
             </div>
-
             <div>
-              <h3 className="text-3xl font-extrabold leading-tight">
-                {student.fullName}
-              </h3>
-
+              <h3 className="text-3xl font-extrabold leading-tight">{student.fullName}</h3>
               <p className="mt-1 text-base text-white/90">{student.degree}</p>
-
               <p className="mt-1 text-base text-white/90">{student.specialty}</p>
             </div>
           </div>
@@ -121,32 +88,22 @@ function StudentModal({ student, onClose }) {
 
         <div className="space-y-8 px-6 py-7">
           <div>
-            <p className="text-sm font-extrabold uppercase tracking-wide text-[#722b4d]/80">
-              Contacto
-            </p>
+            <p className="text-sm font-extrabold uppercase tracking-wide text-[#722b4d]/80">Contacto</p>
             <p className="mt-3 text-base text-gray-700">{student.email}</p>
           </div>
 
           <div>
-            <p className="text-sm font-extrabold uppercase tracking-wide text-[#722b4d]/80">
-              Proyectos involucrados
-            </p>
-
+            <p className="text-sm font-extrabold uppercase tracking-wide text-[#722b4d]/80">Proyectos involucrados</p>
             <div className="mt-4 space-y-3">
               {student.projects && student.projects.length > 0 ? (
                 student.projects.map((project, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5"
-                  >
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#722b4d]" />
+                  <div key={index} className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#722b4d] shrink-0" />
                     <span className="text-sm text-gray-700">{project}</span>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">
-                  No hay proyectos asociados.
-                </p>
+                <p className="text-sm text-gray-500 italic">No hay proyectos asociados.</p>
               )}
             </div>
           </div>
@@ -167,14 +124,19 @@ function StudentModal({ student, onClose }) {
 }
 
 /**
- * Modal cuando el perfil es privado
+ * Renders the modal for a private student profile.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object|null} props.student - Currently selected student.
+ * @param {Function} props.onClose - Function that closes the modal.
+ * @returns {JSX.Element|null} Rendered modal or null when no student is selected.
  */
 function PrivateProfileModal({ student, onClose }) {
   if (!student) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -190,16 +152,12 @@ function PrivateProfileModal({ student, onClose }) {
           >
             x
           </button>
-
           <div className="flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-3xl font-bold text-white shadow-sm">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-3xl font-bold text-white shadow-sm shrink-0">
               {student.fullName?.charAt(0)?.toUpperCase() || "E"}
             </div>
-
             <div>
-              <h3 className="text-3xl font-extrabold leading-tight">
-                Perfil privado
-              </h3>
+              <h3 className="text-3xl font-extrabold leading-tight">Perfil privado</h3>
               <p className="mt-2 text-base text-white/90">
                 {student.fullName} ha decidido mantener su información privada.
               </p>
@@ -209,10 +167,8 @@ function PrivateProfileModal({ student, onClose }) {
 
         <div className="px-6 py-7">
           <p className="text-base leading-7 text-gray-600">
-            Este egresado no tiene su perfil disponible para visualización
-            pública en este momento.
+            Este egresado no tiene su perfil disponible para visualización pública en este momento.
           </p>
-
           <div className="mt-8 flex justify-end">
             <button
               type="button"
@@ -229,41 +185,42 @@ function PrivateProfileModal({ student, onClose }) {
 }
 
 /**
- * Renderiza una tarjeta testimonial con la información y video de un estudiante.
+ * Renders a testimonial card with student information and video.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.student - Student information to display.
+ * @param {Function} props.onOpenModal - Function that opens the student modal.
+ * @returns {JSX.Element} Rendered testimonial card.
  */
 function StudentTestimonialCard({ student, onOpenModal }) {
-  const hasVideo = Boolean(
-    student.videoUrlEmbed && student.videoUrlEmbed.trim().length > 0
-  );
+  // Applies YouTube URL normalization before rendering the iframe.
+  const finalVideoUrl = getYouTubeEmbedUrl(student.videoUrlEmbed);
+  const hasVideo = Boolean(finalVideoUrl && finalVideoUrl.trim().length > 0);
 
   return (
-    <article className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <article className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col h-full">
       <div className="flex items-center justify-between gap-4 px-5 pb-4 pt-5">
         <div>
           <button
             type="button"
             onClick={() => onOpenModal(student)}
-            className="text-left text-xl font-bold leading-tight text-[#722b4d] transition hover:text-[#722b4d]"
+            className="text-left text-xl font-bold leading-tight text-[#722b4d] transition hover:opacity-80"
           >
             {student.fullName}
           </button>
-
           <p className="mt-1 text-sm font-semibold text-[#1f78c1]">
             {student.specialty}
           </p>
         </div>
-
-        <span className="text-5xl font-bold leading-none text-[#722b4d]/10">
-          ”
-        </span>
+        <span className="text-5xl font-bold leading-none text-[#722b4d]/10">”</span>
       </div>
 
-      <div className="px-5 pb-5">
+      <div className="px-5 pb-5 mt-auto">
         {hasVideo ? (
           <div className="aspect-video overflow-hidden rounded-lg bg-black">
             <iframe
               className="h-full w-full"
-              src={student.videoUrlEmbed}
+              src={finalVideoUrl}
               title={`Video de ${student.fullName}`}
               allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -280,41 +237,29 @@ function StudentTestimonialCard({ student, onOpenModal }) {
 }
 
 /**
- * Renderiza la página de testimonios de estudiantes.
+ * Renders the students testimonials page.
+ *
+ * This component handles the public students list,
+ * the loading state, and the profile modal flow.
+ *
+ * @returns {JSX.Element} Rendered students page.
  */
 export default function Estudiantes() {
-  const [students, setStudents] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { students, isLoading } = usePublicStudents();
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  useEffect(() => {
-    async function loadStudents() {
-      try {
-        const data = await fetchStudents();
-        setStudents(data);
-      } catch (error) {
-        console.error("Error al cargar estudiantes:", error);
-        setStudents([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadStudents();
-  }, []);
-
+  /**
+   * Handles Escape key behavior and body scroll lock
+   * while a modal is open.
+   */
   useEffect(() => {
     function handleEscape(event) {
-      if (event.key === "Escape") {
-        setSelectedStudent(null);
-      }
+      if (event.key === "Escape") setSelectedStudent(null);
     }
-
     if (selectedStudent) {
       document.addEventListener("keydown", handleEscape);
       document.body.style.overflow = "hidden";
     }
-
     return () => {
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "auto";
@@ -324,7 +269,7 @@ export default function Estudiantes() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-gray-600">Cargando estudiantes...</p>
+        <p className="text-gray-600 font-medium">Cargando estudiantes...</p>
       </div>
     );
   }
@@ -338,8 +283,7 @@ export default function Estudiantes() {
       <section
         className="bg-[#f7f5f6] py-20 lg:py-24"
         style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, rgba(114,43,77,0.08) 1px, transparent 0)",
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(114,43,77,0.08) 1px, transparent 0)",
           backgroundSize: "24px 24px",
         }}
       >
@@ -348,7 +292,6 @@ export default function Estudiantes() {
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#1f78c1]">
               Testimonios
             </p>
-
             <h2 className="mt-3 text-4xl font-extrabold text-[#722b4d] sm:text-5xl lg:text-6xl">
               Lo que dicen nuestros estudiantes
             </h2>
@@ -356,7 +299,7 @@ export default function Estudiantes() {
 
           {!hasStudents ? (
             <div className="rounded-lg border border-gray-200 bg-white py-12 text-center shadow-sm">
-              <p className="text-gray-500">No hay estudiantes disponibles.</p>
+              <p className="text-gray-500 font-medium">Aún no hay perfiles de estudiantes configurados para mostrar.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">

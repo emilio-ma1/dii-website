@@ -1,38 +1,91 @@
 /**
  * @file projectRoutes.js
- * @description
- * Define los endpoints de la API para la gestión de proyectos de investigación.
+ * @description 
+ * Defines the HTTP routes for the research projects module.
+ * Maps endpoints to their respective controller functions and applies authentication middleware.
  */
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 
-// Importamos el controlador
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } 
+});
+
+const uploadFields = upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'pdf', maxCount: 1 }
+]);
+
 const { 
-  createProject, 
   getAllProjects, 
-  getProjectById 
+  getPanelProjects,
+  getProjectById,
+  createProject, 
+  updateProject, 
+  deleteProject,
+  getProjectImage,
+  getProjectPdf
 } = require('../controllers/projectController');
 
-// Importamos los middlewares de seguridad
-const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
+const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware'); 
 
 /**
- * Endpoint público para obtener el catálogo de proyectos.
- * Método: GET /api/projects
+ * @route GET /api/projects
+ * @description Retrieves the list of all research projects including their authors.
+ * @access Public
  */
 router.get('/', getAllProjects);
 
 /**
- * Endpoint público para obtener el detalle de un proyecto específico.
- * Método: GET /api/projects/:id
+ * @route GET /api/projects/panel
+ * @description Retrieves isolated projects for the admin panel (Admins see all, Authors see their own).
+ * @access Private (Requires ANY valid token)
+ */
+router.get('/panel', verifyToken, getPanelProjects);
+
+/**
+ * @route GET /api/projects/:id
+ * @description Retrieves a specific research project by its ID, including detailed information and authors.
+ * @access Public
  */
 router.get('/:id', getProjectById);
 
 /**
- * Endpoint privado para crear un nuevo proyecto.
- * Protegido por autenticación y autorización de administrador.
- * Método: POST /api/projects
+ * @route GET /api/projects/:id/image
+ * @description Serves the binary image file of a project.
+ * @access Public
  */
-router.post('/', verifyToken, verifyAdmin, createProject);
+router.get('/:id/image', getProjectImage);
+
+/**
+ * @route GET /api/projects/:id/pdf
+ * @description Serves the binary PDF document of a project.
+ * @access Public
+ */
+router.get('/:id/pdf', getProjectPdf);
+
+/**
+ * @route POST /api/projects
+ * @description Creates a new research project and links the assigned authors.
+ * @access Private 
+ */
+router.post('/', verifyToken, uploadFields, createProject); 
+
+/**
+ * @route PUT /api/projects/:id
+ * @description Updates an existing research project. 
+ * @access Private (Controller enforces Admin or Author ownership)
+ */
+router.put('/:id', verifyToken, uploadFields, updateProject);
+
+/**
+ * @route DELETE /api/projects/:id
+ * @description Deletes a research project from the system by its ID.
+ * @access Private (Controller enforces Admin or Author ownership)
+ */
+router.delete('/:id', verifyToken, deleteProject);
 
 module.exports = router;

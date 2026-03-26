@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import { useProjectDetail } from "../hooks/useProjectDetail";
 
 const STATUS_LABELS = {
   in_progress: "En proceso",
@@ -7,70 +8,36 @@ const STATUS_LABELS = {
 };
 
 /**
- * Página de detalle de un proyecto de investigación.
+ * Research project detail page.
  *
- * Obtiene el identificador del proyecto desde la URL y
- * muestra la información completa del proyecto seleccionado.
- * Si el proyecto no existe, renderiza una vista de error
- * con enlace de retorno a la sección de investigaciones.
+ * Fetches the selected project by route parameter
+ * and renders its detailed information, status,
+ * and document download access based on user role.
  *
- * @returns {JSX.Element} La vista de detalle del proyecto o una vista de error.
+ * @returns {JSX.Element} Rendered project detail page.
  */
 export default function InvestigacionDetalle() {
   const { id } = useParams();
   const { user } = useAuth();
+  
+  const { project, isLoading, error } = useProjectDetail(id);
 
-  /**
-   * Datos de ejemplo
+    /**
+   * Defines which roles are allowed to download
+   * the full project document.
    */
-  const fallbackProjects = {
-    "ejemplo-1": {
-      id: "ejemplo-1",
-      status: "in_progress",
-      topic: "Tema",
-      year: "2025",
-      title: "Ejemplo 1",
-      researcher: "nombre investigador",
-      role: "rol",
-      summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
-      image: "/images/Inve-ejemplo1.png",
-      pdf_url: "/proyecto-ejemplo-1.pdf",
-    },
-    "ejemplo-2": {
-      id: "ejemplo-2",
-      status: "completed",
-      topic: "Tema",
-      year: "2025",
-      title: "Ejemplo 2",
-      researcher: "nombre investigador",
-      role: "rol",
-      summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
-      image: "/images/Inve-ejemplo2.jpg",
-      pdf_url: "/proyecto-ejemplo-2.pdf",
-    },
-    "ejemplo-3": {
-      id: "ejemplo-3",
-      status: "completed",
-      topic: "Tema",
-      year: "2024",
-      title: "Ejemplo 3",
-      researcher: "nombre investigador",
-      role: "rol",
-      summary:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
-      image: "/images/Inve-ejemplo2.jpg",
-      pdf_url: "proyecto-ejemplo-3.pdf",
-    },
-  };
+  const ALLOWED_ROLES = ["admin", "teacher", "alumni"]; 
+  const canDownloadProject = user?.role && ALLOWED_ROLES.includes(user.role) && Boolean(project?.pdf_url);
 
-  const project = fallbackProjects[id];
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#f7f5f6] px-6 py-20 flex justify-center items-center text-gray-500 font-medium">
+        Cargando detalles del proyecto...
+      </div>
+    );
+  }
 
-  const canDownloadProject =
-    user?.role === "egresado" && Boolean(project?.pdf_url);
-
-  if (!project) {
+  if (error || !project) {
     return (
       <div className="min-h-screen bg-[#f7f5f6] px-6 py-16 sm:py-20 lg:py-24">
         <div className="mx-auto flex min-h-[70vh] max-w-3xl items-center justify-center">
@@ -78,12 +45,9 @@ export default function InvestigacionDetalle() {
             <h1 className="text-3xl font-extrabold text-[#722b4d] sm:text-4xl">
               Investigación no encontrada
             </h1>
-
             <p className="mt-2 text-base leading-8 text-gray-600">
-              Puede que el proyecto ya no esté disponible o que el enlace sea
-              incorrecto.
+              Puede que el proyecto ya no esté disponible o que el enlace sea incorrecto.
             </p>
-
             <div className="mt-8">
               <Link
                 to="/investigaciones"
@@ -106,7 +70,6 @@ export default function InvestigacionDetalle() {
           alt={project.title}
           className="absolute inset-0 h-full w-full object-cover"
         />
-
         <div className="absolute inset-0 bg-[#722b4d]/80" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-28 sm:px-8 lg:px-10 lg:pb-24 lg:pt-32">
@@ -120,9 +83,8 @@ export default function InvestigacionDetalle() {
           <div className="mt-8 max-w-4xl">
             <div className="flex flex-wrap gap-2">
               <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
-                {STATUS_LABELS[project.status]}
+                {STATUS_LABELS[project.status] || "Registrado"}
               </span>
-
               <span className="inline-block rounded border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
                 {project.topic}
               </span>
@@ -136,7 +98,6 @@ export default function InvestigacionDetalle() {
               <div>
                 {project.researcher} — {project.role}
               </div>
-
               <div>{project.year}</div>
             </div>
           </div>
@@ -145,21 +106,14 @@ export default function InvestigacionDetalle() {
 
       <section className="bg-[#f7f5f6] py-16 sm:py-20">
         <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-          <div className="rounded-md border border-black/5 bg-[#f4eff1] p-5 shadow-sm sm:p-6">
-            <div className="border-l-4 border-[#722b4d] pl-5">
-              <p className="text-base italic leading-8 text-gray-700 sm:text-lg">
-                {project.summary}
-              </p>
-            </div>
-          </div>
-
+          
           <div className="mt-10 rounded-xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8">
             <h2 className="text-2xl font-bold text-[#722b4d]">
-              Descripción del Proyecto
+              Abstract / Resumen del Proyecto
             </h2>
 
             <div className="mt-6 space-y-5 text-base leading-8 text-gray-700">
-              {(project.description || "")
+              {(project.summary || "")
                 .trim()
                 .split("\n\n")
                 .filter(Boolean)
@@ -168,17 +122,28 @@ export default function InvestigacionDetalle() {
                 ))}
             </div>
           </div>
-          {canDownloadProject && (
-              <div className="mt-8 w-full flex justify-center">
-                <a
-                  href={project.pdf_url}
-                  download
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#722b4d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#5e2340]"
-                >
-                  Descargar proyecto
-                </a>
+
+          {/* Download access depends on user role and PDF availability */}
+          {canDownloadProject ? (
+            <div className="mt-8 w-full flex justify-center">
+              <a
+                href={project.pdf_url}
+                download
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#722b4d] px-8 py-4 text-base font-semibold text-white transition hover:bg-[#5e2340] shadow-md"
+              >
+                Descargar Documento Completo ↓
+              </a>
+            </div>
+          ) : (
+            <div className="mt-8 w-full flex justify-center">
+              <div className="rounded-lg border border-gray-300 bg-gray-50 px-6 py-4 text-center text-sm text-gray-500 shadow-sm">
+                Inicia sesión como docente, alumno o administrador para descargar el documento completo.
               </div>
-            )}
+            </div>
+          )}
+
         </div>
       </section>
     </div>

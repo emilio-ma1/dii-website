@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 
 /**
- * Lista de contactos del departamento.
- * Cada contacto incluye la información necesaria
- * para mostrar la tarjeta y enviar el mensaje.
+ * Department contact groups.
+ * Each group contains the information required
+ * to render the contact cards and send messages.
  */
 const CONTACT_GROUPS = [
   {
@@ -13,111 +13,33 @@ const CONTACT_GROUPS = [
     accentColor: "#722b4d",
     contacts: [
       {
-        id: "domingo-vega",
-        initials: "DV",
-        fullName: "Domingo Vega Toro",
-        role: "Director del Departamento",
-      },
-      {
         id: "secretaria",
         initials: "SS",
         fullName: "Nombre Secretaria",
         role: "Secretaria del Departamento",
       },
-    ],
-  },
-  {
-    id: "academica",
-    title: "Área Académica",
-    description: "Coordinadores y responsables de área.",
-    accentColor: "#1f78c1",
-    contacts: [
       {
-        id: "alejandro-alvarez",
-        initials: "AA",
-        fullName: "Alejandro Álvarez",
-        role: "Coordinador Académico ICI",
+        id: "secretaria 2",
+        initials: "SS",
+        fullName: "Nombre Secretaria",
+        role: "Secretaria del Departamento",
       },
       {
-        id: "ejemplo",
-        initials: "EE",
-        fullName: "Ejemplo",
-        role: "ICI",
-      },
-      {
-        id: "ejemplo-2",
-        initials: "EE",
-        fullName: "Ejemplo",
-        role: "ICI",
-      },
-      {
-        id: "ejemplo-4",
-        initials: "EE",
-        fullName: "Ejemplo",
-        role: "ICI",
-      },
-    ],
-  },
-  {
-    id: "desarrollo",
-    title: "Equipo de Desarrollo",
-    description: "Desarrolladores del sitio web del DII.",
-    accentColor: "#2f2f2f",
-    contacts: [
-      {
-        id: "matias-wormald",
-        initials: "MW",
-        fullName: "Matias Wormald",
-        role: "PMO",
-      },
-      {
-        id: "felipe-urqueta",
-        initials: "FU",
-        fullName: "Felipe Urqueta",
-        role: "Diseñador UX/UI",
-      },
-      {
-        id: "emilio-maturana",
-        initials: "EM",
-        fullName: "Emilio Maturana",
-        role: "Desarrollador BackEnd",
-      },
-      {
-        id: "joselyn-montaño",
-        initials: "JM",
-        fullName: "Joselyn Montaño",
-        role: "Desarrollador FrontEnd",
-      },
-    ],
-  },
-  {
-    id: "qa",
-    title: "Equipo de QA",
-    description: "Aseguramiento de calidad del sitio web.",
-    accentColor: "#7a7a7a",
-    contacts: [
-      {
-        id: "adolfo-toledo",
-        initials: "AT",
-        fullName: "Adolfo Toledo",
-        role: "PMO QA Testing/Doc",
-      },
-      {
-        id: "edinson-godoy",
-        initials: "EG",
-        fullName: "Edinson Godoy",
-        role: "QA Tester/Doc",
+        id: "asistente Social",
+        initials: "AS",
+        fullName: "Nombre Asistente Social",
+        role: "Secretaria del Departamento",
       },
     ],
   },
 ];
 
 /**
- * Renderiza el ícono decorativo utilizado en los encabezados de sección.
+ * Renders the decorative icon used in section headers.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.color - Color de acento aplicado al fondo del ícono.
- * @returns {JSX.Element} El ícono de sección renderizado.
+ * @param {Object} props - Component props.
+ * @param {string} props.color - Accent color applied to the icon background.
+ * @returns {JSX.Element} The rendered section icon.
  */
 function SectionIcon({ color }) {
   return (
@@ -144,17 +66,15 @@ function SectionIcon({ color }) {
 }
 
 /**
- * Renderiza una tarjeta individual de contacto dentro del directorio.
+ * Renders an individual contact card inside the directory.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {Object} props.contact - Información del contacto a mostrar.
- * @param {string} props.accentColor - Color de acento asociado al grupo del contacto.
- * @param {Function} props.onOpen - Función que abre el modal del contacto seleccionado.
- * @returns {JSX.Element} La tarjeta de contacto renderizada.
+ * @param {Object} props - Component props.
+ * @param {Object} props.contact - Contact information to display.
+ * @param {string} props.accentColor - Accent color associated with the contact group.
+ * @param {Function} props.onOpen - Function that opens the selected contact modal.
+ * @returns {JSX.Element} The rendered contact card.
  */
 function ContactCard({ contact, accentColor, onOpen }) {
-  const isDirector = contact.role.toLowerCase().includes("director");
-
   const cardContent = (
     <div className="flex items-start gap-4">
       <span
@@ -173,13 +93,6 @@ function ContactCard({ contact, accentColor, onOpen }) {
     </div>
   );
 
-  if (isDirector) {
-    return (
-      <article className="w-full rounded-md border border-black/10 bg-white p-4 text-left shadow-sm">
-        {cardContent}
-      </article>
-    );
-  }
 
   return (
     <button
@@ -193,13 +106,13 @@ function ContactCard({ contact, accentColor, onOpen }) {
 }
 
 /**
- * Renderiza el encabezado visual de un grupo de contactos.
+ * Renders the visual header for a contact group.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.title - Título del grupo.
- * @param {string} props.description - Descripción breve del grupo.
- * @param {string} props.accentColor - Color de acento usado en título e ícono.
- * @returns {JSX.Element} El encabezado del grupo renderizado.
+ * @param {Object} props - Component props.
+ * @param {string} props.title - Group title.
+ * @param {string} props.description - Short group description.
+ * @param {string} props.accentColor - Accent color used in the title and icon.
+ * @returns {JSX.Element} The rendered group header.
  */
 function ContactGroupHeader({ title, description, accentColor }) {
   return (
@@ -219,11 +132,11 @@ function ContactGroupHeader({ title, description, accentColor }) {
 }
 
 /**
- * Renderiza un separador visual entre grupos del directorio.
+ * Renders a visual divider between directory groups.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.color - Color de acento del elemento central del separador.
- * @returns {JSX.Element} El separador renderizado.
+ * @param {Object} props - Component props.
+ * @param {string} props.color - Accent color of the divider center element.
+ * @returns {JSX.Element} The rendered divider.
  */
 function SectionDivider({ color }) {
   return (
@@ -243,12 +156,12 @@ function SectionDivider({ color }) {
 }
 
 /**
- * Renderiza el modal de contacto con el formulario para enviar un mensaje.
+ * Renders the contact modal with the message form.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {Object|null} props.selectedContact - Contacto actualmente seleccionado.
- * @param {Function} props.onClose - Función que cierra el modal.
- * @returns {JSX.Element|null} El modal renderizado o null si no hay contacto seleccionado.
+ * @param {Object} props - Component props.
+ * @param {Object|null} props.selectedContact - Currently selected contact.
+ * @param {Function} props.onClose - Function that closes the modal.
+ * @returns {JSX.Element|null} The rendered modal or null if no contact is selected.
  */
 function ContactModal({ selectedContact, onClose }) {
   const [formData, setFormData] = useState({
@@ -259,10 +172,10 @@ function ContactModal({ selectedContact, onClose }) {
 
   if (!selectedContact) return null;
 
-  /**
-   * Actualiza el estado del formulario en función del campo editado.
+    /**
+   * Updates the form state based on the edited field.
    *
-   * @param {React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>} event - Evento de cambio del campo.
+   * @param {React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>} event - Field change event.
    */
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -273,9 +186,9 @@ function ContactModal({ selectedContact, onClose }) {
   };
 
   /**
-   * Procesa el envío del formulario de contacto.
+   * Handles the contact form submission.
    *
-   * @param {React.FormEvent<HTMLFormElement>} event - Evento submit del formulario.
+   * @param {React.FormEvent<HTMLFormElement>} event - Form submit event.
    */
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -384,18 +297,15 @@ function ContactModal({ selectedContact, onClose }) {
 }
 
 /**
- * Renderiza el bloque hero superior de la página de contacto.
+ * Renders the top hero section of the contact page.
  *
- * @returns {JSX.Element} La sección hero renderizada.
+ * @returns {JSX.Element} The rendered hero section.
  */
 function ContactHero() {
   return (
     <section className="bg-[#722b4d] text-white">
       <div className="mx-auto max-w-7xl px-6 pt-28 pb-24 lg:pt-32 lg:pb-28">
         <div className="max-w-2xl">
-          <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
-            Directorio
-          </span>
 
           <h1 className="mt-4 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
             Contacto
@@ -412,29 +322,29 @@ function ContactHero() {
 }
 
 /**
- * Renderiza la página de contacto con los grupos del directorio
- * y el modal de envío de mensajes.
+ * Renders the contact page with directory groups
+ * and the message submission modal.
  *
- * @returns {JSX.Element} La página de contacto renderizada.
+ * @returns {JSX.Element} The rendered contact page.
  */
 export default function Contacto() {
   const [selectedContact, setSelectedContact] = useState(null);
 
   /**
-   * Se memoriza la referencia de los grupos para mantener una estructura estable
-   * durante los renders del componente.
+   * Keeps a stable reference to the contact groups
+   * during component renders.
    */
   const allGroups = useMemo(() => CONTACT_GROUPS, []);
 
   /**
-   * Abre el modal con la información del contacto seleccionado.
+   * Opens the modal with the selected contact information.
    *
-   * @param {Object} contact - Contacto seleccionado por el usuario.
+   * @param {Object} contact - Contact selected by the user.
    */
   const openModal = (contact) => setSelectedContact(contact);
 
-    /**
-   * Cierra el modal y limpia el contacto seleccionado.
+  /**
+   * Closes the modal and clears the selected contact.
    */
   const closeModal = () => setSelectedContact(null);
 

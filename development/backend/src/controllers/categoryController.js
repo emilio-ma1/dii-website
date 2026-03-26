@@ -1,21 +1,24 @@
 /**
- * @file Controlador de Categorías (categoryController).
+ * @file categoryController.js
  * @description
- * Gestiona la lógica de negocio para las categorías de los proyectos.
+ * Handles the business logic for project categories.
+ * Acts as a Thin Controller, delegating data retrieval to the CategoryModel.
  */
 const CategoryModel = require('../models/categoryModel');
 
 /**
- * Retorna la lista de categorías para poblar filtros y formularios.
+ * Retrieves the list of all categories to populate filters and forms.
  *
- * @param {object} req - Objeto de petición HTTP.
- * @param {object} res - Objeto de respuesta HTTP.
- * @returns {object} Respuesta JSON con el listado (Status 200) o error (Status 500).
+ * @param {object} req - Express HTTP request object.
+ * @param {object} res - Express HTTP response object.
+ * @returns {Promise<object>} JSON response with the category list (Status 200) or an error (Status 500).
  */
 const getAllCategories = async (req, res) => {
   try {
     const categoriesList = await CategoryModel.getAll();
-    return res.json(categoriesList);
+    
+    // Explicit HTTP status code for successful retrieval
+    return res.status(200).json(categoriesList);
   } catch (error) {
     console.error('[ERROR] Failed to fetch categories in controller:', error);
     return res.status(500).json({ message: 'Error interno al obtener las categorías.' });

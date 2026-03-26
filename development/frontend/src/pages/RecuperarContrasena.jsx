@@ -2,12 +2,25 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 /**
- * Página de recuperación de contraseña.
+ * Password recovery page.
+ *
+ * Allows the user to submit their institutional email
+ * in order to receive password reset instructions.
+ *
+ * @returns {JSX.Element} Rendered password recovery page.
  */
 export default function RecuperarPassword() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+    /**
+   * Handles password recovery form submission.
+   *
+   * Marks the request as submitted and switches the UI
+   * to the confirmation state.
+   *
+   * @param {React.FormEvent<HTMLFormElement>} event - Form submit event.
+   */
   const handleSubmit = (event) => {
     event.preventDefault();
     setIsSubmitted(true);

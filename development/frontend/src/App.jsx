@@ -17,6 +17,7 @@ import GestionDocentes from "./admin/GestionDocentes.jsx";
 import GestionEstudiantes from "./admin/GestionEstudiantes.jsx";
 import GestionContacto from "./admin/GestionContacto.jsx";
 import GestionEquipamiento from "./admin/GestionEquipamiento.jsx";
+import Trazabilidad from "./admin/Trazabilidad.jsx";
 
 import Home from "./pages/home.jsx";
 import Academico from "./pages/Academico.jsx";
@@ -119,6 +120,7 @@ export default function App() {
             <Route path="estudiantes" element={<GestionEstudiantes />} />
             <Route path="contacto" element={<GestionContacto />} />
             <Route path="equipamiento" element={<GestionEquipamiento />} />
+            <Route path="trazabilidad" element={<Trazabilidad />} />
           </Route>
         </Route>
       </Routes>
