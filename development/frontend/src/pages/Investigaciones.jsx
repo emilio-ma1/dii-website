@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { usePublicProjects } from "../hooks/usePublicProjects";
 
 const STATUS_LABELS = {
-  in_progress: "En proceso",
-  completed: "Completado",
+  in_progress: "En ejecución",
+  completed: "Terminado",
 };
 
 /**
@@ -159,11 +159,8 @@ export default function Investigaciones() {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#722b4d]/80">
-              Proyectos
-            </p>
             <h2 className="mt-3 text-3xl font-extrabold text-[#722b4d] sm:text-4xl">
-              Proyectos de Investigación
+              Proyectos
             </h2>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -171,10 +168,10 @@ export default function Investigaciones() {
                 Todos
               </FilterButton>
               <FilterButton active={activeFilter === "in_progress"} onClick={() => setActiveFilter("in_progress")}>
-                En proceso
+                En ejecución
               </FilterButton>
               <FilterButton active={activeFilter === "completed"} onClick={() => setActiveFilter("completed")}>
-                Completado
+                Terminado
               </FilterButton>
             </div>
           </div>

@@ -114,9 +114,6 @@ function VinculacionHero() {
     <section className="bg-[#722b4d] text-white">
       <div className="mx-auto max-w-7xl px-6 pt-28 pb-24 lg:pt-32 lg:pb-28">
         <div className="max-w-2xl">
-          <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
-            Área de Vinculación
-          </span>
           <h1 className="mt-4 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
             Vinculación con el Medio
           </h1>
@@ -165,11 +162,8 @@ export default function VinculacionConElMedio() {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#722b4d]/80">
-              Proyectos
-            </p>
             <h2 className="mt-3 text-3xl font-extrabold text-[#722b4d] sm:text-4xl">
-              Proyectos de Vinculación
+              Actividades de Vinculación
             </h2>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -177,10 +171,10 @@ export default function VinculacionConElMedio() {
                 Todos
               </FilterButton>
               <FilterButton active={activeFilter === "current"} onClick={() => setActiveFilter("current")}>
-                Vigente
+                En ejecución
               </FilterButton>
               <FilterButton active={activeFilter === "not_current"} onClick={() => setActiveFilter("not_current")}>
-                No vigente
+                Terminado
               </FilterButton>
             </div>
           </div>
