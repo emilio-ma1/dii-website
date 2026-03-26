@@ -112,11 +112,8 @@ function ResearchHero() {
     <section className="bg-[#722b4d] text-white">
       <div className="mx-auto max-w-7xl px-6 pt-28 pb-24 lg:pt-32 lg:pb-28">
         <div className="max-w-2xl">
-          <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
-            Área de Investigación
-          </span>
           <h1 className="mt-4 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
-            Investigaciones
+            Investigación
           </h1>
           <p className="mt-6 text-base leading-8 text-white/90 sm:text-lg">
             El Departamento de Ingeniería Industrial desarrolla proyectos de alto impacto tecnológico y social, vinculando la academia con los desafíos reales de la industria.

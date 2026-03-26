@@ -107,7 +107,7 @@ export default function NoticiasHome() {
             Actualidad
           </p>
           <h2 className="mt-3 text-4xl font-extrabold text-[#722b4d] sm:text-5xl lg:text-6xl">
-            Social
+            Noticias
           </h2>
           <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-gray-600 sm:text-xl">
             Mantente informado sobre las últimas novedades del departamento.

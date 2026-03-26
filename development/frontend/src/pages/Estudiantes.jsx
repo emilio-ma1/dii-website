@@ -28,9 +28,6 @@ function StudentsHero() {
     <section className="bg-[#722b4d] text-white">
       <div className="mx-auto max-w-7xl px-6 pb-24 pt-28 lg:pb-28 lg:pt-32">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-block rounded bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white/90">
-            Comunidad
-          </span>
           <h1 className="mt-5 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
             Nuestros Estudiantes
           </h1>

@@ -13,100 +13,22 @@ const CONTACT_GROUPS = [
     accentColor: "#722b4d",
     contacts: [
       {
-        id: "domingo-vega",
-        initials: "DV",
-        fullName: "Domingo Vega Toro",
-        role: "Director del Departamento",
-      },
-      {
         id: "secretaria",
         initials: "SS",
         fullName: "Nombre Secretaria",
         role: "Secretaria del Departamento",
       },
-    ],
-  },
-  {
-    id: "academica",
-    title: "Área Académica",
-    description: "Coordinadores y responsables de área.",
-    accentColor: "#1f78c1",
-    contacts: [
       {
-        id: "alejandro-alvarez",
-        initials: "AA",
-        fullName: "Alejandro Álvarez",
-        role: "Coordinador Académico ICI",
+        id: "secretaria 2",
+        initials: "SS",
+        fullName: "Nombre Secretaria",
+        role: "Secretaria del Departamento",
       },
       {
-        id: "ejemplo",
-        initials: "EE",
-        fullName: "Ejemplo",
-        role: "ICI",
-      },
-      {
-        id: "ejemplo-2",
-        initials: "EE",
-        fullName: "Ejemplo",
-        role: "ICI",
-      },
-      {
-        id: "ejemplo-4",
-        initials: "EE",
-        fullName: "Ejemplo",
-        role: "ICI",
-      },
-    ],
-  },
-  {
-    id: "desarrollo",
-    title: "Equipo de Desarrollo",
-    description: "Desarrolladores del sitio web del DII.",
-    accentColor: "#2f2f2f",
-    contacts: [
-      {
-        id: "matias-wormald",
-        initials: "MW",
-        fullName: "Matias Wormald",
-        role: "PMO",
-      },
-      {
-        id: "felipe-urqueta",
-        initials: "FU",
-        fullName: "Felipe Urqueta",
-        role: "Diseñador UX/UI",
-      },
-      {
-        id: "emilio-maturana",
-        initials: "EM",
-        fullName: "Emilio Maturana",
-        role: "Desarrollador BackEnd",
-      },
-      {
-        id: "joselyn-montaño",
-        initials: "JM",
-        fullName: "Joselyn Montaño",
-        role: "Desarrollador FrontEnd",
-      },
-    ],
-  },
-  {
-    id: "qa",
-    title: "Equipo de QA",
-    description: "Aseguramiento de calidad del sitio web.",
-    accentColor: "#7a7a7a",
-    contacts: [
-      {
-        id: "adolfo-toledo",
-        initials: "AT",
-        fullName: "Adolfo Toledo",
-        role: "PMO QA Testing/Doc",
-      },
-      {
-        id: "edinson-godoy",
-        initials: "EG",
-        fullName: "Edinson Godoy",
-        role: "QA Tester/Doc",
+        id: "asistente Social",
+        initials: "AS",
+        fullName: "Nombre Asistente Social",
+        role: "Secretaria del Departamento",
       },
     ],
   },
@@ -153,8 +75,6 @@ function SectionIcon({ color }) {
  * @returns {JSX.Element} The rendered contact card.
  */
 function ContactCard({ contact, accentColor, onOpen }) {
-  const isDirector = contact.role.toLowerCase().includes("director");
-
   const cardContent = (
     <div className="flex items-start gap-4">
       <span
@@ -173,13 +93,6 @@ function ContactCard({ contact, accentColor, onOpen }) {
     </div>
   );
 
-  if (isDirector) {
-    return (
-      <article className="w-full rounded-md border border-black/10 bg-white p-4 text-left shadow-sm">
-        {cardContent}
-      </article>
-    );
-  }
 
   return (
     <button
@@ -393,9 +306,6 @@ function ContactHero() {
     <section className="bg-[#722b4d] text-white">
       <div className="mx-auto max-w-7xl px-6 pt-28 pb-24 lg:pt-32 lg:pb-28">
         <div className="max-w-2xl">
-          <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
-            Directorio
-          </span>
 
           <h1 className="mt-4 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
             Contacto

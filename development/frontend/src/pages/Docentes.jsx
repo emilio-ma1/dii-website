@@ -148,9 +148,6 @@ export default function Docentes() {
   return (
     <div className="min-h-screen">
       <section className="bg-[#722b4d] pb-24 pt-28 text-center text-white">
-        <span className="inline-block rounded bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white/90">
-          Nuestro Equipo
-        </span>
         <h1 className="mt-5 text-4xl font-extrabold sm:text-5xl lg:text-6xl">Docentes</h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-white/80">
           Profesionales de excelencia comprometidos con la formación integral de nuestros estudiantes.

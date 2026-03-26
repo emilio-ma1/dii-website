@@ -129,9 +129,9 @@ export default function Navbar() {
   const navItems = useMemo(
     () => [
       { to: "/", label: "Inicio" },
+      { to: "/quienes-somos", label: "Conócenos" },
       { to: "/docentes", label: "Docentes" },
       { to: "/estudiantes", label: "Nuestros Estudiantes" },
-      { to: "/quienes-somos", label: "Conócenos" },
       { to: "/contacto", label: "Contacto" },
     ],
     []
@@ -195,16 +195,10 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full h-full flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 min-w-0 flex-shrink-0 group">
-            
             <img
-              src="/images/Dii-navbar2.jpeg"
+              src="/images/test_hor.png"
               alt="Departamento de Ingeniería Industrial"
-              className="h-10 lg:h-12 object-contain"
-            />
-            <img
-              src="/images/Dii-navbar.png"
-              alt="Universidad de La Serena"
-              className="h-10 lg:h-12 object-contain"
+              className="h-16 lg:h-20 object-contain"
             />
           </Link>
 

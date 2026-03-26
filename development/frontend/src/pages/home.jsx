@@ -17,14 +17,11 @@ function HeroSection() {
         className="absolute inset-0 h-full w-full object-cover"
       />
 
-      <div className="absolute inset-0 bg-[#722b4d]/78" />
+      <div className="absolute inset-0 bg-[#722b4d]/60" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white/90 to-transparent" />
 
       <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-7xl items-center px-6 pt-20 pb-16">
         <div className="max-w-3xl text-white">
-          <span className="inline-block bg-blue-600 px-4 py-2 text-sm font-semibold uppercase tracking-wider">
-            Universidad de La Serena
-          </span>
 
           <h1 className="mt-8 text-5xl font-extrabold leading-[0.95] sm:text-6xl lg:text-7xl">
             Departamento de
@@ -110,18 +107,18 @@ function AreaCard({ title, description, image, to }) {
 function AreasSection() {
   const areas = [
     {
-      title: "Investigaciones",
-      description:
-        "Proyectos de investigación que impulsan la innovación y el desarrollo tecnológico en la industria.",
-      image: "/images/investigacion2.png",
-      to: "/investigaciones",
-    },
-    {
-      title: "Académico",
+      title: "Docencia",
       description:
         "Programas de formación de excelencia en ingeniería industrial con enfoque práctico y teórico.",
       image: "/images/academico2.jpg",
       to: "/academico",
+    },
+    {
+      title: "Investigación",
+      description:
+        "Proyectos de investigación que impulsan la innovación y el desarrollo tecnológico en la industria.",
+      image: "/images/investigacion2.png",
+      to: "/investigaciones",
     },
     {
       title: "Vinculación con el Medio",

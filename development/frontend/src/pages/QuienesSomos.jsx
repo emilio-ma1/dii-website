@@ -84,19 +84,10 @@ function AboutHero() {
       <div className="absolute inset-0 bg-[#722b4d]/72" />
       <div className="relative z-10 mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 sm:pt-28 sm:pb-24 lg:px-8 lg:pt-32 lg:pb-28">
         <div className="max-w-3xl text-white">
-          <span className="inline-block rounded bg-[#1f78c1]/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white sm:px-4 sm:py-2 sm:text-xs sm:tracking-[0.25em]">
-            Universidad de La Serena
-          </span>
 
           <h1 className="mt-5 text-4xl font-extrabold leading-tight sm:mt-6 sm:text-5xl lg:text-6xl">
-            Quiénes Somos
+            Más de 40 años formando líderes de la ingeniería
           </h1>
-
-          <p className="mt-5 max-w-2xl text-base leading-7 text-white/90 sm:mt-6 sm:text-lg sm:leading-8 lg:text-xl">
-            El Departamento de Ingeniería Industrial de la Universidad de La Serena forma
-            profesionales capaces de liderar procesos productivos, organizacionales y
-            tecnológicos, contribuyendo al desarrollo sostenible de la región y del país.
-          </p>
         </div>
       </div>
     </section>
@@ -324,12 +315,9 @@ export default function QuienesSomos() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#722b4d]/80">
-                Nuestra historia
-              </p>
 
               <h2 className="mt-3 text-3xl font-extrabold text-[#722b4d] sm:text-4xl lg:text-5xl">
-                Más de 40 años formando líderes de la ingeniería
+                Nuestra Historia
               </h2>
 
               <div className="mt-6 space-y-5 text-gray-600 leading-8">
@@ -368,8 +356,9 @@ export default function QuienesSomos() {
                   Misión
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-white/90">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                  Formar profesionales y postgraduados con una sólida base científica y tecnológica, orientada por una formación humanista, 
+                  contribuyendo al desarrollo sustentable y al mejoramiento de la calidad de vida de la sociedad, privilegiando la investigación focalizada 
+                  y fortaleciendo su vinculación con el medio.
                 </p>
                 
                 <div className="absolute right-0 top-0 h-16 w-16 bg-white/10"/>
@@ -381,8 +370,9 @@ export default function QuienesSomos() {
                 </h3>
                 
                 <p className="mt-3 text-sm leading-7 text-white/90">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                  Ser una Facultad de Ingeniería reconocida a nivel regional y nacional por su búsqueda constante de la excelencia académica, 
+                  por la generación de conocimientos en las áreas de su competencia, por la calidad de su docencia, su vinculación con el medio 
+                  y líder en formación de profesionales.
                 </p>
                 <div className="absolute right-0 top-0 h-16 w-16 bg-white/10"/>
               </div>
@@ -405,7 +395,7 @@ export default function QuienesSomos() {
             <p className="mt-4 max-w-3xl text-sm leading-7 text-gray-600 sm:text-base sm:leading-8 lg:text-lg">
               El DII desarrolla sus actividades en torno a tres ejes estratégicos:
               docencia, investigación y vinculación con el medio, apoyados por una
-              gestión institucional sólida.
+              gestión institucional, responsabilidad social e internalización.
             </p>
           </div>
 
