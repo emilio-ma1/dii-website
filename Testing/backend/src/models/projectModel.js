@@ -9,30 +9,27 @@ const pool = require('../config/db');
 const ProjectModel = {
   /**
    * Retrieves all projects including their associated authors and category name.
+   * Excludes heavy binary fields (image_data, pdf_data) to preserve memory.
    *
    * @returns {Promise<Array<object>>} An array of project objects.
    * @throws {Error} If the database query fails.
    */
   getAll: async () => {
     try {
-      // Explicit column selection instead of p.*
       const query = `
         SELECT 
-          p.id, p.title, p.abstract, p.year, p.category_id, p.pdf_url, p.image_url, p.status,
-          c.name AS category_name, -- Extracts the category text
+          p.id, p.title, p.abstract, p.year, p.category_id, p.status,
+          c.name AS category_name,
           COALESCE(
             json_agg(
-              json_build_object(
-                'id', u.id, 
-                'name', u.full_name
-              )
+              json_build_object('id', u.id, 'name', u.full_name)
             ) FILTER (WHERE u.id IS NOT NULL), '[]'
           ) AS authors
         FROM projects p
         LEFT JOIN categories c ON p.category_id = c.id
         LEFT JOIN project_authors pa ON p.id = pa.project_id
         LEFT JOIN users u ON pa.user_id = u.id
-        GROUP BY p.id, c.name -- Crucial: Group by c.name as well
+        GROUP BY p.id, c.name
         ORDER BY p.id DESC;
       `;
       const { rows } = await pool.query(query);
@@ -45,6 +42,7 @@ const ProjectModel = {
 
   /**
    * Retrieves a specific project by its ID, including its associated authors.
+   * Excludes heavy binary fields.
    *
    * @param {number|string} id - The unique identifier of the project.
    * @returns {Promise<object|null>} The project object, or null if not found.
@@ -52,10 +50,9 @@ const ProjectModel = {
    */
   getById: async (id) => {
     try {
-      // Explicit column selection
       const query = `
         SELECT 
-            p.id, p.title, p.abstract, p.year, p.category_id, p.pdf_url, p.image_url, p.status,
+            p.id, p.title, p.abstract, p.year, p.category_id, p.status,
             COALESCE(
               json_agg(
                 json_build_object('id', u.id, 'name', u.full_name)
@@ -68,7 +65,7 @@ const ProjectModel = {
         GROUP BY p.id;
       `;
       const { rows } = await pool.query(query, [id]);
-      return rows.length ? rows[0] : null; // Returns the object directly, not an array
+      return rows.length ? rows[0] : null; 
     } catch (error) {
       console.error(`[ERROR] Failed to fetch project ID ${id}:`, error);
       throw error;
@@ -77,11 +74,11 @@ const ProjectModel = {
 
   /**
    * Creates a new project and links the assigned authors.
-   * Executes within a database transaction to ensure data integrity.
+   * Now includes support for BYTEA binary files (images and PDFs).
    *
    * @param {object} projectData - The details of the project to insert.
    * @param {Array<number>} authorIds - An array of user IDs to link as authors.
-   * @returns {Promise<object>} The newly created project record.
+   * @returns {Promise<object>} The newly created project record without binary data.
    * @throws {Error} If the database transaction fails.
    */
   create: async (projectData, authorIds) => {
@@ -89,14 +86,17 @@ const ProjectModel = {
     try {
       await client.query('BEGIN');
 
+      // Insertamos los datos normales y los nuevos campos binarios (BYTEA)
       const projectQuery = `
-        INSERT INTO projects (title, abstract, year, category_id, pdf_url, image_url, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *;
+        INSERT INTO projects (title, abstract, year, category_id, status, image_data, image_mimetype, pdf_data, pdf_mimetype)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING id, title, abstract, year, category_id, status; -- Retornamos info ligera
       `;
       const values = [
         projectData.title, projectData.abstract, projectData.year, 
-        projectData.category_id, projectData.pdf_url, projectData.image_url, projectData.status
+        projectData.category_id, projectData.status, 
+        projectData.image_data, projectData.image_mimetype, 
+        projectData.pdf_data, projectData.pdf_mimetype
       ];
       
       const res = await client.query(projectQuery, values);
@@ -124,7 +124,7 @@ const ProjectModel = {
 
   /**
    * Updates an existing project and refreshes its associated authors.
-   * Executes within a database transaction to prevent duplicate links.
+   * Uses COALESCE to prevent overwriting existing files with null if not provided.
    *
    * @param {number|string} id - The unique identifier of the project.
    * @param {object} projectData - The updated project details.
@@ -139,14 +139,23 @@ const ProjectModel = {
 
       const updateQuery = `
         UPDATE projects 
-        SET title = $1, abstract = $2, year = $3, category_id = $4, pdf_url = $5, image_url = $6, status = $7
-        WHERE id = $8 RETURNING *;
+        SET 
+          title = $1, abstract = $2, year = $3, category_id = $4, status = $5,
+          image_data = COALESCE($6, image_data),
+          image_mimetype = COALESCE($7, image_mimetype),
+          pdf_data = COALESCE($8, pdf_data),
+          pdf_mimetype = COALESCE($9, pdf_mimetype)
+        WHERE id = $10 
+        RETURNING id, title, abstract, year, category_id, status;
       `;
       const values = [
         projectData.title, projectData.abstract, projectData.year, 
-        projectData.category_id, projectData.pdf_url, projectData.image_url, projectData.status, id
+        projectData.category_id, projectData.status, 
+        projectData.image_data, projectData.image_mimetype, 
+        projectData.pdf_data, projectData.pdf_mimetype, 
+        id
       ];
-      // Capture the actual returning row from the DB
+      
       const res = await client.query(updateQuery, values);
       const updatedProject = res.rows[0];
       
@@ -162,7 +171,7 @@ const ProjectModel = {
       }
 
       await client.query('COMMIT');
-      return updatedProject; // Returns the true DB representation
+      return updatedProject;
     } catch (error) {
       await client.query('ROLLBACK');
       console.error(`[ERROR] Failed to update project ID ${id}:`, error);
@@ -174,7 +183,7 @@ const ProjectModel = {
 
   /**
    * Deletes a project from the database.
-   * Relies on the ON DELETE CASCADE constraint to clean up the project_authors table automatically.
+   * Relies on the ON DELETE CASCADE constraint to clean up the project_authors table.
    *
    * @param {number|string} id - The unique identifier of the project to delete.
    * @returns {Promise<object|null>} The deleted project record, or null if not found.
@@ -182,7 +191,7 @@ const ProjectModel = {
    */
   delete: async (id) => {
     try {
-      const query = 'DELETE FROM projects WHERE id = $1 RETURNING *;';
+      const query = 'DELETE FROM projects WHERE id = $1 RETURNING id, title;';
       const { rows } = await pool.query(query, [id]);
       return rows.length ? rows[0] : null;
     } catch (error) {
@@ -191,33 +200,76 @@ const ProjectModel = {
     }
   },
 
-/**
-   * Obtiene exclusivamente los proyectos donde un usuario específico es autor.
-   * @param {number} userId - ID del usuario autenticado.
+  /**
+   * Retrieves exclusively the projects where a specific user is an author.
+   * Explicitly defines columns to avoid fetching heavy binary data (BYTEA).
+   * * @param {number} userId - The ID of the authenticated user.
+   * @returns {Promise<Array<object>>} An array of projects authored by the user.
+   * @throws {Error} If the database query fails.
    */
   getByAuthorId: async (userId) => {
-    const query = `
-      SELECT 
-        p.*, 
-        c.name as category_name,
-        COALESCE(
-          json_agg(
-            json_build_object('id', u.id, 'full_name', u.full_name, 'role', u.role)
-          ) FILTER (WHERE u.id IS NOT NULL), '[]'
-        ) as authors
-      FROM projects p
-      LEFT JOIN categories c ON p.category_id = c.id
-      JOIN project_authors pa ON p.id = pa.project_id
-      LEFT JOIN project_authors pa_all ON p.id = pa_all.project_id
-      LEFT JOIN users u ON pa_all.user_id = u.id
-      WHERE pa.user_id = $1
-      GROUP BY p.id, c.name
-      ORDER BY p.year DESC, p.id DESC;
-    `;
-    const result = await pool.query(query, [userId]);
-    return result.rows;
+    try {
+      const query = `
+        SELECT 
+          p.id, p.title, p.abstract, p.year, p.category_id, p.status, 
+          c.name as category_name,
+          COALESCE(
+            json_agg(
+              json_build_object('id', u.id, 'full_name', u.full_name, 'role', u.role)
+            ) FILTER (WHERE u.id IS NOT NULL), '[]'
+          ) as authors
+        FROM projects p
+        LEFT JOIN categories c ON p.category_id = c.id
+        JOIN project_authors pa ON p.id = pa.project_id
+        LEFT JOIN project_authors pa_all ON p.id = pa_all.project_id
+        LEFT JOIN users u ON pa_all.user_id = u.id
+        WHERE pa.user_id = $1
+        GROUP BY p.id, c.name
+        ORDER BY p.year DESC, p.id DESC;
+      `;
+      const result = await pool.query(query, [userId]);
+      return result.rows;
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch projects by author ID ${userId}:`, error);
+      throw error;
+    }
   },
 
+  /**
+   * Retrieves the binary image data and mimetype for a specific project.
+   *
+   * @param {number|string} id - The project ID.
+   * @returns {Promise<object|null>} Object containing image_data and image_mimetype.
+   * @throws {Error} If the database query fails.
+   */
+  getImage: async (id) => {
+    try {
+      const query = 'SELECT image_data, image_mimetype FROM projects WHERE id = $1;';
+      const { rows } = await pool.query(query, [id]);
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch image for project ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Retrieves the binary PDF data and mimetype for a specific project.
+   *
+   * @param {number|string} id - The project ID.
+   * @returns {Promise<object|null>} Object containing pdf_data and pdf_mimetype.
+   * @throws {Error} If the database query fails.
+   */
+  getPdf: async (id) => {
+    try {
+      const query = 'SELECT pdf_data, pdf_mimetype FROM projects WHERE id = $1;';
+      const { rows } = await pool.query(query, [id]);
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch PDF for project ID ${id}:`, error);
+      throw error;
+    }
+  }
 };
 
 module.exports = ProjectModel;
