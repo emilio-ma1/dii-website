@@ -3,13 +3,19 @@
  * @description
  * Custom hook for isolating network operations and state management 
  * related to alumni/student profile administration.
+ * * Responsibilities:
+ * - Handle data fetching and segregation (linked profiles vs eligible users).
+ * - Transmit binary file payloads via FormData for profile creation/updates.
+ * - Manage the binary image tunnel endpoint for UI rendering.
  */
 import { useState, useEffect, useCallback } from "react";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 /**
  * Custom hook to manage student profiles and eligible base accounts.
  *
- * @param {boolean} shouldFetch - Determines if the initial data fetch should execute.
+ * @param {boolean} shouldFetch Determines if the initial data fetch should execute.
  * @returns {object} Object containing lists, feedback states, and operational methods.
  */
 export function useStudentManagement(shouldFetch = true) {
@@ -20,36 +26,52 @@ export function useStudentManagement(shouldFetch = true) {
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  /**
+   * Clears any active success or error feedback messages.
+   * @returns {void}
+   */
   const clearFeedbackMessages = useCallback(() => {
     setMessage("");
     setErrorMessage("");
   }, []);
 
+  /**
+   * Fetches the complete list of alumni and segregates them into
+   * linked profiles and eligible base users.
+   * * WHY: Segregation happens here to provide ready-to-use arrays to the UI, 
+   * strictly separating data processing from presentation.
+   *
+   * @returns {Promise<void>}
+   * @throws {Error} Soft throws caught internally to set UI error states.
+   */
   const fetchStudents = useCallback(async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/alumni`);
-      if (response.ok) {
-        const data = await response.json();
-        
-        const formattedData = data.map(s => ({
-          ...s,
-          fullName: s.full_name,
-          imageUrl: s.image_url,
-          videoUrlEmbed: s.video_url_embed,
-          isProfilePublic: s.is_profile_public,
-          profile_id: s.profile_id // null means no linked profile yet
-        }));
-
-        const linkedProfiles = formattedData.filter(student => student.profile_id !== null);
-        setStudents(linkedProfiles);
-
-        const unlinkedUsers = formattedData.filter(student => student.profile_id === null);
-        setEligibleUsers(unlinkedUsers);
-      } else {
-        console.warn("[WARN] Failed to fetch students from server.");
+      const response = await fetch(`${API_URL}/api/alumni`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch students from server.");
       }
+      
+      const data = await response.json();
+      
+      const formattedData = data.map(s => ({
+        ...s,
+        fullName: s.full_name,
+        imageUrl: s.profile_id ? `${API_URL}/api/alumni/${s.id}/image` : null,
+        videoUrlEmbed: s.video_url_embed,
+        isProfilePublic: s.is_profile_public,
+        profile_id: s.profile_id // null means no linked profile yet
+      }));
+
+      const linkedProfiles = formattedData.filter(student => student.profile_id !== null && student.profile_id !== undefined);
+      setStudents(linkedProfiles);
+
+      const unlinkedUsers = formattedData.filter(student => student.profile_id === null || student.profile_id === undefined);
+      setEligibleUsers(unlinkedUsers);
+      
     } catch (error) {
       console.error("[ERROR] Failed to fetch students:", error);
+      setErrorMessage("No se pudo cargar la lista de egresados.");
     }
   }, []);
 
@@ -60,13 +82,15 @@ export function useStudentManagement(shouldFetch = true) {
   }, [shouldFetch, fetchStudents]);
 
   /**
-   * Saves (creates or updates) an alumni profile.
+   * Saves (creates or updates) an alumni profile using FormData to support binary uploads.
+   * * WHY: Bypasses JSON.stringify and allows the browser to automatically set 
+   * the multipart/form-data boundary headers.
    *
-   * @param {object} formData - The payload containing profile details.
-   * @param {number|string|null} editingId - The user ID if updating, null if creating.
+   * @param {FormData} formDataPayload The multipart payload containing profile details and image file.
+   * @param {number|string|null} editingId The user ID if updating, null if creating.
    * @returns {Promise<boolean>} True if successful, false otherwise.
    */
-  const saveStudentProfile = useCallback(async (formData, editingId) => {
+  const saveStudentProfile = useCallback(async (formDataPayload, editingId) => {
     setIsSaving(true);
     clearFeedbackMessages();
 
@@ -74,29 +98,19 @@ export function useStudentManagement(shouldFetch = true) {
       const token = localStorage.getItem("token");
       const method = editingId ? "PUT" : "POST";
       const url = editingId 
-        ? `${import.meta.env.VITE_API_URL}/api/alumni/${editingId}`
-        : `${import.meta.env.VITE_API_URL}/api/alumni`;
-
-      const payload = {
-        user_id: formData.user_id,
-        degree: formData.degree,
-        specialty: formData.specialty,
-        image_url: formData.imageUrl,
-        video_url_embed: formData.videoUrlEmbed,
-        is_profile_public: formData.isProfilePublic
-      };
+        ? `${API_URL}/api/alumni/${editingId}`
+        : `${API_URL}/api/alumni`;
 
       const response = await fetch(url, {
         method, 
         headers: { 
-          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(payload),
+        body: formDataPayload,
       });
 
       if (response.ok) {
-        await fetchStudents(); // Silently reload the list
+        await fetchStudents(); 
         setMessage(editingId ? "Perfil actualizado correctamente." : "Perfil creado exitosamente.");
         return true;
       } 
@@ -117,20 +131,20 @@ export function useStudentManagement(shouldFetch = true) {
   /**
    * Deletes a student profile from the database.
    *
-   * @param {number|string} userId - The user ID associated with the profile.
+   * @param {number|string} userId The user ID associated with the profile.
    * @returns {Promise<boolean>} True if successful, false otherwise.
    */
   const deleteStudentProfile = useCallback(async (userId) => {
     clearFeedbackMessages();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/alumni/${userId}`, {
+      const response = await fetch(`${API_URL}/api/alumni/${userId}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
       
       if (response.ok) {
-        await fetchStudents(); // Refresh to move user back to eligible list
+        await fetchStudents(); 
         setMessage("Perfil eliminado exitosamente.");
         return true;
       }

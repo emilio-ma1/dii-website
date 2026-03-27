@@ -2,14 +2,53 @@
  * @file usePublicStudents.js
  * @description 
  * Custom hook to fetch and format linked student/alumni profiles.
- * Acts as an adapter to filter incomplete profiles and map database fields to UI properties.
+ * * Responsibilities:
+ * - Isolate data fetching and transformation from the presentation layer.
+ * - Filter out base users who lack an extended public profile.
+ * - Map binary image tunnel URLs to avoid heavy payload responses.
  */
 import { useState, useEffect } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 /**
- * Retrieves a list of public students/alumni with active profiles.
+ * Filters active profiles and maps the raw database payload to UI properties.
+ * * WHY: To prepare the raw API data strictly for UI consumption, reducing
+ * mapping logic inside React components and injecting the binary image tunnel.
  *
- * @returns {object} An object containing the formatted students list, loading state, and error message.
+ * @param {Array<object>} rawStudentsList The unparsed list of users/alumni.
+ * @returns {Array<object>} The processed list of linked students.
+ * @throws {Error} Does not throw; handles non-array inputs gracefully.
+ */
+export const processPublicStudents = (rawStudentsList) => {
+  if (!Array.isArray(rawStudentsList)) return [];
+
+  // Filter out base users who haven't created an extended public profile yet
+  const linkedStudents = rawStudentsList.filter(
+    (s) => s.profile_id !== null && s.profile_id !== undefined
+  );
+
+  return linkedStudents.map((s) => ({
+    id: s.id,
+    fullName: s.full_name,
+    specialty: s.specialty,
+    degree: s.degree,
+    email: s.email,
+    projects: Array.isArray(s.projects) ? s.projects.map((p) => p.title) : [],
+    
+    imageUrl: `${API_URL}/api/alumni/${s.id}/image`, 
+    
+    videoUrlEmbed: s.video_url_embed || "",
+    // Robust boolean fallback
+    isProfilePublic: s.is_profile_public !== false 
+  }));
+};
+
+/**
+ * Custom hook to fetch and manage the public students state.
+ *
+ * @returns {object} State object containing students array, isLoading boolean, and error string.
+ * @throws {Error} Internally catches network errors and sets the error state.
  */
 export function usePublicStudents() {
   const [students, setStudents] = useState([]);
@@ -22,34 +61,20 @@ export function usePublicStudents() {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/alumni`);
+        const response = await fetch(`${API_URL}/api/alumni`);
         
         if (!response.ok) {
-          throw new Error("No se pudieron cargar los perfiles de los estudiantes.");
+          throw new Error("Failed to fetch public students from server");
         }
 
         const data = await response.json();
         
-        // Filter out base users who haven't created an extended public profile yet
-        const linkedStudents = data.filter(s => s.profile_id !== null && s.profile_id !== undefined);
-        
-        // Map Database payload to UI Card format
-        const formattedStudents = linkedStudents.map(s => ({
-          id: s.id,
-          fullName: s.full_name,
-          specialty: s.specialty,
-          degree: s.degree,
-          email: s.email,
-          projects: s.projects ? s.projects.map(p => p.title) : [],
-          imageUrl: s.image_url || "/images/foto-docente.png", //Ensure this fallback image exists
-          videoUrlEmbed: s.video_url_embed || "",
-          isProfilePublic: s.is_profile_public
-        }));
+        const formattedStudents = processPublicStudents(data);
 
         setStudents(formattedStudents);
       } catch (err) {
         console.error("[ERROR] Failed to fetch public students:", err);
-        setError(err.message || "Error de red al intentar comunicarse con el servidor.");
+        setError("Error de red al intentar comunicarse con el servidor.");
       } finally {
         setIsLoading(false);
       }

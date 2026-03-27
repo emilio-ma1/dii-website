@@ -2,14 +2,17 @@
  * @file useUserProfile.js
  * @description
  * Custom hook to fetch and format dynamic user profile data (name, title, avatar).
- * Consumes the optimized '/api/users/me' endpoint from the backend.
- * * @features
- * - Automatically resolves the user's role and fetches their specific extended profile.
- * - Implements AbortController to safely cancel pending HTTP requests if the 
- * component unmounts, preventing memory leaks and React state errors.
+ * * Responsibilities:
+ * - Consumes the optimized '/api/users/me' endpoint.
+ * - Automatically resolves the user's role and formats their display title.
+ * - Safely maps the avatar to the binary image tunnel.
+ * - Uses AbortController to prevent memory leaks on unmount.
  */
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth/authContext";
+
+const API_URL = import.meta.env.VITE_API_URL;
+const DEFAULT_AVATAR = "/images/default-avatar.png";
 
 export function useUserProfile() {
   const { user } = useAuth();
@@ -18,7 +21,7 @@ export function useUserProfile() {
   const [profileData, setProfileData] = useState({
     name: "Cargando...",
     title: "Cargando perfil...",
-    avatar: "/images/foto-docente.png",
+    avatar: DEFAULT_AVATAR,
   });
 
   useEffect(() => {
@@ -31,7 +34,7 @@ export function useUserProfile() {
       try {
         const token = localStorage.getItem("token");
         
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/me`, {
+        const response = await fetch(`${API_URL}/api/users/me`, {
           headers: { "Authorization": `Bearer ${token}` },
           signal: abortController.signal 
         });
@@ -47,23 +50,29 @@ export function useUserProfile() {
           setProfileData({
             name: data.full_name || emailName,
             title: dynamicTitle,
-            avatar: data.image_url || "/images/foto-docente.png"
+            avatar: `${API_URL}/api/users/${data.id}/image`
           });
         } else {
           setProfileData(prev => ({ 
             ...prev, 
             name: emailName,
-            title: role === "admin" ? "Administración DII" : "Perfil Incompleto"
+            title: role === "admin" ? "Administración DII" : "Perfil Incompleto",
+            avatar: DEFAULT_AVATAR
           }));
         }
       } catch (error) {
         if (error.name === "AbortError") {
-          console.log("Petición de perfil cancelada por desmontaje del componente.");
+          console.log("[INFO] Petición de perfil cancelada por desmontaje del componente.");
           return;
         }
         
         console.error("[ERROR] Failed to fetch current user profile:", error);
-        setProfileData(prev => ({ ...prev, name: emailName, title: "Sin conexión" }));
+        setProfileData(prev => ({ 
+          ...prev, 
+          name: emailName, 
+          title: "Sin conexión",
+          avatar: DEFAULT_AVATAR 
+        }));
       }
     };
 

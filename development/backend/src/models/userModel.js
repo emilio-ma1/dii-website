@@ -2,8 +2,10 @@
  * @file userModel.js
  * @description
  * Data Access Object (DAO) for the 'users' entity.
- * Manages read and write database queries for user accounts.
- * Does not handle authentication logic (that belongs to authController), only data access.
+ * * Responsibilities:
+ * - Manages read and write database queries for user accounts.
+ * - Dynamically joins extended profiles based on user roles.
+ * - Safely handles binary image routing for the frontend tunnel.
  */
 const pool = require('../config/db');
 
@@ -28,9 +30,8 @@ const UserModel = {
 
   /**
    * Retrieves a list of users filtered by a specific role.
-   * Ideal for populating frontend dropdowns (e.g., listing only 'teacher' or 'alumni').
    *
-   * @param {string} roleName - The target role to filter by ('admin', 'teacher', 'alumni').
+   * @param {string} roleName - The target role to filter by.
    * @returns {Promise<Array<object>>} An array of users matching the role.
    * @throws {Error} If a database query error occurs.
    */
@@ -56,8 +57,6 @@ const UserModel = {
     try {
       const query = 'DELETE FROM users WHERE id = $1 RETURNING id;';
       const { rows } = await pool.query(query, [userId]);
-      
-      // Early return validating if the row actually existed and was deleted
       return rows.length > 0;
     } catch (error) {
       console.error(`[ERROR] Failed to delete user with ID ${userId}:`, error);
@@ -80,7 +79,6 @@ const UserModel = {
       let query;
       let values;
 
-      // If a new passwordHash is provided, update the password as well
       if (passwordHash) {
         query = `
           UPDATE users 
@@ -90,7 +88,6 @@ const UserModel = {
         `;
         values = [full_name, email, role, passwordHash, userId];
       } else {
-        // If no passwordHash is provided, leave the password intact
         query = `
           UPDATE users 
           SET full_name = $1, email = $2, role = $3 
@@ -111,16 +108,6 @@ const UserModel = {
 
   /**
    * Updates a user's record and safely removes incompatible profiles if their role changes.
-   * Does NOT automatically create public profiles.
-   * Executes within a transaction to guarantee data integrity.
-   *
-   * @param {number|string} id - The user ID.
-   * @param {string} fullName - The user's full name.
-   * @param {string} email - The user's email address.
-   * @param {string} role - The assigned role ('admin', 'teacher', 'alumni').
-   * @param {string|null} passwordHash - The encrypted password, if provided.
-   * @returns {Promise<object|null>} The updated user object or null if not found.
-   * @throws {Error} If the database transaction fails.
    */
   updateAccountAndCleanProfiles: async (id, fullName, email, role, passwordHash) => {
     const client = await pool.connect(); 
@@ -131,7 +118,6 @@ const UserModel = {
       let updateQuery;
       let values;
 
-      // Update ONLY the 'users' table
       if (passwordHash) {
         updateQuery = `UPDATE users SET full_name = $1, email = $2, role = $3, password_hash = $4 WHERE id = $5 RETURNING id, full_name, email, role;`;
         values = [fullName, email, role, passwordHash, id];
@@ -149,7 +135,6 @@ const UserModel = {
 
       const updatedUser = result.rows[0];
 
-      // Clean up legacy profiles based on the newly assigned role
       if (role === 'teacher') {
         await client.query('DELETE FROM alumni_profiles WHERE user_id = $1', [id]);
       } else if (role === 'alumni') {
@@ -168,6 +153,93 @@ const UserModel = {
       throw error;
     } finally {
       client.release();
+    }
+  },
+
+  /**
+   * Retrieves the unified profile of a user, merging basic auth data 
+   * with extended profile data dynamically based on their role.
+   * * WHY: Excludes image_data to prevent massive memory payloads.
+   * * @param {number|string} userId - The unique user ID.
+   * @returns {Promise<object|null>} The unified profile or null if not found.
+   */
+  getFullProfile: async (userId) => {
+    try {
+      const userQuery = 'SELECT id, full_name, email, role FROM users WHERE id = $1';
+      const { rows: userRows } = await pool.query(userQuery, [userId]);
+
+      if (userRows.length === 0) return null;
+
+      const baseUser = userRows[0];
+      let extendedProfile = {};
+
+      if (baseUser.role === 'teacher') {
+        const profQuery = 'SELECT degree, area FROM professors WHERE user_id = $1';
+        const { rows: profRows } = await pool.query(profQuery, [userId]);
+        if (profRows.length > 0) extendedProfile = profRows[0];
+      } 
+      else if (baseUser.role === 'alumni') {
+        const alumniQuery = 'SELECT degree, specialty, is_profile_public FROM alumni_profiles WHERE user_id = $1';
+        const { rows: alumniRows } = await pool.query(alumniQuery, [userId]);
+        if (alumniRows.length > 0) extendedProfile = alumniRows[0];
+      }
+
+      return {
+        ...baseUser,
+        ...extendedProfile
+      };
+
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch full profile for user ID ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Retrieves a basic list of valid authors (teachers and alumni).
+   * * @returns {Promise<Array<object>>} List of eligible authors.
+   */
+  getAuthors: async () => {
+    try {
+      const query = "SELECT id, full_name, role FROM users WHERE role IN ('teacher', 'alumni') ORDER BY full_name ASC;";
+      const { rows } = await pool.query(query);
+      return rows;
+    } catch (error) {
+      console.error("[ERROR] Failed to fetch authors list:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Dynamically retrieves the binary image data for a user based on their role.
+   * * WHY: Acts as a database router, querying the correct table (professors or alumni_profiles)
+   * to serve the unified image endpoint.
+   * * @param {number|string} userId - The unique user ID.
+   * @returns {Promise<object|null>} Object with image_data and image_mimetype, or null.
+   */
+  getProfileImage: async (userId) => {
+    try {
+      const roleQuery = 'SELECT role FROM users WHERE id = $1;';
+      const { rows: roleRows } = await pool.query(roleQuery, [userId]);
+
+      if (roleRows.length === 0) return null;
+      const role = roleRows[0].role;
+
+      let imageQuery = '';
+      if (role === 'teacher') {
+        imageQuery = 'SELECT image_data, image_mimetype FROM professors WHERE user_id = $1;';
+      } else if (role === 'alumni') {
+        imageQuery = 'SELECT image_data, image_mimetype FROM alumni_profiles WHERE user_id = $1;';
+      } else {
+        return null; 
+      }
+
+      const { rows: imageRows } = await pool.query(imageQuery, [userId]);
+      return imageRows.length > 0 ? imageRows[0] : null;
+
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch profile image for user ID ${userId}:`, error);
+      throw error;
     }
   }
 };
