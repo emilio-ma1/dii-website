@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { usePublicEvents } from "../hooks/usePublicEvents";
 
 const STATUS_LABELS = {
-  current: "Vigente",
-  not_current: "No Vigente",
+  current: "En Ejecución",
+  not_current: "Terminado",
 };
 
 /**
