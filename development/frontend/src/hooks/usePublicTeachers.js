@@ -2,14 +2,49 @@
  * @file usePublicTeachers.js
  * @description 
  * Custom hook to fetch and format linked professor profiles for public display.
- * Acts as an adapter to filter incomplete profiles and map database fields to UI properties.
+ * * Responsibilities:
+ * - Isolate data fetching and transformation from the presentation layer.
+ * - Filter out base users who lack an extended public profile.
+ * - Map binary image tunnel URLs to avoid heavy payload responses.
  */
 import { useState, useEffect } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 /**
- * Retrieves a list of public teachers/professors with active profiles.
+ * Filters active profiles and maps the raw database payload to UI properties.
+ * * WHY: To prepare the raw API data strictly for UI consumption, reducing
+ * mapping logic inside React components and injecting the binary image tunnel.
  *
- * @returns {object} An object containing the formatted teachers list, loading state, and error message.
+ * @param {Array<object>} rawTeachersList The unparsed list of users/professors.
+ * @returns {Array<object>} The processed list of linked teachers.
+ * @throws {Error} Does not throw; handles non-array inputs gracefully.
+ */
+export const processPublicTeachers = (rawTeachersList) => {
+  if (!Array.isArray(rawTeachersList)) return [];
+
+  const linkedTeachers = rawTeachersList.filter(
+    (t) => t.profile_id !== null && t.profile_id !== undefined
+  );
+
+  return linkedTeachers.map((t) => ({
+    id: t.id,
+    fullName: t.user_name || t.full_name,
+    role: "Docente", 
+    area: t.area,
+    email: t.email,
+    degree: t.degree,
+    projects: Array.isArray(t.projects) ? t.projects.map((p) => p.title) : [], 
+    
+    imageUrl: `${API_URL}/api/professors/${t.id}/image`, 
+  }));
+};
+
+/**
+ * Custom hook to fetch and manage the public teachers state.
+ *
+ * @returns {object} State object containing teachers array, isLoading boolean, and error string.
+ * @throws {Error} Internally catches network errors and sets the error state.
  */
 export function usePublicTeachers() {
   const [teachers, setTeachers] = useState([]);
@@ -22,33 +57,20 @@ export function usePublicTeachers() {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/professors`);
+        const response = await fetch(`${API_URL}/api/professors`);
         
         if (!response.ok) {
-          throw new Error("No se pudieron cargar los perfiles de los docentes.");
+          throw new Error("Failed to fetch public teachers from server");
         }
 
         const data = await response.json();
         
-        // Filter out base users who haven't created an extended public profile yet
-        const linkedTeachers = data.filter(t => t.profile_id !== null && t.profile_id !== undefined);
-        
-        // Map Database payload to UI Card format
-        const formattedTeachers = linkedTeachers.map(t => ({
-          id: t.id,
-          fullName: t.user_name || t.full_name,
-          role: "Docente", // Default role assignment
-          area: t.area,
-          email: t.email,
-          degree: t.degree,
-          projects: t.projects ? t.projects.map(p => p.title) : [], 
-          imageUrl: t.image_url || "/images/foto-docente.png", // Default image fallback
-        }));
+        const formattedTeachers = processPublicTeachers(data);
 
         setTeachers(formattedTeachers);
       } catch (err) {
         console.error("[ERROR] Failed to fetch public teachers:", err);
-        setError(err.message || "Error de red al intentar comunicarse con el servidor.");
+        setError("Error de red al intentar comunicarse con el servidor.");
       } finally {
         setIsLoading(false);
       }

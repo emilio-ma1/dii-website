@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useLatestNews } from "../hooks/useLatestNews"; // Ajusta la ruta según tu estructura
+import { useLatestNews } from "../hooks/useLatestNews";
 
 /**
  * Renders a calendar SVG icon.
@@ -43,12 +43,11 @@ export function formatDate(isoDate) {
  * @throws {Error} No exceptions thrown.
  */
 function NewsCard({ item }) {
-  const imageSource = item.image_url || "/images/seminario.jpg";
+  const imageSource = item.imageUrl || "/images/seminario.jpg";
   const categoryColor = "bg-[#1f78c1]";
 
   return (
     <article className="group overflow-hidden rounded-md bg-white shadow-md border-2 border-[#722b4d]/60 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-[#722b4d] flex flex-col h-full">
-      {/* Recuerda que si prefieres usar el slug de tu BD, cambia item.id por item.slug */}
       <Link to={`/vinculacion-con-el-medio-detalle/${item.slug}`} className="flex flex-col h-full">
         <div className="relative h-64 overflow-hidden lg:h-80 shrink-0">
           <img

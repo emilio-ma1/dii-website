@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { useEquipment } from "../hooks/useEquipment";
+
+const DEFAULT_EQUIPMENT_IMAGE = "/images/impresora3d.jpg";
 
 /**
  * Renders a card with one of the department's main functions.
@@ -86,13 +89,55 @@ function AboutHero() {
       <div className="absolute inset-0 bg-[#722b4d]/72" />
       <div className="relative z-10 mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 sm:pt-28 sm:pb-24 lg:px-8 lg:pt-32 lg:pb-28">
         <div className="max-w-3xl text-white">
-
           <h1 className="mt-5 text-4xl font-extrabold leading-tight sm:mt-6 sm:text-5xl lg:text-6xl">
             Más de 40 años formando líderes de la ingeniería
           </h1>
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * Renders a single row for an equipment item with dynamic image error handling.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.item - Equipment data object.
+ * @param {number} props.index - Index in the list to determine layout alternation.
+ * @returns {JSX.Element} Rendered equipment row.
+ */
+function EquipmentRow({ item, index }) {
+  const [imageError, setImageError] = useState(false);
+  const isReverse = index % 2 !== 0;
+
+  return (
+    <article className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+      <div className={isReverse ? "lg:order-2" : ""}>
+        <div className="overflow-hidden rounded-lg bg-white shadow-md">
+          <img
+            src={imageError ? DEFAULT_EQUIPMENT_IMAGE : item.imageUrl}
+            alt={item.name}
+            className="h-[280px] w-full object-cover sm:h-[360px] lg:h-[420px]"
+            loading="lazy"
+            onError={() => setImageError(true)}
+          />
+        </div>
+      </div>
+
+      <div className={isReverse ? "lg:order-1" : ""}>
+        <p className="text-5xl font-extrabold opacity-15">
+          {String(index + 1).padStart(2, "0")}
+        </p>
+
+        <h3 className="mt-4 text-2xl font-extrabold">
+          {item.name}
+        </h3>
+
+        <p className="mt-5 text-sm leading-7 text-gray-600">
+          {item.description}
+        </p>
+      </div>
+    </article>
   );
 }
 
@@ -104,8 +149,9 @@ function AboutHero() {
 function EquipmentSection() {
   const { items, loading, error } = useEquipment();
 
-  if (loading) return <p className="p-10">Cargando equipamiento...</p>;
-  if (error) return <p className="p-10">{error}</p>;
+  if (loading) return <p className="p-10 text-center text-gray-500 font-medium">Cargando equipamiento...</p>;
+  if (error) return <p className="p-10 text-center text-red-500 font-medium">{error}</p>;
+  if (!items || items.length === 0) return null;
 
   return (
     <section className="bg-[#f7f5f6] py-16 sm:py-20 lg:py-24">
@@ -121,45 +167,86 @@ function EquipmentSection() {
         </div>
 
         <div className="space-y-16">
-          {items.map((item, index) => {
-            const isReverse = index % 2 !== 0;
-
-            return (
-              <article
-                key={item.id}
-                className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12"
-              >
-                <div className={isReverse ? "lg:order-2" : ""}>
-                  <div className="overflow-hidden rounded-lg bg-white shadow-md">
-                    <img
-                      src={item.image_url || "/images/impresora3d.jpg"}
-                      alt={item.name}
-                      className="h-[280px] w-full object-cover sm:h-[360px] lg:h-[420px]"
-                    />
-                  </div>
-                </div>
-
-                <div className={isReverse ? "lg:order-1" : ""}>
-                  <p className="text-5xl font-extrabold opacity-15">
-                    {String(index + 1).padStart(2, "0")}
-                  </p>
-
-                  <h3 className="mt-4 text-2xl font-extrabold">
-                    {item.name}
-                  </h3>
-
-                  <p className="mt-5 text-sm text-gray-600">
-                    {item.description}
-                  </p>
-                </div>
-              </article>
-            );
-          })}
+          {items.map((item, index) => (
+            <EquipmentRow key={item.id} item={item} index={index} />
+          ))}
         </div>
       </div>
     </section>
   );
 }
+
+const STRATEGIC_FUNCTIONS = [
+  {
+    title: "Formación Académica de Excelencia",
+    description:"El Departamento de Ingeniería Industrial forma profesionales con sólida base en ciencias básicas, ingeniería y gestión, preparados para analizar información, optimizar recursos y resolver problemas en organizaciones públicas y privadas.",
+    accentColor: "#722b4d",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422A12.083 12.083 0 0112 20.055a12.083 12.083 0 01-6.16-9.477L12 14z" />
+      </svg>
+    ),
+  },
+  {
+    title: "Investigación Científica y Aplicada",
+    description:"El departamento desarrolla investigación aplicada en diversas áreas de la ingeniería industrial, promoviendo proyectos científicos, colaboración académica y generación de conocimiento.",
+    accentColor: "#1f78c1",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a4 4 0 00-5.656-5.656l-8.486 8.485a2 2 0 102.829 2.829l8.485-8.486" />
+      </svg>
+    ),
+  },
+  {
+    title: "Vinculación con el Medio",
+    description:"El departamento mantiene una relación activa con su entorno social y productivo mediante proyectos, programas e iniciativas que contribuyen al desarrollo de la región.",
+    accentColor: "#722b4d",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7" />
+      </svg>
+    ),
+  },
+  {
+    title: "Gestión Institucional",
+    description:"El departamento gestiona recursos académicos, humanos y administrativos para desarrollar sus actividades de docencia, investigación y vinculación con el medio.",
+    accentColor: "#1f78c1",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M9 3v18m6-18v18" />
+      </svg>
+    ),
+  },
+  {
+    title: "Internacionalización",
+    description:"El departamento fomenta la colaboración académica y científica con instituciones nacionales e internacionales, fortaleciendo la investigación y la formación profesional.",
+    accentColor: "#722b4d",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 0c2.5 2.5 4 6 4 10s-1.5 7.5-4 10m0-20C9.5 4.5 8 8 8 12s1.5 7.5 4 10" />
+      </svg>
+    ),
+  },
+  {
+    title: "Responsabilidad Social",
+    description:"A través de sus actividades académicas y proyectos, el departamento contribuye al desarrollo social, tecnológico y productivo de la región.",
+    accentColor: "#1f78c1",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+      </svg>
+    ),
+  },
+];
+
+const DEPARTMENT_ACTIVITIES = [
+  "Formación de ingenieros industriales mediante programas de pregrado y posgrado.",
+  "Desarrollo de investigación científica y aplicada en áreas de la ingeniería industrial.",
+  "Participación en proyectos de innovación y desarrollo tecnológico.",
+  "Vinculación con el medio a través de colaboración con instituciones públicas y privadas.",
+  "Transferencia de conocimiento hacia el sector productivo y la sociedad.",
+  "Contribución al desarrollo regional mediante actividades académicas y profesionales.",
+];
 
 /**
  * Renders the department "About Us" page.
@@ -173,114 +260,6 @@ function EquipmentSection() {
  * @returns {JSX.Element} Rendered "About Us" page.
  */
 export default function QuienesSomos() {
-  /**
-   * List of the department's strategic functions.
-   */
-  const functions = [
-    {
-      title: "Formación Académica de Excelencia",
-      description:"El Departamento de Ingeniería Industrial forma profesionales con sólida base en ciencias básicas, ingeniería y gestión, preparados para analizar información, optimizar recursos y resolver problemas en organizaciones públicas y privadas.",
-      accentColor: "#722b4d",
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422A12.083 12.083 0 0112 20.055a12.083 12.083 0 01-6.16-9.477L12 14z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Investigación Científica y Aplicada",
-      description:"El departamento desarrolla investigación aplicada en diversas áreas de la ingeniería industrial, promoviendo proyectos científicos, colaboración académica y generación de conocimiento.",
-      accentColor: "#1f78c1",
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19.428 15.428a4 4 0 00-5.656-5.656l-8.486 8.485a2 2 0 102.829 2.829l8.485-8.486"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Vinculación con el Medio",
-      description:"El departamento mantiene una relación activa con su entorno social y productivo mediante proyectos, programas e iniciativas que contribuyen al desarrollo de la región.",
-      accentColor: "#722b4d",
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Gestión Institucional",
-      description:"El departamento gestiona recursos académicos, humanos y administrativos para desarrollar sus actividades de docencia, investigación y vinculación con el medio.",
-      accentColor: "#1f78c1",
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 7h18M9 3v18m6-18v18"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Internacionalización",
-      description:"El departamento fomenta la colaboración académica y científica con instituciones nacionales e internacionales, fortaleciendo la investigación y la formación profesional.",
-      accentColor: "#722b4d",
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 0c2.5 2.5 4 6 4 10s-1.5 7.5-4 10m0-20C9.5 4.5 8 8 8 12s1.5 7.5 4 10"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Responsabilidad Social",
-      description:"A través de sus actividades académicas y proyectos, el departamento contribuye al desarrollo social, tecnológico y productivo de la región.",
-      accentColor: "#1f78c1",
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-          />
-        </svg>
-      ),
-    },
-  ];
-
-/**
-   * List of the department's strategic functions.
-   */
-  const activities = [
-    "Formación de ingenieros industriales mediante programas de pregrado y posgrado.",
-    "Desarrollo de investigación científica y aplicada en áreas de la ingeniería industrial.",
-    "Participación en proyectos de innovación y desarrollo tecnológico.",
-    "Vinculación con el medio a través de colaboración con instituciones públicas y privadas.",
-    "Transferencia de conocimiento hacia el sector productivo y la sociedad.",
-    "Contribución al desarrollo regional mediante actividades académicas y profesionales.",
-  ];
-
   return (
     <div className="min-h-screen bg-white">
       <AboutHero />
@@ -289,7 +268,6 @@ export default function QuienesSomos() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div>
-
               <h2 className="mt-3 text-3xl font-extrabold text-[#722b4d] sm:text-4xl lg:text-5xl">
                 Nuestra Historia
               </h2>
@@ -300,13 +278,11 @@ export default function QuienesSomos() {
                   tiene sus orígenes en la creación de la carrera de Ingeniería Civil
                   Industrial en el año 1984.
                 </p>
-
                 <p>
                   Posteriormente, en 1988, se estableció el Departamento de
                   Industrialización, el cual integraba áreas como Mecánica, Alimentos
                   e Industrial dentro de la Facultad de Ingeniería.
                 </p>
-
                 <p>
                   En 1993 se realizó una reorganización académica que dio origen al
                   Departamento de Ingeniería Civil Industrial. Finalmente, en el año
@@ -315,7 +291,6 @@ export default function QuienesSomos() {
                   consolidándose como una unidad académica clave dentro de la Facultad
                   de Ingeniería de la Universidad de La Serena.
                 </p>
-
                 <p>
                   Actualmente el departamento desarrolla actividades de docencia,
                   investigación y vinculación con el medio, contribuyendo al desarrollo
@@ -334,7 +309,6 @@ export default function QuienesSomos() {
                   contribuyendo al desarrollo sustentable y al mejoramiento de la calidad de vida de la sociedad, privilegiando la investigación focalizada 
                   y fortaleciendo su vinculación con el medio.
                 </p>
-                
                 <div className="absolute right-0 top-0 h-16 w-16 bg-white/10"/>
               </div>
               
@@ -342,7 +316,6 @@ export default function QuienesSomos() {
                 <h3 className="flex items-center gap-2 text-lg font-semibold">
                   Visión
                 </h3>
-                
                 <p className="mt-3 text-sm leading-7 text-white/90">
                   Ser una Facultad de Ingeniería reconocida a nivel regional y nacional por su búsqueda constante de la excelencia académica, 
                   por la generación de conocimientos en las áreas de su competencia, por la calidad de su docencia, su vinculación con el medio 
@@ -361,11 +334,9 @@ export default function QuienesSomos() {
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#722b4d]/80">
               Nuestras funciones
             </p>
-
             <h2 className="mt-3 text-3xl font-extrabold leading-tight text-[#722b4d] sm:text-4xl lg:text-5xl">
               ¿Qué hace el Departamento?
             </h2>
-
             <p className="mt-4 max-w-3xl text-sm leading-7 text-gray-600 sm:text-base sm:leading-8 lg:text-lg">
               El DII desarrolla sus actividades en torno a tres ejes estratégicos:
               docencia, investigación y vinculación con el medio, apoyados por una
@@ -374,7 +345,7 @@ export default function QuienesSomos() {
           </div>
 
           <div className="grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-3">
-            {functions.map((item) => (
+            {STRATEGIC_FUNCTIONS.map((item) => (
               <FunctionCard
                 key={item.title}
                 title={item.title}
@@ -386,6 +357,7 @@ export default function QuienesSomos() {
           </div>
         </div>
       </section>
+      
       <EquipmentSection />
 
       <section className="bg-white py-16 sm:py-20 lg:py-24">
@@ -403,15 +375,13 @@ export default function QuienesSomos() {
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#722b4d]/80">
                 Vida Departamental
               </p>
-
               <h2 className="mt-3 text-3xl font-extrabold leading-tight text-[#722b4d] sm:text-4xl lg:text-5xl">
                 Actividades que nos definen
               </h2>
-
               <div className="mt-6">
                 <ActivityBlock
                   title="Principales actividades del departamento"
-                  items={activities}
+                  items={DEPARTMENT_ACTIVITIES}
                   color="#722b4d"
                 />
               </div>

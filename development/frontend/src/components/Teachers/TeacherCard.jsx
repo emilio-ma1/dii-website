@@ -3,10 +3,10 @@
  * @description Presentational component displaying the synchronized teacher profile and portfolio.
  */
 
-const DEFAULT_TEACHER_IMAGE = "/images/foto-docente.png";
+const DEFAULT_TEACHER_IMAGE = "/images/foto-docente.jpg";
 
 export function TeacherCard({ teacher, onEdit, onDelete, permissions }) {
-  const imageUrl = teacher.image_url?.trim() || DEFAULT_TEACHER_IMAGE;
+  const imageUrl = teacher.imageUrl?.trim() || DEFAULT_TEACHER_IMAGE;
 
   return (
     <article className="rounded-2xl border border-[#722b4d]/20 bg-white p-4 shadow-sm">
