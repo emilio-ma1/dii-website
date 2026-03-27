@@ -17,7 +17,11 @@
  */
 export function NewsForm({ formData, onChange, onSubmit, onCancel, isEditing, isSaving }) {
   return (
-    <form onSubmit={onSubmit} className="rounded-2xl border border-[#722b4d]/30 bg-white p-6 shadow-sm">
+    <form 
+      onSubmit={onSubmit} 
+      noValidate
+      className="rounded-2xl border border-[#722b4d]/30 bg-white p-6 shadow-sm"
+    >
       <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="mb-2 block text-sm font-medium text-[#722b4d]">Título del Evento o Noticia</label>
@@ -25,7 +29,7 @@ export function NewsForm({ formData, onChange, onSubmit, onCancel, isEditing, is
             type="text"
             name="title"
             placeholder="Ej: Charla de Innovación DII"
-            value={formData.title}
+            value={formData.title || ''}
             onChange={onChange}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
             required
@@ -37,7 +41,7 @@ export function NewsForm({ formData, onChange, onSubmit, onCancel, isEditing, is
           <textarea
             name="content"
             placeholder="Redacta el cuerpo de la noticia o los detalles del evento..."
-            value={formData.content}
+            value={formData.content || ''}
             onChange={onChange}
             rows={6}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
@@ -78,9 +82,9 @@ export function NewsForm({ formData, onChange, onSubmit, onCancel, isEditing, is
             <p className="mt-2 text-sm text-gray-500">
               {formData.image_file
                 ? formData.image_file.name
-                : formData.image_url
-                ? "Ya hay una imagen cargada para esta noticia"
-                : "No se ha seleccionado ninguna imagen"}
+                : isEditing
+                ? "Ya hay una imagen guardada. Sube otra para reemplazarla."
+                : "No se ha seleccionado ninguna imagen (Max 2MB)"}
             </p>
           </div>
         </div>

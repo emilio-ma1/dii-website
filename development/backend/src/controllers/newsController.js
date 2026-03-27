@@ -25,11 +25,6 @@ const createSlug = (text) => {
 
 /**
  * Fetches all registered news and events from the system.
- *
- * @param {object} req Express HTTP request object.
- * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response with the news list or an error message.
- * @throws {Error} Implicitly catches database errors and returns 500.
  */
 const getNews = async (req, res) => {
   try {
@@ -42,14 +37,10 @@ const getNews = async (req, res) => {
 };
 
 /**
- * Creates a new news post or event in the system.
- *
- * @param {object} req Express HTTP request object.
- * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response with the created news or an error message.
+ * Creates a new news post or event with an optional binary image.
  */
 const createNews = async (req, res) => {
-  const { title, content, image_url, is_active } = req.body;
+  const { title, content, is_active } = req.body;
   const authorId = req.user ? req.user.id : null; 
 
   if (!title || !content) {
@@ -58,25 +49,25 @@ const createNews = async (req, res) => {
 
   try {
     const generatedSlug = `${createSlug(title)}-${Date.now()}`;
-    const finalImageUrl = image_url || null;
-    const isActive = is_active !== undefined ? is_active : true;
+    
+    const isActive = is_active !== undefined ? (is_active === 'true' || is_active === true) : true;
+
+    const imageData = req.file ? req.file.buffer : null;
+    const imageMimetype = req.file ? req.file.mimetype : null;
 
     const newPost = await NewsModel.create(
       title, 
       generatedSlug, 
       content, 
-      finalImageUrl, 
+      imageData, 
+      imageMimetype, 
       authorId,
       isActive
     ); 
     
     if (req.user && req.user.id) {
       await AuditLogModel.logAction(
-        req.user.id,
-        'CREATE',
-        'news',
-        newPost.id,
-        { title: newPost.title }
+        req.user.id, 'CREATE', 'news', newPost.id, { title: newPost.title }
       );
     }
 
@@ -88,15 +79,11 @@ const createNews = async (req, res) => {
 };
 
 /**
- * Updates an existing news post or event.
- *
- * @param {object} req Express HTTP request object.
- * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response with success message.
+ * Updates an existing news post, retaining the old image if a new one isn't provided.
  */
 const updateNews = async (req, res) => {
   const { id } = req.params;
-  const { title, content, image_url, is_active, slug } = req.body;
+  const { title, content, is_active, slug } = req.body;
 
   if (!title || !content) {
     return res.status(400).json({ message: 'El título y el contenido son campos obligatorios.' });
@@ -105,8 +92,13 @@ const updateNews = async (req, res) => {
   try {
     const finalSlug = slug ? slug : createSlug(title);
     
+    const isActive = is_active !== undefined ? (is_active === 'true' || is_active === true) : true;
+
+    const imageData = req.file ? req.file.buffer : null;
+    const imageMimetype = req.file ? req.file.mimetype : null;
+    
     const updatedPost = await NewsModel.update(
-      id, title, finalSlug, content, image_url || null, is_active
+      id, title, finalSlug, content, imageData, imageMimetype, isActive
     );
     
     if (!updatedPost) {
@@ -115,11 +107,7 @@ const updateNews = async (req, res) => {
 
     if (req.user && req.user.id) {
       await AuditLogModel.logAction(
-        req.user.id,
-        'UPDATE',
-        'news',
-        id,
-        { title: updatedPost.title, status: updatedPost.is_active }
+        req.user.id, 'UPDATE', 'news', id, { title: updatedPost.title, status: updatedPost.is_active }
       );
     }
     
@@ -132,10 +120,6 @@ const updateNews = async (req, res) => {
 
 /**
  * Deletes a news post or event.
- *
- * @param {object} req Express HTTP request object.
- * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response confirming deletion.
  */
 const deleteNews = async (req, res) => {
   const { id } = req.params;
@@ -148,14 +132,7 @@ const deleteNews = async (req, res) => {
 
     if (req.user && req.user.id) {
       await AuditLogModel.logAction(
-        req.user.id,
-        'DELETE',
-        'news',
-        id,
-        { 
-          title: deletedPost.title, 
-          deleted_at: new Date().toISOString() 
-        }
+        req.user.id, 'DELETE', 'news', id, { title: deletedPost.title, deleted_at: new Date().toISOString() }
       );
     }
 
@@ -168,11 +145,6 @@ const deleteNews = async (req, res) => {
 
 /**
  * Retrieves a specific news post by its unique URL slug.
- * Used primarily for public-facing detail pages.
- *
- * @param {object} req Express HTTP request object.
- * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response with the news details.
  */
 const getNewsBySlug = async (req, res) => {
   const { slug } = req.params;
@@ -188,4 +160,28 @@ const getNewsBySlug = async (req, res) => {
   }
 };
 
-module.exports = { getNews, createNews, updateNews, deleteNews, getNewsBySlug };
+/**
+ * Serves the binary image file for a specific news post.
+ */
+const getNewsImage = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const newsItem = await NewsModel.getImage(id);
+    
+    if (!newsItem || !newsItem.image_data) {
+      return res.status(404).json({ message: 'Imagen no encontrada.' });
+    }
+
+    res.set('Content-Type', newsItem.image_mimetype);
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin'); 
+    
+    return res.send(newsItem.image_data);
+  } catch (error) {
+    console.error(`[ERROR] Controller failed to serve image for news ID ${id}:`, error);
+    return res.status(500).json({ message: 'Error interno al obtener la imagen.' });
+  }
+};
+
+module.exports = { 
+  getNews, createNews, updateNews, deleteNews, getNewsBySlug, getNewsImage 
+};

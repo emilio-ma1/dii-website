@@ -7,9 +7,16 @@
 import { useState, useEffect } from "react";
 
 /**
+ * Formats an ISO date string into DD-MM-YYYY.
+ */
+const formatDate = (dateString) => {
+  if (!dateString) return "Fecha no especificada";
+  const [year, month, day] = dateString.split('T')[0].split('-');
+  return `${day}-${month}-${year}`;
+};
+
+/**
  * Retrieves a list of all active public research projects.
- *
- * @returns {object} An object containing the formatted projects list, loading state, and error message.
  */
 export function usePublicProjects() {
   const [projects, setProjects] = useState([]);
@@ -30,9 +37,7 @@ export function usePublicProjects() {
 
         const data = await response.json();          
         
-        // Map Database payload to UI Card format
         const formattedProjects = data.map(p => {
-          // Extract researcher names if they arrive as an array
           const researchersList = p.authors && p.authors.length > 0
             ? p.authors.map(a => a.name || a.full_name || "Investigador").join(", ") 
             : "Equipo de Investigación";
@@ -41,12 +46,16 @@ export function usePublicProjects() {
             id: p.id,
             status: p.status || "in_progress", 
             topic: p.category_name || p.area || "Investigación",
-            // Use the established year directly
-            year: p.year,
+            
+            year: formatDate(p.year),
+            
             title: p.title,
             researcher: researchersList,
             role: "Investigador(es)",
             summary: p.summary || p.abstract || "Sin descripción disponible.",
+            
+            imageUrl: `${import.meta.env.VITE_API_URL}/api/projects/${p.id}/image`,
+            pdfUrl: `${import.meta.env.VITE_API_URL}/api/projects/${p.id}/pdf`,
           };
         });
 

@@ -74,13 +74,13 @@ export function useNewsManagement(shouldFetch) {
   }, []);
 
   /**
-   * Saves (creates or updates) a news item.
+   * Saves (creates or updates) a news item using FormData for file uploads.
    *
-   * @param {object} newsData - The payload containing news details.
+   * @param {FormData} formDataPayload - The payload containing news details and files.
    * @param {number|string|null} editingId - The ID if updating, null if creating.
    * @returns {Promise<boolean>} True if successful, false otherwise.
    */
-  const saveNews = useCallback(async (newsData, editingId) => {
+  const saveNews = useCallback(async (formDataPayload, editingId) => {
     setIsSaving(true);
     clearFeedbackMessages();
     
@@ -94,19 +94,13 @@ export function useNewsManagement(shouldFetch) {
       const response = await fetch(endpoint, {
         method,
         headers: { 
-          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}` 
         },
-        body: JSON.stringify({
-          title: newsData.title,
-          content: newsData.content,
-          image_url: newsData.image_url,
-          is_active: newsData.is_active === "true" || newsData.is_active === true
-        }),
+        body: formDataPayload, 
       });
 
       if (response.ok) {
-        await fetchNews(); // Silently reload the list to get fresh data
+        await fetchNews();
         setMessage(editingId ? "Noticia actualizada correctamente." : "Noticia creada exitosamente.");
         setIsSaving(false);
         return true;
