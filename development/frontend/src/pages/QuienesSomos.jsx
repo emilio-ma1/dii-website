@@ -1,3 +1,5 @@
+import { useEquipment } from "../hooks/useEquipment";
+
 /**
  * Renders a card with one of the department's main functions.
  *
@@ -100,30 +102,10 @@ function AboutHero() {
  * @returns {JSX.Element} Rendered equipment section.
  */
 function EquipmentSection() {
-  /**
- * Renders a section with the department's featured equipment.
- *
- * @returns {JSX.Element} Rendered equipment section.
- */
-  const equipmentItems = [
-    {
-      id: "01",
-      title: "Impresora 3D",
-      description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      imageSrc: "/images/impresora3d.jpg",
-      imageAlt: "Impresora 3D del Departamento de Ingeniería Industrial",
-      accentColor: "#722b4d",
-    },
-    {
-      id: "02",
-      title: "Ejemplo ",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      imageSrc: "/images/",
-      imageAlt: "ejemplo2",
-      accentColor: "#1f78c1",
-    },
-  ];
+  const { items, loading, error } = useEquipment();
+
+  if (loading) return <p className="p-10">Cargando equipamiento...</p>;
+  if (error) return <p className="p-10">{error}</p>;
 
   return (
     <section className="bg-[#f7f5f6] py-16 sm:py-20 lg:py-24">
@@ -136,15 +118,10 @@ function EquipmentSection() {
           <h2 className="mt-3 text-3xl font-extrabold leading-tight text-[#722b4d] sm:text-4xl lg:text-5xl">
             Infraestructura
           </h2>
-
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-gray-600 sm:text-base sm:leading-8 lg:text-lg">
-            El departamento cuenta con equipamiento Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-          </p>
         </div>
 
         <div className="space-y-16">
-          {equipmentItems.map((item, index) => {
+          {items.map((item, index) => {
             const isReverse = index % 2 !== 0;
 
             return (
@@ -155,26 +132,23 @@ function EquipmentSection() {
                 <div className={isReverse ? "lg:order-2" : ""}>
                   <div className="overflow-hidden rounded-lg bg-white shadow-md">
                     <img
-                      src={item.imageSrc}
-                      alt={item.imageAlt}
+                      src={item.image_url || "/images/impresora3d.jpg"}
+                      alt={item.name}
                       className="h-[280px] w-full object-cover sm:h-[360px] lg:h-[420px]"
                     />
                   </div>
                 </div>
 
                 <div className={isReverse ? "lg:order-1" : ""}>
-                  <p
-                    className="text-5xl font-extrabold leading-none opacity-15 sm:text-6xl"
-                    style={{ color: item.accentColor }}
-                  >
-                    {item.id}
+                  <p className="text-5xl font-extrabold opacity-15">
+                    {String(index + 1).padStart(2, "0")}
                   </p>
 
-                  <h3 className="mt-4 text-2xl font-extrabold leading-tight text-[#1f1f1f] sm:text-3xl">
-                    {item.title}
+                  <h3 className="mt-4 text-2xl font-extrabold">
+                    {item.name}
                   </h3>
 
-                  <p className="mt-5 text-sm leading-7 text-gray-600 sm:text-base sm:leading-8">
+                  <p className="mt-5 text-sm text-gray-600">
                     {item.description}
                   </p>
                 </div>

@@ -22,6 +22,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const professorRoutes = require('./routes/professorRoutes');
 const alumniRoutes = require('./routes/alumniRoutes');
 const auditLogRoutes = require('./routes/auditLogRoutes');
+const equipmentRoutes = require("./routes/equipmentRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/professors', professorRoutes);
 app.use('/api/alumni', alumniRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
+app.use("/api/equipment", equipmentRoutes);
 
 // Base health check route
 app.get('/', (req, res) => {
