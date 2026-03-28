@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 
 /**
- * Componente reutilizable para mostrar imágenes dentro del Footer.
+ * Reusable component to display images inside the Footer.
  *
- * @param {string} src - Ruta de la imagen.
- * @param {string} alt - Texto alternativo para accesibilidad.
- * @param {string} heightClass - Clase Tailwind para controlar la altura de la imagen.
+ * @param {string} src - Image source path.
+ * @param {string} alt - Alternative text for accessibility.
+ * @param {string} heightClass - Tailwind class to control image height.
  */
 
 function FooterImage({ src, alt, heightClass }) {
@@ -14,19 +14,19 @@ function FooterImage({ src, alt, heightClass }) {
       src={src}
       alt={alt}
       className={`${heightClass} w-auto object-contain flex-shrink-0`}
-      loading="lazy" // optimiza carga de imágenes
+      loading="lazy" // optimizes image loading
     />
   );
 }
 
 /**
- * Footer principal del sitio web.
+ * Main Footer component of the website.
  *
- * Contiene:
- * - Logos institucionales
- * - Información de contacto
- * - Link de acceso a login
- * - Créditos de desarrollo
+ * Includes:
+ * - Institutional logos
+ * - Contact information
+ * - Login access link
+ * - Development credits
  */
 
 export default function Footer() {
