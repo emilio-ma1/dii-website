@@ -1,14 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-
-vi.mock('../../config/db', () => ({
-  query: vi.fn(),
-}))
+import { describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 vi.mock('../../models/userModel', () => ({
   getAll: vi.fn(),
   getByRole: vi.fn(),
   deleteById: vi.fn(),
   updateAccountAndCleanProfiles: vi.fn(),
+  getFullProfile: vi.fn(),
+  getAuthors: vi.fn(),
+  getProfileImage: vi.fn(),
 }))
 
 vi.mock('bcryptjs', () => ({
@@ -20,7 +19,6 @@ vi.mock('../../models/auditLogModel', () => ({
   logAction: vi.fn(),
 }))
 
-const pool = require('../../config/db')
 const UserModel = require('../../models/userModel')
 const bcrypt = require('bcryptjs')
 const AuditLogModel = require('../../models/auditLogModel')
@@ -31,6 +29,7 @@ const {
   updateUser,
   getCurrentUserProfile,
   getAuthorsList,
+  getUserImage,
 } = require('../../controllers/userController')
 
 function mockRequest({ body = {}, params = {}, user = null } = {}) {
@@ -41,6 +40,8 @@ function mockResponse() {
   const res = {}
   res.status = vi.fn().mockReturnValue(res)
   res.json = vi.fn().mockReturnValue(res)
+  res.set = vi.fn().mockReturnValue(res)
+  res.send = vi.fn().mockReturnValue(res)
   return res
 }
 
@@ -50,54 +51,70 @@ describe('userController', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   describe('getAllUsers', () => {
-    it('01 - Llama UserModel.getAll una vez')
-    it('02 - Retorna 200 con la lista de usuarios')
-    it('03 - Retorna 500 si ocurre error interno')
+    it.todo('01 - Llama UserModel.getAll una vez')
+    it.todo('02 - Retorna 200 con la lista de usuarios')
+    it.todo('03 - Retorna 200 con arreglo vacío si no hay usuarios')
+    it.todo('04 - Retorna 500 si ocurre error interno')
   })
 
   describe('getUsersByRole', () => {
-    it('04 - Retorna 400 si falta roleName')
-    it('05 - Llama UserModel.getByRole con req.params.roleName')
-    it('06 - Retorna 200 con la lista filtrada')
-    it('07 - Retorna 500 si ocurre error interno')
+    it.todo('05 - Retorna 400 si falta roleName')
+    it.todo('06 - Llama UserModel.getByRole con req.params.roleName')
+    it.todo('07 - Retorna 200 con la lista filtrada')
+    it.todo('08 - Retorna 200 con arreglo vacío si no hay usuarios con ese rol')
+    it.todo('09 - Retorna 500 si ocurre error interno')
   })
 
   describe('deleteUser', () => {
-    it('08 - Retorna 400 si el admin intenta eliminar su propia cuenta')
-    it('09 - Llama UserModel.deleteById con req.params.id')
-    it('10 - Retorna 404 si el usuario no existe')
-    it('11 - Retorna 200 si elimina correctamente')
-    it('12 - Si existe req.user.id registra acción DELETE en audit log')
-    it('13 - Si no existe req.user no registra audit log')
-    it('14 - Retorna 500 si ocurre error interno')
+    it.todo('10 - Retorna 400 si el usuario intenta eliminar su propia cuenta')
+    it.todo('11 - No llama UserModel.deleteById si el usuario intenta autoeliminarse')
+    it.todo('12 - Llama UserModel.deleteById con req.params.id')
+    it.todo('13 - Retorna 404 si el usuario no existe')
+    it.todo('14 - Retorna 200 si elimina correctamente')
+    it.todo('15 - Si existe req.user.id registra acción DELETE en audit log')
+    it.todo('16 - Si no existe req.user no registra audit log')
+    it.todo('17 - Retorna 500 si ocurre error interno')
   })
 
   describe('updateUser', () => {
-    it('15 - Si viene password genera salt con bcrypt.genSalt(10)')
-    it('16 - Si viene password genera passwordHash con bcrypt.hash')
-    it('17 - Si no viene password envía null como passwordHash')
-    it('18 - Llama UserModel.updateAccountAndCleanProfiles con los datos correctos')
-    it('19 - Retorna 404 si el usuario no existe')
-    it('20 - Retorna 200 con el usuario actualizado')
-    it('21 - Si existe req.user.id registra acción UPDATE en audit log')
-    it('22 - Retorna 500 si ocurre error interno')
+    it.todo('18 - Si viene password llama bcrypt.genSalt con 10')
+    it.todo('19 - Si viene password llama bcrypt.hash con password y salt')
+    it.todo('20 - Si viene password envía passwordHash a UserModel.updateAccountAndCleanProfiles')
+    it.todo('21 - Si no viene password envía passwordHash null')
+    it.todo('22 - Llama UserModel.updateAccountAndCleanProfiles con los argumentos correctos')
+    it.todo('23 - Retorna 404 si el usuario no existe')
+    it.todo('24 - Retorna 200 con el usuario actualizado')
+    it.todo('25 - Si existe req.user.id registra acción UPDATE en audit log')
+    it.todo('26 - Si no existe req.user no registra audit log')
+    it.todo('27 - Retorna 500 si ocurre error interno')
   })
 
   describe('getCurrentUserProfile', () => {
-    it('23 - Consulta el usuario base en users usando req.user.id')
-    it('24 - Retorna 404 si el usuario base no existe')
-    it('25 - Si role es teacher consulta tabla professors')
-    it('26 - Si role es alumni consulta tabla alumni_profiles')
-    it('27 - Si role no tiene perfil extendido retorna solo datos base')
-    it('28 - Retorna 200 con perfil unificado para teacher')
-    it('29 - Retorna 200 con perfil unificado para alumni')
-    it('30 - Retorna 500 si ocurre error interno')
+    it.todo('28 - Llama UserModel.getFullProfile con req.user.id')
+    it.todo('29 - Retorna 404 si el usuario no existe')
+    it.todo('30 - Retorna 200 con el perfil unificado')
+    it.todo('31 - Retorna 500 si ocurre error interno')
   })
 
   describe('getAuthorsList', () => {
-    it('31 - Consulta autores con roles teacher y alumni')
-    it('32 - Retorna 200 con la lista de autores')
-    it('33 - Retorna 500 si ocurre error interno')
+    it.todo('32 - Llama UserModel.getAuthors una vez')
+    it.todo('33 - Retorna 200 con la lista de autores')
+    it.todo('34 - Retorna 200 con arreglo vacío si no hay autores')
+    it.todo('35 - Retorna 500 si ocurre error interno')
+  })
+
+  describe('getUserImage', () => {
+    it.todo('36 - Usa req.user.id cuando req.params.id es me')
+    it.todo('37 - Usa req.params.id cuando no es me')
+    it.todo('38 - Llama UserModel.getProfileImage con el targetId correcto')
+    it.todo('39 - Retorna 404 si no existe imagen')
+    it.todo('40 - Setea Content-Type y Cross-Origin-Resource-Policy')
+    it.todo('41 - Envía image_data con res.send')
+    it.todo('42 - Retorna 500 si ocurre error interno')
   })
 })

@@ -1,23 +1,14 @@
 import express from 'express'
 import request from 'supertest'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 vi.mock('../../controllers/newsController', () => ({
-  getNews: vi.fn((req, res) => {
-    res.status(200).json([{ id: 1, title: 'Noticia A' }])
-  }),
-  getNewsBySlug: vi.fn((req, res) => {
-    res.status(200).json({ id: 1, slug: 'noticia-a', title: 'Noticia A' })
-  }),
-  createNews: vi.fn((req, res) => {
-    res.status(201).json({ message: 'Noticia creada' })
-  }),
-  updateNews: vi.fn((req, res) => {
-    res.status(200).json({ message: 'Noticia actualizada' })
-  }),
-  deleteNews: vi.fn((req, res) => {
-    res.status(200).json({ message: 'Noticia eliminada' })
-  }),
+  getNews: vi.fn((req, res) => res.status(200).json([])),
+  createNews: vi.fn((req, res) => res.status(201).json({ ok: true })),
+  updateNews: vi.fn((req, res) => res.status(200).json({ ok: true })),
+  deleteNews: vi.fn((req, res) => res.status(200).json({ message: 'deleted' })),
+  getNewsBySlug: vi.fn((req, res) => res.status(200).json({ id: 1 })),
+  getNewsImage: vi.fn((req, res) => res.status(200).send('image')),
 }))
 
 vi.mock('../../middlewares/authMiddleware', () => ({
@@ -41,36 +32,48 @@ describe('newsRoutes', () => {
     vi.clearAllMocks()
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   describe('GET /api/news', () => {
-    it('01 - Llama getNews')
-    it('02 - Responde 200')
-    it('03 - No usa verifyToken ni verifyAdmin')
+    it.todo('01 - Llama getNews')
+    it.todo('02 - Responde 200')
+    it.todo('03 - No usa verifyToken ni verifyAdmin')
   })
 
   describe('GET /api/news/slug/:slug', () => {
-    it('04 - Llama getNewsBySlug')
-    it('05 - Responde 200')
-    it('06 - No usa verifyToken ni verifyAdmin')
+    it.todo('04 - Llama getNewsBySlug')
+    it.todo('05 - Responde 200')
+    it.todo('06 - No usa verifyToken ni verifyAdmin')
+  })
+
+  describe('GET /api/news/:id/image', () => {
+    it.todo('07 - Llama getNewsImage')
+    it.todo('08 - Responde 200')
+    it.todo('09 - No usa verifyToken ni verifyAdmin')
   })
 
   describe('POST /api/news', () => {
-    it('07 - Ejecuta verifyToken')
-    it('08 - Ejecuta verifyAdmin')
-    it('09 - Llama createNews')
-    it('10 - Responde 201')
+    it.todo('10 - Ejecuta verifyToken')
+    it.todo('11 - Ejecuta verifyAdmin')
+    it.todo('12 - Procesa upload.single(image)')
+    it.todo('13 - Llama createNews')
+    it.todo('14 - Responde 201')
   })
 
   describe('PUT /api/news/:id', () => {
-    it('11 - Ejecuta verifyToken')
-    it('12 - Ejecuta verifyAdmin')
-    it('13 - Llama updateNews')
-    it('14 - Responde 200')
+    it.todo('15 - Ejecuta verifyToken')
+    it.todo('16 - Ejecuta verifyAdmin')
+    it.todo('17 - Procesa upload.single(image)')
+    it.todo('18 - Llama updateNews')
+    it.todo('19 - Responde 200')
   })
 
   describe('DELETE /api/news/:id', () => {
-    it('15 - Ejecuta verifyToken')
-    it('16 - Ejecuta verifyAdmin')
-    it('17 - Llama deleteNews')
-    it('18 - Responde 200')
+    it.todo('20 - Ejecuta verifyToken')
+    it.todo('21 - Ejecuta verifyAdmin')
+    it.todo('22 - Llama deleteNews')
+    it.todo('23 - Responde 200')
   })
 })

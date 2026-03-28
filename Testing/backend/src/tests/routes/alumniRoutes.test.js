@@ -1,11 +1,12 @@
 import express from 'express'
 import request from 'supertest'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 vi.mock('../../controllers/alumniController', () => ({
-  getAllAlumni: vi.fn((req, res) => res.status(200).json([{ id: 1, full_name: 'Alumno 1' }])),
+  getAllAlumni: vi.fn((req, res) => res.status(200).json([])),
   upsertAlumni: vi.fn((req, res) => res.status(200).json({ ok: true })),
   deleteAlumni: vi.fn((req, res) => res.status(200).json({ message: 'deleted' })),
+  getAlumniImage: vi.fn((req, res) => res.status(200).send('image')),
 }))
 
 vi.mock('../../middlewares/authMiddleware', () => ({
@@ -29,30 +30,42 @@ describe('alumniRoutes', () => {
     vi.clearAllMocks()
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   describe('GET /api/alumni', () => {
-    it('01 - Responde 200')
-    it('02 - Llama getAllAlumni')
-    it('03 - No usa verifyToken ni verifyAdmin')
+    it.todo('01 - Llama getAllAlumni')
+    it.todo('02 - Responde 200')
+    it.todo('03 - No usa verifyToken ni verifyAdmin')
+  })
+
+  describe('GET /api/alumni/:id/image', () => {
+    it.todo('04 - Llama getAlumniImage')
+    it.todo('05 - Responde 200')
+    it.todo('06 - No usa verifyToken ni verifyAdmin')
   })
 
   describe('POST /api/alumni', () => {
-    it('04 - Ejecuta verifyToken')
-    it('05 - Ejecuta verifyAdmin')
-    it('06 - Llama upsertAlumni')
-    it('07 - Responde 200')
+    it.todo('07 - Ejecuta verifyToken')
+    it.todo('08 - Ejecuta verifyAdmin')
+    it.todo('09 - Procesa upload.single(image)')
+    it.todo('10 - Llama upsertAlumni')
+    it.todo('11 - Responde 200')
   })
 
   describe('PUT /api/alumni/:id', () => {
-    it('08 - Ejecuta verifyToken')
-    it('09 - Ejecuta verifyAdmin')
-    it('10 - Llama upsertAlumni')
-    it('11 - Responde 200')
+    it.todo('12 - Ejecuta verifyToken')
+    it.todo('13 - Ejecuta verifyAdmin')
+    it.todo('14 - Procesa upload.single(image)')
+    it.todo('15 - Llama upsertAlumni')
+    it.todo('16 - Responde 200')
   })
 
   describe('DELETE /api/alumni/:id', () => {
-    it('12 - Ejecuta verifyToken')
-    it('13 - Ejecuta verifyAdmin')
-    it('14 - Llama deleteAlumni')
-    it('15 - Responde 200')
+    it.todo('17 - Ejecuta verifyToken')
+    it.todo('18 - Ejecuta verifyAdmin')
+    it.todo('19 - Llama deleteAlumni')
+    it.todo('20 - Responde 200')
   })
 })

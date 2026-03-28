@@ -6,6 +6,13 @@
  */
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 2 * 1024 * 1024 }
+});
 
 // Import controller functions
 const { 
@@ -13,7 +20,8 @@ const {
   createNews, 
   updateNews, 
   deleteNews,
-  getNewsBySlug
+  getNewsBySlug,
+  getNewsImage
 } = require('../controllers/newsController');
 
 // Import security middlewares
@@ -34,18 +42,25 @@ router.get('/', getNews);
 router.get('/slug/:slug', getNewsBySlug);
 
 /**
+ * @route GET /api/news/:id/image
+ * @description Serves the binary image file of a news post.
+ * @access Public
+ */
+router.get('/:id/image', getNewsImage);
+
+/**
  * @route POST /api/news
- * @description Creates a new news item or event.
+ * @description Creates a new news item with an optional image upload.
  * @access Private (Requires Admin privileges)
  */
-router.post('/', verifyToken, verifyAdmin, createNews);
+router.post('/', verifyToken, verifyAdmin, upload.single('image'), createNews);
 
 /**
  * @route PUT /api/news/:id
  * @description Updates an existing news item by its ID.
  * @access Private (Requires Admin privileges)
  */
-router.put('/:id', verifyToken, verifyAdmin, updateNews);
+router.put('/:id', verifyToken, verifyAdmin, upload.single('image'), updateNews);
 
 /**
  * @route DELETE /api/news/:id

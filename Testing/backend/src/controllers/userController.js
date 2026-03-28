@@ -2,37 +2,36 @@
  * @file userController.js
  * @description
  * Handles business logic for system user administration.
- * Integrates Audit Trails for security and handles profile retrieval.
- * NOTE: Some newer profile retrieval methods use direct DB queries (pool) 
- * which should eventually be refactored into the UserModel to strictly adhere 
- * to the Thin Controller architecture.
+ * * Responsibilities:
+ * - Acts strictly as a Thin Controller, delegating all database queries to UserModel.
+ * - Integrates Audit Trails for security.
+ * - Serves binary profile images routing to the appropriate role table.
  */
-const pool = require('../config/db');
 const UserModel = require('../models/userModel');
 const bcrypt = require('bcryptjs');
-const AuditLogModel = require('../models/auditLogModel'); // Audit Trail
+const AuditLogModel = require('../models/auditLogModel');
 
 /**
  * Fetches the complete list of registered users.
  *
  * @param {object} req Express HTTP request object.
  * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response with the user list or an error message.
+ * @returns {Promise<object>} JSON response with the user list.
  */
 const getAllUsers = async (req, res) => {
   try {
     const usersList = await UserModel.getAll();
     return res.status(200).json(usersList);
   } catch (error) {
-    console.error('[ERROR] Failed to fetch all users in controller:', error);
-    return res.status(500).json({ message: 'Error interno del servidor al obtener la lista de usuarios.' });
+    console.error('[ERROR] Failed to fetch all users:', error);
+    return res.status(500).json({ message: 'Error interno al obtener la lista de usuarios.' });
   }
 };
 
 /**
  * Fetches a list of users filtered by their specific role.
  *
- * @param {object} req Express HTTP request object (contains 'roleName' in params).
+ * @param {object} req Express HTTP request object.
  * @param {object} res Express HTTP response object.
  * @returns {Promise<object>} JSON response with the filtered users.
  */
@@ -47,8 +46,8 @@ const getUsersByRole = async (req, res) => {
     const usersByRole = await UserModel.getByRole(roleName);
     return res.status(200).json(usersByRole);
   } catch (error) {
-    console.error(`[ERROR] Failed to fetch users by role (${roleName}) in controller:`, error);
-    return res.status(500).json({ message: 'Error interno del servidor al filtrar los usuarios.' });
+    console.error(`[ERROR] Failed to fetch users by role (${roleName}):`, error);
+    return res.status(500).json({ message: 'Error interno al filtrar los usuarios.' });
   }
 };
 
@@ -58,7 +57,7 @@ const getUsersByRole = async (req, res) => {
  *
  * @param {object} req Express HTTP request object.
  * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response confirming deletion or an error code.
+ * @returns {Promise<object>} JSON response confirming deletion.
  */
 const deleteUser = async (req, res) => {
   const { id } = req.params;
@@ -66,39 +65,28 @@ const deleteUser = async (req, res) => {
   try {
     // Security check: Prevent admin self-deletion
     if (req.user && req.user.id === parseInt(id, 10)) {
-       return res.status(400).json({ message: 'Acción denegada: No puedes eliminar tu propia cuenta de administrador.' });
+       return res.status(400).json({ message: 'Acción denegada: No puedes eliminar tu propia cuenta.' });
     }
 
     const isDeleted = await UserModel.deleteById(id);
 
     if (!isDeleted) {
-      return res.status(404).json({ message: 'El usuario solicitado no existe o ya fue eliminado.' });
+      return res.status(404).json({ message: 'El usuario no existe o ya fue eliminado.' });
     }
 
-    // Inject Audit Log for traceability
     if (req.user && req.user.id) {
-      await AuditLogModel.logAction(
-        req.user.id,
-        'DELETE',
-        'users',
-        id,
-        { deleted_at: new Date().toISOString() }
-      );
+      await AuditLogModel.logAction(req.user.id, 'DELETE', 'users', id, { deleted_at: new Date().toISOString() });
     }
 
-    return res.status(200).json({ message: 'Usuario eliminado exitosamente del sistema.' });
+    return res.status(200).json({ message: 'Usuario eliminado exitosamente.' });
   } catch (error) {
-    console.error(`[ERROR] Failed to delete user with ID ${id} in controller:`, error);
-    return res.status(500).json({ message: 'Error interno del servidor al eliminar el usuario.' });
+    console.error(`[ERROR] Failed to delete user ID ${id}:`, error);
+    return res.status(500).json({ message: 'Error interno al eliminar el usuario.' });
   }
 };
 
 /**
  * Updates a user's basic information and reassigns roles.
- *
- * @param {object} req Express HTTP request object.
- * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response with updated user data.
  */
 const updateUser = async (req, res) => {
   const { id } = req.params;
@@ -111,97 +99,78 @@ const updateUser = async (req, res) => {
       passwordHash = await bcrypt.hash(password, salt);
     }
 
-    // Delegate transaction to the model
     const updatedUser = await UserModel.updateAccountAndCleanProfiles(id, full_name, email, role, passwordHash);
 
     if (!updatedUser) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
 
-    // Inject Audit Log for traceability
     if (req.user && req.user.id) {
-      await AuditLogModel.logAction(
-        req.user.id,
-        'UPDATE',
-        'users',
-        id,
-        { role_assigned: updatedUser.role, email: updatedUser.email }
-      );
+      await AuditLogModel.logAction(req.user.id, 'UPDATE', 'users', id, { role_assigned: updatedUser.role });
     }
 
     return res.status(200).json({ message: 'Usuario actualizado exitosamente.', user: updatedUser });
   } catch (error) {
-    console.error(`[ERROR] Failed to update user with ID ${id}:`, error);
+    console.error(`[ERROR] Failed to update user ID ${id}:`, error);
     return res.status(500).json({ message: 'Error al actualizar el usuario.' });
   }
 };
 
 /**
  * Retrieves the unified profile of the currently authenticated user.
- * Merges basic auth data with extended profile data (professors or alumni_profiles) dynamically.
- *
- * @param {object} req Express HTTP request object.
- * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response containing the unified user profile.
+ * * WHY: Delegated SQL JOIN logic to the Model.
  */
 const getCurrentUserProfile = async (req, res) => {
   try {
     const userId = req.user.id; 
+    
+    const unifiedProfile = await UserModel.getFullProfile(userId);
 
-    const userQuery = 'SELECT id, full_name, email, role FROM users WHERE id = $1';
-    const userResult = await pool.query(userQuery, [userId]);
-
-    if (userResult.rows.length === 0) {
+    if (!unifiedProfile) {
       return res.status(404).json({ message: "Usuario no encontrado en el sistema." });
     }
 
-    const baseUser = userResult.rows[0];
-    let extendedProfile = {};
-
-    if (baseUser.role === 'teacher') {
-      const profQuery = 'SELECT degree, area, image_url FROM professors WHERE user_id = $1';
-      const profResult = await pool.query(profQuery, [userId]);
-      if (profResult.rows.length > 0) {
-        extendedProfile = profResult.rows[0];
-      }
-    } 
-    else if (baseUser.role === 'alumni') {
-      const alumniQuery = 'SELECT degree, specialty, image_url, is_profile_public FROM alumni_profiles WHERE user_id = $1';
-      const alumniResult = await pool.query(alumniQuery, [userId]);
-      if (alumniResult.rows.length > 0) {
-        extendedProfile = alumniResult.rows[0];
-      }
-    }
-
-    return res.status(200).json({
-      id: baseUser.id,
-      full_name: baseUser.full_name,
-      email: baseUser.email,
-      role: baseUser.role,
-      ...extendedProfile
-    });
-
+    return res.status(200).json(unifiedProfile);
   } catch (error) {
-    console.error("[ERROR] Failed to fetch current user profile in controller:", error);
-    return res.status(500).json({ message: "Error interno del servidor al obtener el perfil." });
+    console.error("[ERROR] Failed to fetch current user profile:", error);
+    return res.status(500).json({ message: "Error interno al obtener el perfil." });
   }
 };
 
 /**
- * Retrieves a basic list of valid authors (teachers and alumni) for form population.
- *
- * @param {object} req Express HTTP request object.
- * @param {object} res Express HTTP response object.
- * @returns {Promise<object>} JSON response with an array of eligible authors.
+ * Retrieves a basic list of valid authors for form population.
  */
 const getAuthorsList = async (req, res) => {
   try {
-    const query = "SELECT id, full_name, role FROM users WHERE role IN ('teacher', 'alumni')";
-    const result = await pool.query(query);
-    return res.status(200).json(result.rows);
+    const authors = await UserModel.getAuthors();
+    return res.status(200).json(authors);
   } catch (error) {
-    console.error("[ERROR] Failed to fetch authors list in controller:", error);
+    console.error("[ERROR] Failed to fetch authors list:", error);
     return res.status(500).json({ message: "Error interno al cargar la lista de autores." });
+  }
+};
+
+/**
+ * Serves the binary image file for a user dynamically resolving their role.
+ * * WHY: This acts as the universal tunnel for the Sidebar and top navigation bar.
+ */
+const getUserImage = async (req, res) => {
+  const targetId = req.params.id === 'me' ? req.user.id : req.params.id;
+
+  try {
+    const imageData = await UserModel.getProfileImage(targetId);
+    
+    if (!imageData || !imageData.image_data) {
+      return res.status(404).json({ message: 'Imagen no encontrada.' });
+    }
+
+    res.set('Content-Type', imageData.image_mimetype);
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin'); 
+    
+    return res.send(imageData.image_data);
+  } catch (error) {
+    console.error(`[ERROR] Failed to serve image for user ID ${targetId}:`, error);
+    return res.status(500).json({ message: 'Error interno al obtener la imagen.' });
   }
 };
 
@@ -211,5 +180,6 @@ module.exports = {
   deleteUser, 
   updateUser, 
   getCurrentUserProfile, 
-  getAuthorsList 
+  getAuthorsList,
+  getUserImage
 };

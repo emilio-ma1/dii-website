@@ -6,6 +6,7 @@ vi.mock('../../models/newsModel', () => ({
   update: vi.fn(),
   delete: vi.fn(),
   getBySlug: vi.fn(),
+  getImage: vi.fn(),
 }))
 
 vi.mock('../../models/auditLogModel', () => ({
@@ -20,16 +21,19 @@ const {
   updateNews,
   deleteNews,
   getNewsBySlug,
+  getNewsImage,
 } = require('../../controllers/newsController')
 
-function mockRequest({ body = {}, params = {}, user = null } = {}) {
-  return { body, params, user }
+function mockRequest({ body = {}, params = {}, user = null, file = null } = {}) {
+  return { body, params, user, file }
 }
 
 function mockResponse() {
   const res = {}
   res.status = vi.fn().mockReturnValue(res)
   res.json = vi.fn().mockReturnValue(res)
+  res.set = vi.fn().mockReturnValue(res)
+  res.send = vi.fn().mockReturnValue(res)
   return res
 }
 
@@ -37,6 +41,7 @@ describe('newsController', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(Date, 'now').mockReturnValue(1711584000000)
   })
 
   afterEach(() => {
@@ -44,51 +49,67 @@ describe('newsController', () => {
   })
 
   describe('getNews', () => {
-    it('01 - Llama NewsModel.getAll una vez')
-    it('02 - Retorna 200 con la lista de noticias')
-    it('03 - Retorna 500 si ocurre error interno')
+    it.todo('01 - Llama NewsModel.getAll una vez')
+    it.todo('02 - Retorna 200 con la lista de noticias')
+    it.todo('03 - Retorna 200 con arreglo vacío si no hay noticias')
+    it.todo('04 - Retorna 500 si ocurre error interno')
   })
 
   describe('createNews', () => {
-    it('04 - Retorna 400 si falta title')
-    it('05 - Retorna 400 si falta content')
-    it('06 - Genera slug a partir del title y Date.now')
-    it('07 - Usa image_url null por defecto')
-    it('08 - Usa is_active true por defecto')
-    it('09 - Usa req.user.id como authorId si existe usuario autenticado')
-    it('10 - Usa authorId null si no existe req.user')
-    it('11 - Retorna 201 con la noticia creada')
-    it('12 - Si existe req.user.id registra acción CREATE en audit log')
-    it('13 - Si no existe req.user no registra audit log')
-    it('14 - Retorna 500 si ocurre error interno')
+    it.todo('05 - Retorna 400 si falta title')
+    it.todo('06 - Retorna 400 si falta content')
+    it.todo('07 - Genera slug usando createSlug(title) y Date.now()')
+    it.todo('08 - Convierte is_active string false a boolean false')
+    it.todo('09 - Usa true por defecto si is_active no es false')
+    it.todo('10 - Usa imageData e imageMimetype desde req.file')
+    it.todo('11 - Usa imageData e imageMimetype null si no hay req.file')
+    it.todo('12 - Llama NewsModel.create con los argumentos correctos')
+    it.todo('13 - Retorna 201 con la noticia creada')
+    it.todo('14 - Si existe req.user.id registra acción CREATE en audit log')
+    it.todo('15 - Si no existe req.user no registra audit log')
+    it.todo('16 - Retorna 500 si ocurre error interno')
   })
 
   describe('updateNews', () => {
-    it('15 - Retorna 400 si falta title')
-    it('16 - Retorna 400 si falta content')
-    it('17 - Usa slug enviado en req.body si existe')
-    it('18 - Si no se envía slug genera uno desde title')
-    it('19 - Llama NewsModel.update con los datos correctos')
-    it('20 - Retorna 404 si la noticia no existe')
-    it('21 - Retorna 200 con la noticia actualizada')
-    it('22 - Si existe req.user.id registra acción UPDATE en audit log')
-    it('23 - Si no existe req.user no registra audit log')
-    it('24 - Retorna 500 si ocurre error interno')
+    it.todo('17 - Retorna 400 si falta title')
+    it.todo('18 - Retorna 400 si falta content')
+    it.todo('19 - Usa slug enviado en req.body cuando existe')
+    it.todo('20 - Genera slug con createSlug(title) cuando no viene slug')
+    it.todo('21 - Convierte is_active string false a boolean false')
+    it.todo('22 - Usa true por defecto si is_active no es false')
+    it.todo('23 - Usa imageData e imageMimetype desde req.file')
+    it.todo('24 - Usa imageData e imageMimetype null si no hay req.file')
+    it.todo('25 - Llama NewsModel.update con los argumentos correctos')
+    it.todo('26 - Retorna 404 si la noticia no existe')
+    it.todo('27 - Retorna 200 con la noticia actualizada')
+    it.todo('28 - Si existe req.user.id registra acción UPDATE en audit log')
+    it.todo('29 - Si no existe req.user no registra audit log')
+    it.todo('30 - Retorna 500 si ocurre error interno')
   })
 
   describe('deleteNews', () => {
-    it('25 - Llama NewsModel.delete con req.params.id')
-    it('26 - Retorna 404 si la noticia no existe')
-    it('27 - Retorna 200 si elimina correctamente')
-    it('28 - Si existe req.user.id registra acción DELETE en audit log')
-    it('29 - Si no existe req.user no registra audit log')
-    it('30 - Retorna 500 si ocurre error interno')
+    it.todo('31 - Llama NewsModel.delete con req.params.id')
+    it.todo('32 - Retorna 404 si la noticia no existe')
+    it.todo('33 - Retorna 200 si elimina correctamente')
+    it.todo('34 - Si existe req.user.id registra acción DELETE en audit log')
+    it.todo('35 - Si no existe req.user no registra audit log')
+    it.todo('36 - Retorna 500 si ocurre error interno')
   })
 
   describe('getNewsBySlug', () => {
-    it('31 - Llama NewsModel.getBySlug con req.params.slug')
-    it('32 - Retorna 200 con la noticia encontrada')
-    it('33 - Retorna 404 si la noticia no existe')
-    it('34 - Retorna 500 si ocurre error interno')
+    it.todo('37 - Llama NewsModel.getBySlug con req.params.slug')
+    it.todo('38 - Retorna 404 si la noticia no existe')
+    it.todo('39 - Retorna 200 con la noticia encontrada')
+    it.todo('40 - Si existe req.user.id registra acción READ en audit log')
+    it.todo('41 - Si no existe req.user no registra audit log')
+    it.todo('42 - Retorna 500 si ocurre error interno')
+  })
+
+  describe('getNewsImage', () => {
+    it.todo('43 - Llama NewsModel.getImage con req.params.id')
+    it.todo('44 - Retorna 404 si no existe imagen')
+    it.todo('45 - Setea Content-Type y Cross-Origin-Resource-Policy')
+    it.todo('46 - Envía image_data con res.send')
+    it.todo('47 - Retorna 500 si ocurre error interno')
   })
 })
