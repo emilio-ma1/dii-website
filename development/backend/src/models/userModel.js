@@ -29,6 +29,20 @@ const UserModel = {
   },
 
   /**
+   * Retrieves a user by their email address. Includes the password hash for authentication.
+   */
+  getByEmail: async (email) => {
+    try {
+      const query = 'SELECT * FROM users WHERE email = $1;';
+      const { rows } = await pool.query(query, [email]);
+      return rows.length > 0 ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch user by email:`, error);
+      throw error;
+    }
+  },
+
+  /**
    * Retrieves a list of users filtered by a specific role.
    *
    * @param {string} roleName - The target role to filter by.
@@ -239,6 +253,44 @@ const UserModel = {
 
     } catch (error) {
       console.error(`[ERROR] Failed to fetch profile image for user ID ${userId}:`, error);
+      throw error;
+    }
+  },
+  setLoginCode: async (userId, code, expiresAt) => {
+    try {
+      const query = `UPDATE users SET login_code = $1, login_code_expires_at = $2 WHERE id = $3;`;
+      await pool.query(query, [code, expiresAt, userId]);
+      return true;
+    } catch (error) {
+      console.error(`[ERROR] Failed to set login code for user ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene el código actual y su expiración para validarlo.
+   */
+  getLoginCode: async (userId) => {
+    try {
+      const query = `SELECT login_code, login_code_expires_at FROM users WHERE id = $1;`;
+      const { rows } = await pool.query(query, [userId]);
+      return rows.length > 0 ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to get login code for user ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Limpia el código de la base de datos una vez que se usó exitosamente.
+   */
+  clearLoginCode: async (userId) => {
+    try {
+      const query = `UPDATE users SET login_code = NULL, login_code_expires_at = NULL WHERE id = $1;`;
+      await pool.query(query, [userId]);
+      return true;
+    } catch (error) {
+      console.error(`[ERROR] Failed to clear login code for user ${userId}:`, error);
       throw error;
     }
   }

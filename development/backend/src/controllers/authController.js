@@ -2,79 +2,120 @@
  * @file authController.js
  * @description
  * Handles user authentication and registration logic.
- * Responsible for validating credentials, interacting with the database,
- * and generating JWT session tokens.
+ * * Responsibilities:
+ * - Validates credentials and manages the 2-step email verification flow (2FA).
+ * - Acts strictly as a Thin Controller, delegating DB operations to UserModel.
+ * - Generates secure temporary and final JWT session tokens.
  */
-const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const AuditLogModel = require('../models/auditLogModel'); // Added Audit Trail
+const crypto = require('crypto');
+const UserModel = require('../models/userModel');
+const AuditLogModel = require('../models/auditLogModel'); 
+const emailService = require('../services/emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_TEMP_SECRET = process.env.JWT_TEMP_SECRET;
 
-// Guard against missing JWT_SECRET at startup
-if (!JWT_SECRET) {
-  console.error('[FATAL] JWT_SECRET is not defined in environment variables.');
-  process.exit(1); // Fails fast to prevent insecure token generation
+if (!JWT_SECRET || !JWT_TEMP_SECRET) {
+  console.error('[FATAL] JWT secrets are missing in environment variables.');
+  process.exit(1); 
 }
 
 /**
- * Authenticates a user by validating credentials and generates a JWT token.
+ * Authenticates basic credentials and triggers the 2FA email.
+ * * WHY: Separating the initial validation from the final token issuance 
+ * ensures the system remains robust and async.
  *
- * @param {object} req - Express HTTP request object (requires email and password).
- * @param {object} res - Express HTTP response object.
- * @returns {Promise<object>} JSON response with token and user data, or 400/401/500 error.
+ * @param {object} req - Express HTTP request.
+ * @param {object} res - Express HTTP response.
  */
 const login = async (req, res) => {
   const { email, password } = req.body;
  
-  // Early return: Input validation
   if (!email || !password) {
     return res.status(400).json({ message: 'El correo y la contraseña son requeridos para ingresar.' });
   }
 
   try {
-    const queryResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = await UserModel.getByEmail(email);
     
-    // Early return: User not found
-    if (queryResult.rows.length === 0) {
+    if (!user) {
       return res.status(401).json({ message: 'Credenciales inválidas. Verifica tu correo y contraseña.' });
     }
 
-    const user = queryResult.rows[0];
-
-    // Cryptographic password validation
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Credenciales inválidas. Verifica tu correo y contraseña.' });
     }
 
-    // Session token generation (Expires in 1 hour for security)
-    const token = jwt.sign(
-      { 
-        id: user.id,
-        email: user.email, 
-        role: user.role 
-      },
-      JWT_SECRET,
-      { expiresIn: '1h' }
+    const code = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60000); 
+
+    await UserModel.setLoginCode(user.id, code, expiresAt);
+
+    await emailService.send2FACode(user.email, code);
+
+    const tempToken = jwt.sign(
+      { id: user.id }, 
+      JWT_TEMP_SECRET, 
+      { expiresIn: process.env.JWT_TEMP_EXPIRES_IN || '10m' }
     );
 
-    // Explicit 200 HTTP status
-    return res.status(200).json({ 
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role
-      }
+    return res.status(206).json({ 
+      requires2FA: true, 
+      tempToken,
+      message: 'Te hemos enviado un código de seguridad a tu correo.' 
     });
 
   } catch (error) {
-    // Technical traces
-    console.error('[ERROR] Authentication process failed:', error);
+    console.error('[ERROR] Authentication Phase 1 failed:', error);
     return res.status(500).json({ message: 'Error interno del servidor al procesar el inicio de sesión.' });
+  }
+};
+
+/**
+ *Verifies the 6-digit email code and issues the final access token.
+ * * WHY: Validates the temporary token and ensures the code hasn't expired.
+ */
+const verify2FA = async (req, res) => {
+  const { tempToken, code } = req.body;
+
+  if (!tempToken || !code) {
+      return res.status(400).json({ message: 'Faltan parámetros de verificación.' });
+  }
+
+  try {
+    const decoded = jwt.verify(tempToken, JWT_TEMP_SECRET);
+    const userId = decoded.id;
+
+    const userCodeData = await UserModel.getLoginCode(userId);
+
+    const now = new Date();
+    if (!userCodeData || userCodeData.login_code !== code || now > new Date(userCodeData.login_code_expires_at)) {
+      return res.status(401).json({ message: 'Código inválido o expirado.' }); // Semantic error
+    }
+
+    await UserModel.clearLoginCode(userId);
+
+    const userFullData = await UserModel.getFullProfile(userId); 
+    const finalToken = jwt.sign(
+      { id: userFullData.id, email: userFullData.email, role: userFullData.role },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    await AuditLogModel.logAction(userId, 'LOGIN_2FA', 'users', userId, { ip: req.ip });
+
+    return res.status(200).json({ 
+      token: finalToken, 
+      user: { id: userFullData.id, full_name: userFullData.full_name, role: userFullData.role } 
+    });
+
+  } catch (error) {
+    console.error('[ERROR] Authentication Phase 2 (2FA) failed:', error);
+    return res.status(401).json({ message: 'Sesión temporal inválida o expirada. Vuelve a iniciar sesión.' });
   }
 };
 
@@ -142,4 +183,4 @@ const register = async (req, res) => {
   }
 };
 
-module.exports = { login, register };
+module.exports = { login, register, verify2FA };

@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../auth/authContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
-const DEFAULT_AVATAR = "/images/default-avatar.png";
+const DEFAULT_AVATAR = "../images/default-avatar.png";
 
 export function useUserProfile() {
   const { user } = useAuth();
