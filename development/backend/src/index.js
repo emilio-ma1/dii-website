@@ -1,11 +1,11 @@
 /**
- * @file Main application entry point (index.js).
+ * @file Main application entry point.
  * @description
  * This module acts as the main orchestrator for starting the backend.
- * Responsibilities:
+ * * Responsibilities:
  * - Initialize global configuration and environment variables.
  * - Register dependencies and security middleware (Helmet, CORS).
- * - Mount the main API routes (Auth, News, Projects).
+ * - Mount the main API routes.
  * - Start the HTTP server on the designated port.
  */
 const express = require('express');
@@ -23,6 +23,7 @@ const professorRoutes = require('./routes/professorRoutes');
 const alumniRoutes = require('./routes/alumniRoutes');
 const auditLogRoutes = require('./routes/auditLogRoutes');
 const equipmentRoutes = require("./routes/equipmentRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,7 @@ app.use('/api/professors', professorRoutes);
 app.use('/api/alumni', alumniRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use("/api/equipment", equipmentRoutes);
+app.use("/api/contacts", contactRoutes);
 
 // Base health check route
 app.get('/', (req, res) => {
@@ -54,13 +56,13 @@ app.get('/', (req, res) => {
 });
 
 // Unmatched Routes Handler (404 API Fallback)
-// Placed AFTER all valid routes. If a request reaches here, the endpoint does not exist.
+// * WHY: Placed AFTER all valid routes. If a request reaches here, the endpoint does not exist.
 app.use((req, res) => {
   res.status(404).json({ message: 'El endpoint solicitado no existe en esta API.' });
 });
 
 // Global Error Handling Middleware (500 Fallback)
-// Catches any unhandled errors to prevent server crashes or source code leaks.
+// * WHY: Catches any unhandled errors to prevent server crashes or source code leaks.
 app.use((err, req, res, next) => {
   console.error('[FATAL UNHANDLED ERROR]', err.stack);
   res.status(500).json({ message: 'Error interno del servidor. Por favor, contacte al soporte.' });

@@ -1,98 +1,161 @@
-const equipmentModel = require("../models/equipmentModel");
+/**
+ * @file equipmentController.js
+ * @description
+ * Main controller for managing equipment.
+ * Responsibilities:
+ * - Orchestrate HTTP requests for equipment CRUD operations.
+ * - Handle the receipt of binary files (images) and pass them to the model.
+ * - Log critical actions in the audit log.
+ */
+const EquipmentModel = require('../models/equipmentModel');
+const AuditLogModel = require('../models/auditLogModel');
 
-async function getEquipment(req, res) {
+/**
+ * Retrieves the complete list of equipment registered in the system.
+ * * @param {object} req Express HTTP request object.
+ * @param {object} res Express HTTP response object.
+ * @returns {Promise<object>} JSON containing the list of equipment and status 200.
+ * @throws {Error} If the database query fails (returns 500).
+ */
+const getEquipment = async (req, res) => {
   try {
-    const equipment = await equipmentModel.getAll();
-    return res.status(200).json(equipment);
+    const equipmentList = await EquipmentModel.getAll();
+    return res.status(200).json(equipmentList);
   } catch (error) {
-    console.error("[ERROR] Failed to fetch equipment:", error);
-    return res.status(500).json({ message: "No se pudo obtener el equipamiento." });
+    console.error('[ERROR] Failed to fetch equipment list:', error);
+    return res.status(500).json({ message: 'Error interno del servidor al obtener el equipamiento.' });
   }
-}
+};
 
-async function getEquipmentById(req, res) {
+/**
+ * Creates a new equipment record, supporting the optional upload of a binary image.
+ * * @param {object} req Express HTTP request object, containing the body (FormData strings) and file (Multer).
+ * @param {object} res Express HTTP response object.
+ * @returns {Promise<object>} JSON with the created equipment and status 201, or a validation error 400.
+ * @throws {Error} If insertion into the database or audit log fails (returns 500).
+ */
+const createEquipment = async (req, res) => {
+  const { name, description } = req.body;
+  const adminId = req.user ? req.user.id : null;
+
+  if (!name) {
+    return res.status(400).json({ message: 'El nombre del equipamiento es obligatorio.' });
+  }
+
   try {
-    const { id } = req.params;
-    const item = await equipmentModel.getById(id);
+    const imageData = req.file ? req.file.buffer : null;
+    const imageMimetype = req.file ? req.file.mimetype : null;
 
-    if (!item) {
-      return res.status(404).json({ message: "Equipamiento no encontrado." });
+    const newEquipment = await EquipmentModel.create(
+      name, description || null, imageData, imageMimetype
+    );
+
+    if (adminId) {
+      await AuditLogModel.logAction(adminId, 'CREATE', 'equipment', newEquipment.id, { name: newEquipment.name });
     }
 
-    return res.status(200).json(item);
+    return res.status(201).json({ message: 'Equipamiento registrado exitosamente.', equipment: newEquipment });
   } catch (error) {
-    console.error("[ERROR] Failed to fetch equipment by id:", error);
-    return res.status(500).json({ message: "No se pudo obtener el equipamiento." });
+    console.error('[ERROR] Failed to create equipment:', error);
+    return res.status(500).json({ message: 'Error interno al registrar el equipamiento.' });
   }
-}
+};
 
-async function createEquipment(req, res) {
+/**
+ * Updates an existing equipment record. Retains the previous image if a new one is not provided.
+ * * @param {object} req Express HTTP request object, containing params (id) and body/file.
+ * @param {object} res Express HTTP response object.
+ * @returns {Promise<object>} JSON with update confirmation and status 200, or 404 if not found.
+ * @throws {Error} If the database update fails (returns 500).
+ */
+const updateEquipment = async (req, res) => {
+  const { id } = req.params;
+  const { name, description } = req.body;
+  const adminId = req.user ? req.user.id : null;
+
+  if (!name) {
+    return res.status(400).json({ message: 'El nombre del equipamiento es obligatorio.' });
+  }
+
   try {
-    const { name, description, image_url } = req.body;
+    const imageData = req.file ? req.file.buffer : null;
+    const imageMimetype = req.file ? req.file.mimetype : null;
 
-    if (!name || !name.trim()) {
-      return res.status(400).json({ message: "El nombre es obligatorio." });
+    const updatedEquipment = await EquipmentModel.update(
+      id, name, description || null, imageData, imageMimetype
+    );
+
+    if (!updatedEquipment) {
+      return res.status(404).json({ message: 'Equipamiento no encontrado.' });
     }
 
-    const created = await equipmentModel.create({
-      name: name.trim(),
-      description,
-      image_url,
-    });
+    if (adminId) {
+      await AuditLogModel.logAction(adminId, 'UPDATE', 'equipment', id, { name: updatedEquipment.name });
+    }
 
-    return res.status(201).json(created);
+    return res.status(200).json({ message: 'Equipamiento actualizado.', equipment: updatedEquipment });
   } catch (error) {
-    console.error("[ERROR] Failed to create equipment:", error);
-    return res.status(500).json({ message: "No se pudo crear el equipamiento." });
+    console.error(`[ERROR] Failed to update equipment ID ${id}:`, error);
+    return res.status(500).json({ message: 'Error interno al actualizar el equipamiento.' });
   }
-}
+};
 
-async function updateEquipment(req, res) {
+/**
+ * Removes a specific equipment record from the system.
+ * * @param {object} req Express HTTP request object.
+ * @param {object} res Express HTTP response object.
+ * @returns {Promise<object>} JSON with a success message (200) or a “resource not found” error (404).
+ * @throws {Error} If the database deletion fails (returns 500).
+ */
+const deleteEquipment = async (req, res) => {
+  const { id } = req.params;
+  const adminId = req.user ? req.user.id : null;
+
   try {
-    const { id } = req.params;
-    const { name, description, image_url } = req.body;
-
-    if (!name || !name.trim()) {
-      return res.status(400).json({ message: "El nombre es obligatorio." });
+    const deletedEquipment = await EquipmentModel.delete(id);
+    
+    if (!deletedEquipment) {
+      return res.status(404).json({ message: 'Equipamiento no encontrado.' });
     }
 
-    const updated = await equipmentModel.update(id, {
-      name: name.trim(),
-      description,
-      image_url,
-    });
-
-    if (!updated) {
-      return res.status(404).json({ message: "Equipamiento no encontrado." });
+    if (adminId) {
+      await AuditLogModel.logAction(adminId, 'DELETE', 'equipment', id, { name: deletedEquipment.name });
     }
 
-    return res.status(200).json(updated);
+    return res.status(200).json({ message: 'Equipamiento eliminado exitosamente.' });
   } catch (error) {
-    console.error("[ERROR] Failed to update equipment:", error);
-    return res.status(500).json({ message: "No se pudo actualizar el equipamiento." });
+    console.error(`[ERROR] Failed to delete equipment ID ${id}:`, error);
+    return res.status(500).json({ message: 'Error al eliminar el equipamiento.' });
   }
-}
+};
 
-async function deleteEquipment(req, res) {
+/**
+
+* Serves the binary image file associated with a specific device.
+* @param {object} req HTTP request object.
+* @param {object} res HTTP response object.
+* @returns {Promise<Buffer|object>} Binary buffer of the image with correct headers, or JSON 404/500 in case of error.
+* @throws {Error} If the database read fails.
+*/
+const getEquipmentImage = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
-    const deleted = await equipmentModel.remove(id);
-
-    if (!deleted) {
-      return res.status(404).json({ message: "Equipamiento no encontrado." });
+    const equipment = await EquipmentModel.getImage(id);
+    
+    if (!equipment || !equipment.image_data) {
+      return res.status(404).json({ message: 'Imagen no encontrada.' });
     }
 
-    return res.status(200).json({ message: "Equipamiento eliminado correctamente." });
+    res.set('Content-Type', equipment.image_mimetype);
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin'); 
+    
+    return res.send(equipment.image_data);
   } catch (error) {
-    console.error("[ERROR] Failed to delete equipment:", error);
-    return res.status(500).json({ message: "No se pudo eliminar el equipamiento." });
+    console.error(`[ERROR] Controller failed to serve image for equipment ID ${id}:`, error);
+    return res.status(500).json({ message: 'Error interno al obtener la imagen.' });
   }
-}
+};
 
 module.exports = {
-  getEquipment,
-  getEquipmentById,
-  createEquipment,
-  updateEquipment,
-  deleteEquipment,
+  getEquipment, createEquipment, updateEquipment, deleteEquipment, getEquipmentImage
 };

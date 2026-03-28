@@ -2,14 +2,17 @@
  * @file professorModel.js
  * @description 
  * Data Access Object (DAO) for the 'professors' entity. 
- * Handles joins with the users and projects tables to build complete portfolios.
+ * * Responsibilities:
+ * - Handle joins with the users and projects tables to build complete portfolios.
+ * - Manage binary image persistence using BYTEA columns.
  */
 const pool = require('../config/db');
 
 const ProfessorModel = {
   /**
-   * Retrieves all users with the 'teacher' role, including their base user data 
-   * and project portfolio if they have a linked profile.
+   * Retrieves all users with the 'teacher' role and their project portfolio.
+   * * WHY: Excludes the 'image_data' binary column to prevent memory overload
+   * and optimize bandwidth during list rendering.
    *
    * @returns {Promise<Array<object>>} List of professor profiles and eligible users.
    * @throws {Error} If the database query fails.
@@ -23,7 +26,6 @@ const ProfessorModel = {
             p.id AS profile_id,
             p.degree, 
             p.area, 
-            p.image_url,
             u.full_name AS user_name, 
             u.email,
             COALESCE(
@@ -42,36 +44,33 @@ const ProfessorModel = {
       return rows;
     } catch (error) {
       console.error('[ERROR] Failed to fetch professors:', error);
-      // Propagate error to avoid swallowing exceptions
       throw error; 
     }
   },
 
   /**
    * Upserts (Inserts or Updates) a professor profile linked to a user account.
+   * * WHY: Uses COALESCE to ensure existing binary image data is preserved if 
+   * the client only sends text updates.
    *
-   * @param {object} profileData - The professor profile data payload.
+   * @param {object} payload The professor profile data including binary buffers.
    * @returns {Promise<object>} The newly created or updated profile record.
    * @throws {Error} If the database query fails.
    */
-  upsert: async (profileData) => {
+  upsert: async ({ user_id, degree, area, imageData, imageMimetype }) => {
     try {
       const query = `
-        INSERT INTO professors (user_id, degree, area, image_url)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO professors (user_id, degree, area, image_data, image_mimetype)
+        VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (user_id) 
         DO UPDATE SET 
           degree = EXCLUDED.degree,
           area = EXCLUDED.area,
-          image_url = EXCLUDED.image_url
-        RETURNING *;
+          image_data = COALESCE(EXCLUDED.image_data, professors.image_data),
+          image_mimetype = COALESCE(EXCLUDED.image_mimetype, professors.image_mimetype)
+        RETURNING user_id, degree, area;
       `;
-      const values = [
-        profileData.user_id, 
-        profileData.degree, 
-        profileData.area, 
-        profileData.image_url
-      ];
+      const values = [user_id, degree, area, imageData, imageMimetype];
       const { rows } = await pool.query(query, values);
       return rows[0];
     } catch (error) {
@@ -82,21 +81,37 @@ const ProfessorModel = {
 
   /**
    * Deletes a professor profile based on the user_id.
-   * Note: This only deletes the extended profile data, NOT the base user account.
    *
-   * @param {number|string} id - The user ID associated with the profile.
+   * @param {number|string} id The user ID associated with the profile.
    * @returns {Promise<object|null>} The deleted profile record, or null if not found.
    * @throws {Error} If the database query fails.
    */
   delete: async (id) => {
     try {
-      const query = 'DELETE FROM professors WHERE user_id = $1 RETURNING *;';
+      const query = 'DELETE FROM professors WHERE user_id = $1 RETURNING user_id;';
       const { rows } = await pool.query(query, [id]);
       
-      // Explicitly return null if no rows were deleted
       return rows.length ? rows[0] : null; 
     } catch (error) {
       console.error(`[ERROR] Failed to delete professor for user_id ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Retrieves exclusively the binary image data for a specific professor profile.
+   *
+   * @param {number|string} id The unique identifier of the user account.
+   * @returns {Promise<object|null>} Object containing binary buffer and mimetype.
+   * @throws {Error} If the database query fails.
+   */
+  getImage: async (id) => {
+    try {
+      const query = 'SELECT image_data, image_mimetype FROM professors WHERE user_id = $1;';
+      const { rows } = await pool.query(query, [id]);
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch image for professor ID ${id}:`, error);
       throw error;
     }
   }
