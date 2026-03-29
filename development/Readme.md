@@ -1,10 +1,14 @@
-# Entorno de Desarrollo - nombre-del-proyecto
+# Entorno de Desarrollo - Sistema Web DII
 
-Este directorio contiene el entorno de desarrollo local, configurado para facilitar el Hot Reloading y la sincronización entre el código fuente y los contenedores Docker.
+Este directorio contiene el entorno de desarrollo local para el portal del Departamento de Ingeniería Industrial (DII). Está configurado con Docker Compose para facilitar el *Hot Reloading* (HMR) y la sincronización en tiempo real entre el código fuente y los contenedores.
 
-## Inicio Rápido
+## 🚀 Inicio Rápido
 
-Para levantar el entorno de desarrollo, ejecuta:
+Para levantar el entorno de desarrollo completo, sigue estos pasos:
+
+1. Duplica el archivo `.env.example` y renómbralo a `.env` en la carpeta backend.
+2. Completa las variables de entorno necesarias (claves JWT, credenciales SMTP para 2FA, etc.).
+3. Levanta los contenedores ejecutando:
 
 ```bash
 docker compose up --build
@@ -20,19 +24,24 @@ Esto iniciará los servicios en modo interactivo:
 ## Estructura del Proyecto
 
 ```text
-development/nombre-del-proyecto/
-├── backend/            # API Node.js/Express
-├── frontend/           # App React + Vite
-│   ├── src/            # Código fuente UI
+development/
+├── backend/            # API REST (Node.js/Express)
+│   ├── src/
+│   │   ├── controllers/# Lógica de negocio (Thin Controllers)
+│   │   ├── models/     # Consultas a BD y Túneles Binarios (BYTEA)
+│   │   └── services/   # Servicios externos (ej. emailService para 2FA)
+│   └── .env            # Secretos
+│   └── .env.exaample   # Plantilla de variables de entorno requeridas
+├── frontend/           # App SPA (React + Vite)
+│   ├── src/            # Código fuente UI y Contexto de Autenticación
 │   ├── public/         # Archivos estáticos
 │   └── vite.config.js  # Configuración de compilación
-├── dist/               # Producción (generado por build)
-├── postgres_data/      # Base de datos persistente (Dev)
-└── Docker-compose.yml  # Configuración de orquestación local
+│   └── .env            # Variables Publicas
+│   └── .env.example    # Plantilla de variables de entorno requeridas
+├── postgres_data/      # Volumen local: Base de datos persistente
+└── docker-compose.yml  # Configuración de orquestación local
 ```
 ---
-<img width="282" height="482" alt="image" src="https://github.com/user-attachments/assets/cc88fae5-e90d-4be9-83bb-53617a0c4836" />
-
 ---
 ---
 
@@ -75,6 +84,9 @@ Si deseas generar los archivos para llevar a producción (`Deployment`), debes g
 
 ## Notas Adicionales
 
-- **Limpieza**: Si deseas resetear los datos de desarrollo, puedes borrar la carpeta `postgres_data` y volver a ejecutar el docker compose.
-- **Variables de Entorno**: El frontend en desarrollo usa `http://localhost:3000` como base para las peticiones al API.
+- **Variables de Entorno Cruciales:** El backend no levantará si faltan las variables de entorno para JWT y el servicio SMTP (necesario para el 2FA). Revisa el archivo .env.example para conocer las llaves obligatorias. Nunca subas tu archivo .env real al repositorio para evitar incidentes de seguridad en GitGuardian.
+
+- **Limpieza de Base de Datos:** Si deseas resetear el sistema a su estado de fábrica (borrando todos los usuarios y proyectos de prueba), simplemente elimina la carpeta postgres_data de tu máquina local y vuelve a ejecutar docker compose up. Docker creará una base de datos en blanco y ejecutará los scripts de inicialización.
+
+- **Peticiones a la API:** El frontend en entorno de desarrollo está configurado para usar http://localhost:3000 como base para todas las llamadas al backend mediante la variable VITE_API_URL.
 
