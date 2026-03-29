@@ -1,12 +1,27 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+/**
+ * Registration page.
+ *
+ * Allows users to create an account by providing email
+ * and password with confirmation validation.
+ *
+ * @returns {JSX.Element} Rendered registration page.
+ */
 export default function Registro(){
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
 
     const mismatch = confirm.length > 0 && password !== confirm;
 
+    /**
+   * Handles form submission.
+   *
+   * Prevents submission if passwords do not match.
+   *
+   * @param {React.FormEvent<HTMLFormElement>} e - Form submit event.
+   */
     const handleSubmit = (e) => {
         e.preventDefault();
         if(password !== confirm) return;

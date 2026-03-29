@@ -3,14 +3,14 @@ import { useMemo, useState } from "react";
 import { usePublicProjects } from "../hooks/usePublicProjects";
 
 const STATUS_LABELS = {
-  in_progress: "En proceso",
-  completed: "Completado",
+  in_progress: "En ejecución",
+  completed: "Terminado",
 };
+
+const DEFAULT_PROJECT_IMAGE = "/images/Inve-ejemplo1.png";
 
 /**
  * Calendar icon component used to display the project year.
- *
- * @returns {JSX.Element} Calendar SVG icon.
  */
 function CalendarIcon() {
   return (
@@ -22,12 +22,6 @@ function CalendarIcon() {
 
 /**
  * Reusable filter button for project status selection.
- *
- * @param {Object} props - Component props.
- * @param {boolean} props.active - Indicates if the filter is active.
- * @param {React.ReactNode} props.children - Button label.
- * @param {Function} props.onClick - Click handler function.
- * @returns {JSX.Element} Rendered filter button.
  */
 function FilterButton({ active, children, onClick }) {
   return (
@@ -47,17 +41,23 @@ function FilterButton({ active, children, onClick }) {
 
 /**
  * Renders a research project card.
- *
- * Displays project metadata such as status, topic, year,
- * researcher information, and a short summary.
- *
- * @param {Object} props - Component props.
- * @param {Object} props.project - Project data to display.
- * @returns {JSX.Element} Rendered project card.
  */
 function ResearchCard({ project }) {
+  const [imageError, setImageError] = useState(false);
+
   return (
-    <article className="rounded-md border border-[#722b4d]/20 border-t-4 border-t-[#722b4d] bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col h-full">
+    <article className="rounded-md border border-[#722b4d]/20 border-t-4 border-t-[#722b4d] bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col h-full overflow-hidden">
+      
+      <div className="h-48 w-full shrink-0 bg-gray-100">
+        <img
+          src={imageError ? DEFAULT_PROJECT_IMAGE : project.imageUrl}
+          alt={`Portada de ${project.title}`}
+          className="h-full w-full object-cover"
+          loading="lazy"
+          onError={() => setImageError(true)}
+        />
+      </div>
+
       <div className="px-5 py-5 flex flex-col flex-grow">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div className="flex flex-wrap gap-2">
@@ -84,7 +84,6 @@ function ResearchCard({ project }) {
           <span>{project.role}</span>
         </div>
 
-        {/* Truncate long summaries visually using line-clamp */}
         <p className="mt-4 text-sm leading-7 text-gray-600 line-clamp-3">
           {project.summary}
         </p>
@@ -94,7 +93,7 @@ function ResearchCard({ project }) {
             to={`/investigacion/${project.id}`}
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#722b4d] transition hover:gap-3"
           >
-            Ver detalle →
+            Ver detalle completo →
           </Link>
         </div>
       </div>
@@ -104,8 +103,6 @@ function ResearchCard({ project }) {
 
 /**
  * Renders the hero section for the research page.
- *
- * @returns {JSX.Element} Rendered hero section.
  */
 function ResearchHero() {
   return (
@@ -116,7 +113,7 @@ function ResearchHero() {
             Investigación
           </h1>
           <p className="mt-6 text-base leading-8 text-white/90 sm:text-lg">
-            El Departamento de Ingeniería Industrial desarrolla proyectos de alto impacto tecnológico y social, vinculando la academia con los desafíos reales de la industria.
+            El Departamento de Ingeniería Industrial desarrolla proyectos de alto impacto tecnológico y social.
           </p>
         </div>
       </div>
@@ -124,23 +121,13 @@ function ResearchHero() {
   );
 }
 
-
 /**
- * Research projects page.
- *
- * Handles filtering, loading state, and rendering
- * of public research projects.
- *
- * @returns {JSX.Element} Rendered research page.
+ * Public Research page.
  */
 export default function Investigaciones() {
   const [activeFilter, setActiveFilter] = useState("all");
-  
   const { projects, isLoading } = usePublicProjects();
 
-    /**
-   * Filters projects based on selected status.
-   */
   const filteredProjects = useMemo(() => {
     if (activeFilter === "all") return projects;
     return projects.filter((project) => project.status === activeFilter);
@@ -159,11 +146,8 @@ export default function Investigaciones() {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#722b4d]/80">
-              Proyectos
-            </p>
             <h2 className="mt-3 text-3xl font-extrabold text-[#722b4d] sm:text-4xl">
-              Proyectos de Investigación
+              Proyectos vigentes
             </h2>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -171,17 +155,17 @@ export default function Investigaciones() {
                 Todos
               </FilterButton>
               <FilterButton active={activeFilter === "in_progress"} onClick={() => setActiveFilter("in_progress")}>
-                En proceso
+                En ejecución
               </FilterButton>
               <FilterButton active={activeFilter === "completed"} onClick={() => setActiveFilter("completed")}>
-                Completado
+                Terminado
               </FilterButton>
             </div>
           </div>
 
           {isLoading ? (
             <div className="py-20 text-center font-medium text-gray-500">
-              Cargando proyectos de investigación...
+              Cargando investigaciones...
             </div>
           ) : filteredProjects.length > 0 ? (
             <div className="mt-10 grid grid-cols-1 gap-8 xl:grid-cols-3">
@@ -191,7 +175,7 @@ export default function Investigaciones() {
             </div>
           ) : (
             <div className="py-20 text-center font-medium text-gray-500">
-              No se encontraron proyectos con el filtro seleccionado.
+              No hay proyectos para mostrar en esta categoría.
             </div>
           )}
         </div>

@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import Noticias from "./NoticiasHome.jsx";
 
+
 /**
- * Renderiza el hero principal de la página de inicio.
- * Incluye imagen institucional, mensaje principal y botones.
+ * Renders the main hero section of the home page.
+ * Includes the institutional image, headline, and primary actions.
  *
- * @returns {JSX.Element} Sección hero renderizada.
+ * @returns {JSX.Element} Rendered hero section.
  */
 function HeroSection() {
   return (
@@ -16,14 +17,11 @@ function HeroSection() {
         className="absolute inset-0 h-full w-full object-cover"
       />
 
-      <div className="absolute inset-0 bg-[#722b4d]/78" />
+      <div className="absolute inset-0 bg-[#722b4d]/60" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white/90 to-transparent" />
 
       <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-7xl items-center px-6 pt-20 pb-16">
         <div className="max-w-3xl text-white">
-          <span className="inline-block bg-blue-600 px-4 py-2 text-sm font-semibold uppercase tracking-wider">
-            Universidad de La Serena
-          </span>
 
           <h1 className="mt-8 text-5xl font-extrabold leading-[0.95] sm:text-6xl lg:text-7xl">
             Departamento de
@@ -59,14 +57,14 @@ function HeroSection() {
 }
 
 /**
- * Renderiza una tarjeta que representa una de las áreas del departamento.
+ * Renders a card representing one of the department areas.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.title - Título del área.
- * @param {string} props.description - Descripción del área.
- * @param {string} props.image - Ruta de la imagen representativa.
- * @param {string} props.to - Ruta de navegación asociada al área.
- * @returns {JSX.Element} Tarjeta del área renderizada.
+ * @param {Object} props - Component props.
+ * @param {string} props.title - Area title.
+ * @param {string} props.description - Area description.
+ * @param {string} props.image - Path to the representative image.
+ * @param {string} props.to - Navigation route associated with the area.
+ * @returns {JSX.Element} Rendered area card.
  */
 function AreaCard({ title, description, image, to }) {
   return (
@@ -101,27 +99,26 @@ function AreaCard({ title, description, image, to }) {
   );
 }
 
-
 /**
- * Renderiza la sección que presenta las áreas principales del departamento.
+ * Renders the section that introduces the main department areas.
  *
- * @returns {JSX.Element} Sección de áreas renderizada.
+ * @returns {JSX.Element} Rendered areas section.
  */
 function AreasSection() {
   const areas = [
     {
-      title: "Investigaciones",
-      description:
-        "Proyectos de investigación que impulsan la innovación y el desarrollo tecnológico en la industria.",
-      image: "/images/investigacion2.png",
-      to: "/investigaciones",
-    },
-    {
-      title: "Académico",
+      title: "Docencia",
       description:
         "Programas de formación de excelencia en ingeniería industrial con enfoque práctico y teórico.",
       image: "/images/academico2.jpg",
       to: "/academico",
+    },
+    {
+      title: "Investigación",
+      description:
+        "Proyectos de investigación que impulsan la innovación y el desarrollo tecnológico en la industria.",
+      image: "/images/investigacion2.png",
+      to: "/investigaciones",
     },
     {
       title: "Vinculación con el Medio",
@@ -168,7 +165,7 @@ function AreasSection() {
 }
 
 /**
- * Realiza desplazamiento suave hacia la sección de áreas del departamento.
+ * Performs a smooth scroll to the department areas section.
  */
 const scrollToAreas = () => {
   const section = document.getElementById("areas");
@@ -178,9 +175,9 @@ const scrollToAreas = () => {
 };
 
 /**
- * Renderiza la página principal del sitio del Departamento de Ingeniería Industrial.
+ * Renders the main home page of the Department of Industrial Engineering website.
  *
- * @returns {JSX.Element} Página de inicio renderizada.
+ * @returns {JSX.Element} Rendered home page.
  */
 export default function Home() {
   return (

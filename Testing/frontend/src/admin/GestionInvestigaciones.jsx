@@ -20,8 +20,9 @@ const EMPTY_FORM = {
   year: "",
   abstract: "", 
   pdf_url: "", 
-  image_url: "",
   status: "in_progress",
+  image_file: null,
+  pdf_file: null,
 };
 
 /**
@@ -62,64 +63,141 @@ export default function ResearchManagement() {
     setFormData({
       id: project.id || "",
       title: project.title || "",
-      authors: project.authors || [], 
+      authors: project.authors ? project.authors.map(a => ({ ...a, full_name: a.name || a.full_name })) : [], 
       category_id: project.category_id || "",
       year: project.year || "",
       abstract: project.abstract || "",
-      pdf_url: project.pdf_url || "",
-      image_url: project.image_url || "",
       status: project.status || "in_progress",
+      image_file: null,
+      pdf_file: null,
     });
     setShowForm(true);
   };
 
-  const deleteProject = () => {
-    // Lógica futura para borrar
+  const deleteProject = async (projectId) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar esta investigación? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        setProjects((prevProjects) => prevProjects.filter((project) => project.id !== projectId));
+        alert("¡Proyecto eliminado con éxito!");
+      } else {
+        const data = await response.json();
+        alert(`Error al eliminar: ${data.message || "Error desconocido"}`);
+      }
+    } catch (error) {
+      console.error("[ERROR] Network failure deleting project:", error);
+      alert("Error de red al intentar eliminar el proyecto.");
+    }
   };
 
   const updateFormState = (event) => {
-    const { name, value } = event.target;
-    setFormData((previousFormData) => ({
-      ...previousFormData,
-      [name]: value,
-    }));
+    const { name, value, type, files } = event.target;
+
+    if (type === "file" && files.length > 0) {
+      const file = files[0];
+      const isImage = name === "image_file";
+      const maxSizeInBytes = isImage ? 2 * 1024 * 1024 : 5 * 1024 * 1024; // 2MB o 5MB
+
+      if (file.size > maxSizeInBytes) {
+        alert(`El archivo es demasiado pesado. El límite máximo es ${isImage ? '2MB para imágenes' : '5MB para documentos PDF'}.`);
+        event.target.value = "";
+        return;
+      }
+
+      setFormData((previousFormData) => ({
+        ...previousFormData,
+        [name]: file,
+      }));
+    } else {
+      setFormData((previousFormData) => ({
+        ...previousFormData,
+        [name]: value,
+      }));
+    }
   };
 
-// Función para buscar los proyectos en la BD
+  // Función para buscar los proyectos en la BD
   const fetchProjects = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`);
+      const token = localStorage.getItem("token"); 
+      
+      if (!token) {
+        console.log("Esperando token de autenticación...");
+        return;
+      }
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/panel`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
       if (response.ok) {
         const data = await response.json();
-        setProjects(data); // Guardamos los proyectos en React
+        setProjects(data); 
+      } else if (response.status === 401 || response.status === 403) {
+        console.warn("Sesión expirada. Por favor, inicia sesión de nuevo.");
       }
     } catch (error) {
       console.error("[ERROR] No se pudieron cargar los proyectos:", error);
     }
   };
 
-  // Ejecutar la búsqueda automáticamente al entrar a la página
   useEffect(() => {
     fetchProjects();
   }, []);
 
-const submitProjectData = async (event) => {
+  const submitProjectData = async (event) => {
     event.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, {
-        method: "POST", 
+      
+      const method = isEditing ? "PUT" : "POST";
+      const url = isEditing 
+        ? `${import.meta.env.VITE_API_URL}/api/projects/${editingProjectId}`
+        : `${import.meta.env.VITE_API_URL}/api/projects`;
+
+      const submitData = new FormData();
+
+      submitData.append("title", formData.title || "");
+      submitData.append("category_id", formData.category_id || "");
+      submitData.append("year", formData.year || "");
+      submitData.append("abstract", formData.abstract || "");
+      submitData.append("status", formData.status || "in_progress");
+
+      submitData.append("authors", JSON.stringify(formData.authors || []));
+
+      if (formData.image_file) {
+        submitData.append("image", formData.image_file);
+      }
+      if (formData.pdf_file) {
+        submitData.append("pdf", formData.pdf_file);
+      }
+
+      const response = await fetch(url, {
+        method: method, 
         headers: { 
-          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(formData),
+        body: submitData, // Enviamos el objeto FormData directamente, NO JSON.stringify()
       });
 
       if (response.ok) {
-        alert("¡Proyecto guardado con éxito!");
+        alert(isEditing ? "¡Proyecto actualizado con éxito!" : "¡Proyecto guardado con éxito!");
         resetFormState();
-        fetchProjects();
+        fetchProjects(); // Recargamos la lista limpia
       } else {
         const data = await response.json();
         alert(`Error al guardar: ${data.message}`);

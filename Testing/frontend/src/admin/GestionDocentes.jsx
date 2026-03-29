@@ -1,382 +1,164 @@
+/**
+ * @file TeacherManagement.jsx
+ * @description
+ * Main container for Teacher Profiles management. Acts as a Thin Controller.
+ * Responsibilities:
+ * - Manage local UI state (form visibility, current editing profile).
+ * - Transform UI events into API-ready payloads (packing FormData for binary images).
+ * - Enforce role-based access control for teacher profile views.
+ */
 import { useState } from "react";
 import { useAuth } from "../auth/authContext";
 import { PERMISSIONS } from "../auth/permisos";
+import { useTeacherManagement } from "../hooks/useTeacherManagement";
+import { TeacherForm } from "../components/Teachers/TeacherForm";
+import { TeacherCard } from "../components/Teachers/TeacherCard";
 
-const DEFAULT_PERMISSIONS = {
-  createTeacher: false,
-  editTeacher: false,
-  deleteTeacher: false,
-};
+const DEFAULT_PERMISSIONS = { createTeacher: false, editTeacher: false, deleteTeacher: false };
 
-const DEFAULT_TEACHER_IMAGE = "/images/foto-docente.png";
-
-const EMPTY_FORM = {
-  id: "",
-  fullName: "",
-  role: "",
-  area: "",
-  email: "",
-  degree: "",
-  projectsText: "",
-  imageUrl: "",
-};
+const EMPTY_FORM = { id: "", user_id: "", area: "", degree: "", image_file: null };
 
 /**
- * Obtiene una URL de imagen válida para el docente.
+ * Main component for the Teacher Management view.
  *
- * @param {string} imageUrl
- * @returns {string}
+ * @returns {JSX.Element} The rendered teacher management dashboard.
  */
-function resolveTeacherImageUrl(imageUrl) {
-  return imageUrl?.trim() || DEFAULT_TEACHER_IMAGE;
-}
-
-/**
- * Estado vacío para cuando no existen docentes registrados.
- *
- * @returns {JSX.Element}
- */
-function EmptyState() {
-  return (
-    <div className="rounded-2xl border border-dashed border-[#722b4d]/20 bg-white p-8 text-center text-gray-500">
-      No hay docentes registrados todavía.
-    </div>
-  );
-}
-
-/**
- * Tarjeta visual para mostrar la información resumida de un docente.
- *
- * @param {object} props
- * @param {object} props.teacher
- * @param {Function} props.onEdit
- * @param {Function} props.onDelete
- * @param {object} props.permissions
- * @returns {JSX.Element}
- */
-function TeacherCard({ teacher, onEdit, onDelete, permissions }) {
-  return (
-    <article className="rounded-2xl border border-[#722b4d]/20 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="h-24 w-24 overflow-hidden rounded-full bg-[#722b4d]/10 ring-2 ring-[#722b4d]/10">
-          <img
-            src={resolveTeacherImageUrl(teacher.imageUrl)}
-            alt={teacher.fullName}
-            className="h-full w-full object-cover"
-          />
-        </div>
-
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-[#722b4d]">
-            {teacher.fullName}
-          </h3>
-          <p className="mt-1 text-sm font-medium text-[#1f75b8]">
-            {teacher.role}
-          </p>
-          <p className="mt-2 text-sm text-gray-600">{teacher.area}</p>
-          <p className="mt-1 text-sm text-gray-500">{teacher.email}</p>
-        </div>
-
-        <div className="flex items-center gap-3 self-end md:self-center">
-          {permissions.editTeacher && (
-            <button
-              type="button"
-              onClick={() => onEdit(teacher)}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-[#1f75b8] transition hover:bg-[#1f75b8]/10"
-            >
-              Editar
-            </button>
-          )}
-
-          {permissions.deleteTeacher && (
-            <button
-              type="button"
-              onClick={() => onDelete(teacher.id)}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-            >
-              Eliminar
-            </button>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-/**
- * Formulario reutilizable para crear o editar docentes.
- *
- * @param {object} props
- * @param {object} props.formData
- * @param {Function} props.onChange
- * @param {Function} props.onSubmit
- * @param {Function} props.onCancel
- * @param {boolean} props.isEditing
- * @returns {JSX.Element}
- */
-function TeacherForm({ formData, onChange, onSubmit, onCancel, isEditing }) {
-  return (
-    <form
-      onSubmit={onSubmit}
-      className="rounded-2xl border border-[#722b4d]/30 bg-white p-6 shadow-sm"
-    >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Nombre completo
-          </label>
-          <input
-            type="text"
-            name="fullName"
-            value={formData.fullName}
-            onChange={onChange}
-            placeholder="Ingresa el nombre completo"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Rol
-          </label>
-          <input
-            type="text"
-            name="role"
-            value={formData.role}
-            onChange={onChange}
-            placeholder="Ingresa el rol"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Área de especialización
-          </label>
-          <input
-            type="text"
-            name="area"
-            value={formData.area}
-            onChange={onChange}
-            placeholder="Ingresa el área de especialización"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Correo electrónico
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={onChange}
-            placeholder="Ingresa el correo electrónico"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Grado académico
-          </label>
-          <input
-            type="text"
-            name="degree"
-            value={formData.degree}
-            onChange={onChange}
-            placeholder="Ingresa el grado académico"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            URL de imagen
-          </label>
-          <input
-            type="text"
-            name="imageUrl"
-            value={formData.imageUrl}
-            onChange={onChange}
-            placeholder="Ingresa la URL de la imagen"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="mb-2 block text-sm font-medium text-[#722b4d]">
-            Proyectos
-          </label>
-          <textarea
-            name="projectsText"
-            value={formData.projectsText}
-            onChange={onChange}
-            placeholder="Ingresa un proyecto por línea"
-            rows={5}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-          />
-          <p className="mt-2 text-xs text-gray-500">
-            Escribe un proyecto por línea.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-3">
-        <button
-          type="submit"
-          className="rounded-xl bg-[#722b4d] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-        >
-          {isEditing ? "Guardar Cambios" : "Guardar"}
-        </button>
-
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-xl bg-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-300"
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
-  );
-}
-
-
 export default function TeacherManagement() {
   const { user } = useAuth();
-
   const permissions = PERMISSIONS[user?.role] || DEFAULT_PERMISSIONS;
 
-  const [teachers] = useState([]);
+  const { teachers, availableUsers, isSaving, saveTeacherProfile, deleteTeacherProfile } = useTeacherManagement(permissions.createTeacher);
 
   const [showForm, setShowForm] = useState(false);
-  const [editingTeacherId, setEditingTeacherId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
 
-  const isEditing = Boolean(editingTeacherId);
-
   /**
-   * Reinicia el formulario y sale del modo edición.
+   * Resets the local form state to its initial empty configuration.
+   *
+   * @returns {void}
    */
   const resetFormState = () => {
     setShowForm(false);
-    setEditingTeacherId(null);
+    setEditingId(null);
     setFormData(EMPTY_FORM);
   };
 
   /**
-   * Abre el formulario en modo creación.
-   */
-  const handleNewTeacher = () => {
-    setEditingTeacherId(null);
-    setFormData(EMPTY_FORM);
-    setShowForm(true);
-  };
-
-  /**
-   * Carga en el formulario la información del docente seleccionado.
+   * Populates the form with existing data when triggering edit mode.
    *
-   * @param {object} teacher
+   * @param {object} teacher The teacher record to be edited.
+   * @returns {void}
    */
-  const handleEditTeacher = (teacher) => {
-    setEditingTeacherId(teacher.id);
+  const handleEdit = (teacher) => {
+    setEditingId(teacher.id);
     setFormData({
-      id: teacher.id || "",
-      fullName: teacher.fullName || "",
-      role: teacher.role || "",
+      id: teacher.id,
+      user_id: teacher.user_id || "",
+      user_name: teacher.user_name || "",
       area: teacher.area || "",
-      email: teacher.email || "",
       degree: teacher.degree || "",
-      projectsText: Array.isArray(teacher.projects)
-        ? teacher.projects.join("\n")
-        : "",
-      imageUrl: teacher.imageUrl || "",
+      image_file: null
     });
     setShowForm(true);
   };
 
-  const handleDeleteTeacher = () => {
-  };
-
   /**
-   * Cancela la operación actual y reinicia el formulario.
-   */
-  const handleCancelForm = () => {
-    resetFormState();
-  };
-
-  /**
-   * Actualiza el estado del formulario según el campo modificado.
+   * Prompts for confirmation and triggers the deletion of a teacher profile.
    *
-   * @param {object} event
+   * @param {string|number} id The unique identifier of the teacher profile.
+   * @returns {Promise<void>}
    */
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setFormData((previousFormData) => ({
-      ...previousFormData,
-      [name]: value,
-    }));
+  const handleDelete = async (id) => {
+    if (window.confirm("¿Seguro que deseas eliminar este perfil público? La cuenta de usuario seguirá existiendo.")) {
+      await deleteTeacherProfile(id);
+    }
   };
 
-  const handleSubmit = (event) => {
+  /**
+   * Updates the form state based on user input.
+   * Includes a validation guard to prevent uploading files larger than 2MB.
+   *
+   * @param {Event} e The input change event from the form.
+   * @returns {void}
+   */
+  const handleChange = (e) => {
+    const { name, value, files, type } = e.target;
+
+    if (type === "file" && files && files.length > 0) {
+      const selectedFile = files[0];
+
+      if (selectedFile.size > 2 * 1024 * 1024) {
+        alert("La imagen excede el límite de 2MB permitidos.");
+        e.target.value = "";
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, image_file: selectedFile }));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  /**
+   * Handles the form submission.
+   * Packs the JSON state into a FormData object to support multipart/form-data.
+   *
+   * @param {Event} event The form submission event.
+   * @returns {Promise<void>}
+   */
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    resetFormState();
+    const submitData = new FormData();
+    submitData.append("user_id", formData.user_id || "");
+    submitData.append("area", formData.area || "");
+    submitData.append("degree", formData.degree || "");
+
+    if (formData.image_file) {
+      submitData.append("image", formData.image_file);
+    }
+
+    const success = await saveTeacherProfile(submitData, editingId);
+    if (success) resetFormState();
   };
+
+  // RBAC Guard
+  if (!permissions.createTeacher) {
+    return <div className="p-8 text-center text-red-600 font-bold">Acceso Denegado</div>;
+  }
 
   return (
     <section className="w-full">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-extrabold text-[#722b4d] sm:text-4xl">
-          Gestión de Docentes
-        </h1>
-
-        {permissions.createTeacher && (
-          <button
-            type="button"
-            onClick={handleNewTeacher}
-            className="rounded-xl bg-[#722b4d] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-90"
-          >
-            + Nuevo Docente
-          </button>
-        )}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-extrabold text-[#722b4d]">Gestión de Docentes</h1>
+        <button onClick={() => { resetFormState(); setShowForm(true); }} className="bg-[#722b4d] text-white px-5 py-3 rounded-xl shadow-md transition hover:opacity-90">
+          + Enlazar Perfil
+        </button>
       </div>
 
-      <div className="mt-8">
-        {showForm ? (
-          <TeacherForm
-            formData={formData}
-            onChange={handleChange}
-            onSubmit={handleSubmit}
-            onCancel={handleCancelForm}
-            isEditing={isEditing}
-          />
-        ) : (
-          <div className="space-y-4">
-            {teachers.length > 0 ? (
-              teachers.map((teacher) => (
-                <TeacherCard
-                  key={teacher.id}
-                  teacher={teacher}
-                  onEdit={handleEditTeacher}
-                  onDelete={handleDeleteTeacher}
-                  permissions={permissions}
-                />
-              ))
-            ) : (
-              <EmptyState />
-            )}
-          </div>
-        )}
-      </div>
+      {showForm ? (
+        <TeacherForm
+          formData={formData}
+          availableUsers={availableUsers}
+          onChange={handleChange}
+          onSubmit={handleSubmit}
+          onCancel={resetFormState}
+          isEditing={Boolean(editingId)}
+          isSaving={isSaving}
+        />
+      ) : (
+        <div className="space-y-4">
+          {teachers.length > 0 ? (
+            teachers.map(t => <TeacherCard key={t.id} teacher={t} onEdit={handleEdit} onDelete={handleDelete} permissions={permissions} />)
+          ) : (
+            <div className="rounded-2xl border border-dashed border-[#722b4d]/20 bg-white p-8 text-center text-gray-500">
+              No hay perfiles de docentes registrados.
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }

@@ -21,15 +21,14 @@ const EMPTY_FORM = {
   id: "",
   title: "",
   content: "",
-  image_url: "",
   is_active: true,
+  image_file: null, 
 };
 
 export default function CommunityEngagementManagement() {
   const { user } = useAuth();
   const permissions = PERMISSIONS[user?.role] || DEFAULT_PERMISSIONS;
 
-  // Delegamos la complejidad de red al custom hook
   const { newsList, isSaving, deleteNews, saveNews } = useNewsManagement(true);
 
   const [showForm, setShowForm] = useState(false);
@@ -55,8 +54,8 @@ export default function CommunityEngagementManagement() {
       id: newsItem.id,
       title: newsItem.title || "",
       content: newsItem.content || "",
-      image_url: newsItem.image_url || "",
       is_active: newsItem.is_active,
+      image_file: null,
     });
     setShowForm(true);
   };
@@ -68,13 +67,35 @@ export default function CommunityEngagementManagement() {
   };
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, files } = event.target;
+
+    if (type === "file" && files.length > 0) {
+      const file = files[0];
+      if (file.size > 2 * 1024 * 1024) { // Límite de 2MB
+        alert("La imagen es demasiado pesada. El límite es 2MB.");
+        event.target.value = "";
+        return;
+      }
+      setFormData((prev) => ({ ...prev, [name]: file }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const success = await saveNews(formData, editingId);
+
+    const submitData = new FormData();
+    submitData.append("title", formData.title || "");
+    submitData.append("content", formData.content || "");
+    submitData.append("is_active", formData.is_active);
+
+    if (formData.image_file) {
+      submitData.append("image", formData.image_file); 
+    }
+
+    const success = await saveNews(submitData, editingId);
+    
     if (success) {
       alert("¡Publicación guardada con éxito!");
       resetFormState();
@@ -83,7 +104,6 @@ export default function CommunityEngagementManagement() {
     }
   };
 
-  // Solo los administradores deberían poder gestionar noticias
   if (!permissions.createProject) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700 shadow-sm">

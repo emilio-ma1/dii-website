@@ -1,10 +1,20 @@
+/**
+ * @file Estudiantes.jsx
+ * @description Public students and alumni testimonials page.
+ * * Responsibilities:
+ * - Render student profiles and embedded videos.
+ * - Handle conditional rendering for loading, error, and empty states.
+ * - Manage private vs public profile modal flows.
+ */
 import { useEffect, useState } from "react";
 import { usePublicStudents } from "../hooks/usePublicStudents";
+
+const DEFAULT_AVATAR = "/images/foto-estudiante.png"; // Fallback image
 
 /**
  * Converts a YouTube URL into embed format.
  *
- * @param {string} url - Original YouTube URL.
+ * @param {string} url Original YouTube URL.
  * @returns {string} Embed-ready YouTube URL or the original value.
  */
 const getYouTubeEmbedUrl = (url) => {
@@ -42,14 +52,14 @@ function StudentsHero() {
 }
 
 /**
- * Renders the modal for a public student profile.
+ * Renders the modal for a public student profile with dynamic image fallback.
  *
- * @param {Object} props - Component props.
- * @param {Object|null} props.student - Currently selected student.
- * @param {Function} props.onClose - Function that closes the modal.
- * @returns {JSX.Element|null} Rendered modal or null when no student is selected.
+ * @param {Object} props Component props.
+ * @returns {JSX.Element|null} Rendered modal or null.
  */
 function StudentModal({ student, onClose }) {
+  const [imgError, setImgError] = useState(false);
+
   if (!student) return null;
 
   return (
@@ -73,9 +83,10 @@ function StudentModal({ student, onClose }) {
           <div className="flex items-center gap-4">
             <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-white/20 bg-white/10 shadow-sm shrink-0">
               <img
-                src={student.imageUrl}
+                src={imgError ? DEFAULT_AVATAR : student.imageUrl}
                 alt={student.fullName}
                 className="h-full w-full object-cover"
+                onError={() => setImgError(true)}
               />
             </div>
             <div>
@@ -103,7 +114,7 @@ function StudentModal({ student, onClose }) {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500 italic">No hay proyectos asociados.</p>
+                <p className="text-sm text-gray-500 italic">No hay proyectos asociados a este perfil.</p>
               )}
             </div>
           </div>
@@ -126,10 +137,8 @@ function StudentModal({ student, onClose }) {
 /**
  * Renders the modal for a private student profile.
  *
- * @param {Object} props - Component props.
- * @param {Object|null} props.student - Currently selected student.
- * @param {Function} props.onClose - Function that closes the modal.
- * @returns {JSX.Element|null} Rendered modal or null when no student is selected.
+ * @param {Object} props Component props.
+ * @returns {JSX.Element|null} Rendered modal or null.
  */
 function PrivateProfileModal({ student, onClose }) {
   if (!student) return null;
@@ -167,7 +176,7 @@ function PrivateProfileModal({ student, onClose }) {
 
         <div className="px-6 py-7">
           <p className="text-base leading-7 text-gray-600">
-            Este egresado no tiene su perfil disponible para visualización pública en este momento.
+            Este estudiante o egresado no tiene su perfil disponible para visualización pública en este momento.
           </p>
           <div className="mt-8 flex justify-end">
             <button
@@ -187,13 +196,10 @@ function PrivateProfileModal({ student, onClose }) {
 /**
  * Renders a testimonial card with student information and video.
  *
- * @param {Object} props - Component props.
- * @param {Object} props.student - Student information to display.
- * @param {Function} props.onOpenModal - Function that opens the student modal.
+ * @param {Object} props Component props.
  * @returns {JSX.Element} Rendered testimonial card.
  */
 function StudentTestimonialCard({ student, onOpenModal }) {
-  // Applies YouTube URL normalization before rendering the iframe.
   const finalVideoUrl = getYouTubeEmbedUrl(student.videoUrlEmbed);
   const hasVideo = Boolean(finalVideoUrl && finalVideoUrl.trim().length > 0);
 
@@ -239,13 +245,10 @@ function StudentTestimonialCard({ student, onOpenModal }) {
 /**
  * Renders the students testimonials page.
  *
- * This component handles the public students list,
- * the loading state, and the profile modal flow.
- *
  * @returns {JSX.Element} Rendered students page.
  */
 export default function Estudiantes() {
-  const { students, isLoading } = usePublicStudents();
+  const { students, isLoading, error } = usePublicStudents();
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   /**
@@ -265,16 +268,6 @@ export default function Estudiantes() {
       document.body.style.overflow = "auto";
     };
   }, [selectedStudent]);
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-gray-600 font-medium">Cargando estudiantes...</p>
-      </div>
-    );
-  }
-
-  const hasStudents = students.length > 0;
 
   return (
     <div className="min-h-screen bg-white">
@@ -297,7 +290,15 @@ export default function Estudiantes() {
             </h2>
           </div>
 
-          {!hasStudents ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-gray-600 font-medium">Cargando testimonios...</p>
+            </div>
+          ) : error ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 py-12 text-center shadow-sm">
+              <p className="text-red-500 font-medium">{error}</p>
+            </div>
+          ) : students.length === 0 ? (
             <div className="rounded-lg border border-gray-200 bg-white py-12 text-center shadow-sm">
               <p className="text-gray-500 font-medium">Aún no hay perfiles de estudiantes configurados para mostrar.</p>
             </div>

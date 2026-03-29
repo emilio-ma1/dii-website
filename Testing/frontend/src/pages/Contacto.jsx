@@ -1,123 +1,16 @@
-import { useMemo, useState } from "react";
-
 /**
- * Lista de contactos del departamento.
- * Cada contacto incluye la información necesaria
- * para mostrar la tarjeta y enviar el mensaje.
+ * @file Contacto.jsx
+ * @description Public directory page for department contacts.
  */
-const CONTACT_GROUPS = [
-  {
-    id: "autoridades",
-    title: "Autoridades del Departamento",
-    description: "Máxima autoridad académica y administrativa.",
-    accentColor: "#722b4d",
-    contacts: [
-      {
-        id: "domingo-vega",
-        initials: "DV",
-        fullName: "Domingo Vega Toro",
-        role: "Director del Departamento",
-      },
-      {
-        id: "secretaria",
-        initials: "SS",
-        fullName: "Nombre Secretaria",
-        role: "Secretaria del Departamento",
-      },
-    ],
-  },
-  {
-    id: "academica",
-    title: "Área Académica",
-    description: "Coordinadores y responsables de área.",
-    accentColor: "#1f78c1",
-    contacts: [
-      {
-        id: "alejandro-alvarez",
-        initials: "AA",
-        fullName: "Alejandro Álvarez",
-        role: "Coordinador Académico ICI",
-      },
-      {
-        id: "ejemplo",
-        initials: "EE",
-        fullName: "Ejemplo",
-        role: "ICI",
-      },
-      {
-        id: "ejemplo-2",
-        initials: "EE",
-        fullName: "Ejemplo",
-        role: "ICI",
-      },
-      {
-        id: "ejemplo-4",
-        initials: "EE",
-        fullName: "Ejemplo",
-        role: "ICI",
-      },
-    ],
-  },
-  {
-    id: "desarrollo",
-    title: "Equipo de Desarrollo",
-    description: "Desarrolladores del sitio web del DII.",
-    accentColor: "#2f2f2f",
-    contacts: [
-      {
-        id: "matias-wormald",
-        initials: "MW",
-        fullName: "Matias Wormald",
-        role: "PMO",
-      },
-      {
-        id: "felipe-urqueta",
-        initials: "FU",
-        fullName: "Felipe Urqueta",
-        role: "Diseñador UX/UI",
-      },
-      {
-        id: "emilio-maturana",
-        initials: "EM",
-        fullName: "Emilio Maturana",
-        role: "Desarrollador BackEnd",
-      },
-      {
-        id: "joselyn-montaño",
-        initials: "JM",
-        fullName: "Joselyn Montaño",
-        role: "Desarrollador FrontEnd",
-      },
-    ],
-  },
-  {
-    id: "qa",
-    title: "Equipo de QA",
-    description: "Aseguramiento de calidad del sitio web.",
-    accentColor: "#7a7a7a",
-    contacts: [
-      {
-        id: "adolfo-toledo",
-        initials: "AT",
-        fullName: "Adolfo Toledo",
-        role: "PMO QA Testing/Doc",
-      },
-      {
-        id: "edinson-godoy",
-        initials: "EG",
-        fullName: "Edinson Godoy",
-        role: "QA Tester/Doc",
-      },
-    ],
-  },
-];
+import { useState } from "react";
+import { useContacts } from "../hooks/useContacts";
 
 /**
- * Renderiza el ícono decorativo utilizado en los encabezados de sección.
+ * Renders the decorative icon used in section headers.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.color - Color de acento aplicado al fondo del ícono.
- * @returns {JSX.Element} El ícono de sección renderizado.
+ * @param {Object} props - Component props.
+ * @param {string} props.color - Accent color applied to the icon background.
+ * @returns {JSX.Element} The rendered section icon.
  */
 function SectionIcon({ color }) {
   return (
@@ -126,35 +19,23 @@ function SectionIcon({ color }) {
       style={{ backgroundColor: color }}
       aria-hidden="true"
     >
-      <svg
-        className="h-4 w-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M12 6v6l4 2M4 7h16M5 21h14a1 1 0 001-1V8a1 1 0 00-1-1H5a1 1 0 00-1 1v12a1 1 0 001 1z"
-        />
+      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2M4 7h16M5 21h14a1 1 0 001-1V8a1 1 0 00-1-1H5a1 1 0 00-1 1v12a1 1 0 001 1z" />
       </svg>
     </span>
   );
 }
 
 /**
- * Renderiza una tarjeta individual de contacto dentro del directorio.
+ * Renders an individual contact card inside the directory.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {Object} props.contact - Información del contacto a mostrar.
- * @param {string} props.accentColor - Color de acento asociado al grupo del contacto.
- * @param {Function} props.onOpen - Función que abre el modal del contacto seleccionado.
- * @returns {JSX.Element} La tarjeta de contacto renderizada.
+ * @param {Object} props - Component props.
+ * @param {Object} props.contact - Contact information to display.
+ * @param {string} props.accentColor - Accent color associated with the contact group.
+ * @param {Function} props.onOpen - Function that opens the selected contact modal.
+ * @returns {JSX.Element} The rendered contact card.
  */
 function ContactCard({ contact, accentColor, onOpen }) {
-  const isDirector = contact.role.toLowerCase().includes("director");
-
   const cardContent = (
     <div className="flex items-start gap-4">
       <span
@@ -173,14 +54,6 @@ function ContactCard({ contact, accentColor, onOpen }) {
     </div>
   );
 
-  if (isDirector) {
-    return (
-      <article className="w-full rounded-md border border-black/10 bg-white p-4 text-left shadow-sm">
-        {cardContent}
-      </article>
-    );
-  }
-
   return (
     <button
       type="button"
@@ -193,23 +66,20 @@ function ContactCard({ contact, accentColor, onOpen }) {
 }
 
 /**
- * Renderiza el encabezado visual de un grupo de contactos.
+ * Renders the visual header for a contact group.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.title - Título del grupo.
- * @param {string} props.description - Descripción breve del grupo.
- * @param {string} props.accentColor - Color de acento usado en título e ícono.
- * @returns {JSX.Element} El encabezado del grupo renderizado.
+ * @param {Object} props - Component props.
+ * @param {string} props.title - Group title.
+ * @param {string} props.description - Short group description.
+ * @param {string} props.accentColor - Accent color used in the title and icon.
+ * @returns {JSX.Element} The rendered group header.
  */
 function ContactGroupHeader({ title, description, accentColor }) {
   return (
     <div className="mb-6 flex items-start gap-3">
       <SectionIcon color={accentColor} />
       <div>
-        <h2
-          className="text-2xl font-bold"
-          style={{ color: accentColor }}
-        >
+        <h2 className="text-2xl font-bold" style={{ color: accentColor }}>
           {title}
         </h2>
         <p className="text-sm text-gray-500">{description}</p>
@@ -219,11 +89,11 @@ function ContactGroupHeader({ title, description, accentColor }) {
 }
 
 /**
- * Renderiza un separador visual entre grupos del directorio.
+ * Renders a visual divider between directory groups.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {string} props.color - Color de acento del elemento central del separador.
- * @returns {JSX.Element} El separador renderizado.
+ * @param {Object} props - Component props.
+ * @param {string} props.color - Accent color of the divider center element.
+ * @returns {JSX.Element} The rendered divider.
  */
 function SectionDivider({ color }) {
   return (
@@ -233,8 +103,7 @@ function SectionDivider({ color }) {
         className="block h-4 w-4"
         style={{
           backgroundColor: color,
-          clipPath:
-            "polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0% 50%)",
+          clipPath: "polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0% 50%)",
         }}
       />
       <div className="h-px flex-1 bg-gray-300" />
@@ -243,12 +112,12 @@ function SectionDivider({ color }) {
 }
 
 /**
- * Renderiza el modal de contacto con el formulario para enviar un mensaje.
+ * Renders the contact modal with the message form.
  *
- * @param {Object} props - Propiedades del componente.
- * @param {Object|null} props.selectedContact - Contacto actualmente seleccionado.
- * @param {Function} props.onClose - Función que cierra el modal.
- * @returns {JSX.Element|null} El modal renderizado o null si no hay contacto seleccionado.
+ * @param {Object} props - Component props.
+ * @param {Object|null} props.selectedContact - Currently selected contact.
+ * @param {Function} props.onClose - Function that closes the modal.
+ * @returns {JSX.Element|null} The rendered modal or null if no contact is selected.
  */
 function ContactModal({ selectedContact, onClose }) {
   const [formData, setFormData] = useState({
@@ -259,29 +128,14 @@ function ContactModal({ selectedContact, onClose }) {
 
   if (!selectedContact) return null;
 
-  /**
-   * Actualiza el estado del formulario en función del campo editado.
-   *
-   * @param {React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>} event - Evento de cambio del campo.
-   */
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  /**
-   * Procesa el envío del formulario de contacto.
-   *
-   * @param {React.FormEvent<HTMLFormElement>} event - Evento submit del formulario.
-   */
   const handleSubmit = (event) => {
     event.preventDefault();
-
     console.log("Enviar mensaje a:", selectedContact.id, formData);
-
     alert(`Mensaje preparado para ${selectedContact.fullName}`);
     onClose();
   };
@@ -294,87 +148,32 @@ function ContactModal({ selectedContact, onClose }) {
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-sm font-bold">
               {selectedContact.initials}
             </span>
-
             <div>
-              <h3 className="text-lg font-bold leading-tight">
-                {selectedContact.fullName}
-              </h3>
+              <h3 className="text-lg font-bold leading-tight">{selectedContact.fullName}</h3>
               <p className="text-sm text-white/80">{selectedContact.role}</p>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-white/70 transition hover:text-white"
-            aria-label="Cerrar formulario"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+          <button type="button" onClick={onClose} className="text-white/70 transition hover:text-white" aria-label="Cerrar formulario">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
           <div>
-            <label className="mb-2 block text-sm font-semibold uppercase tracking-wide text-gray-700">
-              Tu nombre
-            </label>
-            <input
-              type="text"
-              name="senderName"
-              value={formData.senderName}
-              onChange={handleChange}
-              placeholder="Nombre completo"
-              className="w-full rounded-md border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-              required
-            />
+            <label className="mb-2 block text-sm font-semibold uppercase tracking-wide text-gray-700">Tu nombre</label>
+            <input type="text" name="senderName" value={formData.senderName} onChange={handleChange} placeholder="Nombre completo" className="w-full rounded-md border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20" required />
           </div>
-
           <div>
-            <label className="mb-2 block text-sm font-semibold uppercase tracking-wide text-gray-700">
-              Tu correo electrónico
-            </label>
-            <input
-              type="email"
-              name="senderEmail"
-              value={formData.senderEmail}
-              onChange={handleChange}
-              placeholder="correo@ejemplo.com"
-              className="w-full rounded-md border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-              required
-            />
+            <label className="mb-2 block text-sm font-semibold uppercase tracking-wide text-gray-700">Tu correo electrónico</label>
+            <input type="email" name="senderEmail" value={formData.senderEmail} onChange={handleChange} placeholder="correo@ejemplo.com" className="w-full rounded-md border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20" required />
           </div>
-
           <div>
-            <label className="mb-2 block text-sm font-semibold uppercase tracking-wide text-gray-700">
-              Mensaje
-            </label>
-            <textarea
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              placeholder={`Escribe tu mensaje para ${selectedContact.fullName}...`}
-              rows={5}
-              className="w-full resize-none rounded-md border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20"
-              required
-            />
+            <label className="mb-2 block text-sm font-semibold uppercase tracking-wide text-gray-700">Mensaje</label>
+            <textarea name="message" value={formData.message} onChange={handleChange} placeholder={`Escribe tu mensaje para ${selectedContact.fullName}...`} rows={5} className="w-full resize-none rounded-md border border-gray-300 px-4 py-3 outline-none transition focus:border-[#722b4d] focus:ring-2 focus:ring-[#722b4d]/20" required />
           </div>
-
-          <button
-            type="submit"
-            className="w-full rounded-md bg-[#722b4d] px-4 py-3 font-semibold text-white transition hover:opacity-95"
-          >
+          <button type="submit" className="w-full rounded-md bg-[#722b4d] px-4 py-3 font-semibold text-white transition hover:opacity-95">
             Enviar mensaje
           </button>
         </form>
@@ -384,23 +183,18 @@ function ContactModal({ selectedContact, onClose }) {
 }
 
 /**
- * Renderiza el bloque hero superior de la página de contacto.
+ * Renders the top hero section of the contact page.
  *
- * @returns {JSX.Element} La sección hero renderizada.
+ * @returns {JSX.Element} The rendered hero section.
  */
 function ContactHero() {
   return (
     <section className="bg-[#722b4d] text-white">
       <div className="mx-auto max-w-7xl px-6 pt-28 pb-24 lg:pt-32 lg:pb-28">
         <div className="max-w-2xl">
-          <span className="inline-block rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
-            Directorio
-          </span>
-
           <h1 className="mt-4 text-4xl font-extrabold sm:text-5xl lg:text-6xl">
             Contacto
           </h1>
-
           <p className="mt-6 text-base leading-8 text-white/90 sm:text-lg">
             Encuentra al equipo del Departamento de Ingeniería Industrial.
             Haz clic en cualquier persona para enviar un mensaje directo.
@@ -412,30 +206,17 @@ function ContactHero() {
 }
 
 /**
- * Renderiza la página de contacto con los grupos del directorio
- * y el modal de envío de mensajes.
+ * Renders the contact page with directory groups
+ * and the message submission modal.
  *
- * @returns {JSX.Element} La página de contacto renderizada.
+ * @returns {JSX.Element} The rendered contact page.
  */
 export default function Contacto() {
   const [selectedContact, setSelectedContact] = useState(null);
 
-  /**
-   * Se memoriza la referencia de los grupos para mantener una estructura estable
-   * durante los renders del componente.
-   */
-  const allGroups = useMemo(() => CONTACT_GROUPS, []);
+  const { contactGroups, isLoading, error } = useContacts();
 
-  /**
-   * Abre el modal con la información del contacto seleccionado.
-   *
-   * @param {Object} contact - Contacto seleccionado por el usuario.
-   */
   const openModal = (contact) => setSelectedContact(contact);
-
-    /**
-   * Cierra el modal y limpia el contacto seleccionado.
-   */
   const closeModal = () => setSelectedContact(null);
 
   return (
@@ -443,44 +224,57 @@ export default function Contacto() {
       <ContactHero />
 
       <section
-        className="bg-[#f7f5f6] py-20"
+        className="bg-[#f7f5f6] py-20 min-h-[50vh]"
         style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, rgba(114,43,77,0.08) 1px, transparent 0)",
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(114,43,77,0.08) 1px, transparent 0)",
           backgroundSize: "24px 24px",
         }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {allGroups.map((group, index) => (
-            <div key={group.id}>
-              <ContactGroupHeader
-                title={group.title}
-                description={group.description}
-                accentColor={group.accentColor}
-              />
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-                {group.contacts.map((contact) => (
-                  <ContactCard
-                    key={contact.id}
-                    contact={contact}
-                    accentColor={group.accentColor}
-                    onOpen={openModal}
-                  />
-                ))}
-              </div>
-
-              {index < allGroups.length - 1 && (
-                <SectionDivider color={group.accentColor} />
-              )}
+          
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-lg font-medium text-gray-500">Cargando directorio...</p>
             </div>
-          ))}
+          ) : error ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-lg font-medium text-red-500">{error}</p>
+            </div>
+          ) : contactGroups.length === 0 || contactGroups[0].contacts.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-lg font-medium text-gray-500">No hay autoridades registradas en el directorio.</p>
+            </div>
+          ) : (
+            contactGroups.map((group, index) => (
+              <div key={group.id}>
+                <ContactGroupHeader
+                  title={group.title}
+                  description={group.description}
+                  accentColor={group.accentColor}
+                />
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+                  {group.contacts.map((contact) => (
+                    <ContactCard
+                      key={contact.id}
+                      contact={contact}
+                      accentColor={group.accentColor}
+                      onOpen={openModal}
+                    />
+                  ))}
+                </div>
+
+                {index < contactGroups.length - 1 && (
+                  <SectionDivider color={group.accentColor} />
+                )}
+              </div>
+            ))
+          )}
+
         </div>
       </section>
-      <ContactModal
-        selectedContact={selectedContact}
-        onClose={closeModal}
-      />
+      
+      <ContactModal selectedContact={selectedContact} onClose={closeModal} />
     </div>
   );
 }

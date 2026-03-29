@@ -34,6 +34,16 @@ const formatAuthorsText = (authors) => {
   }
   return authors.map((author) => author.name || author.full_name).join(", ");
 };
+/**
+ * Formats an ISO date string (YYYY-MM-DDTHH:mm:ss.sssZ) into DD-MM-YYYY.
+ * @param {string} dateString The raw date string from the database.
+ * @returns {string} The formatted date (e.g., 26-03-2026).
+ */
+const formatDate = (dateString) => {
+  if (!dateString) return "Fecha no especificada";
+  const [year, month, day] = dateString.split('T')[0].split('-');
+  return `${day}-${month}-${year}`;
+};
 
 /**
  * Renders a visual card for a research project.
@@ -78,7 +88,7 @@ export function ProjectCard({ project, onEdit, onDelete, permissions }) {
             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeStyles(project.status)}`}>
               {STATUS_LABELS[project.status] || project.status}
             </span>
-            <span className="text-sm font-medium text-gray-500">Año {project.year}</span>
+            <span className="text-sm font-medium text-gray-500">Fecha: {formatDate(project.year)}</span>
           </div>
 
           <p className="mt-3 text-sm font-medium text-gray-500">

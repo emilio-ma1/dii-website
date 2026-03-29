@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 
 /**
- * Componente reutilizable para mostrar imágenes dentro del Footer.
+ * Reusable component to display images inside the Footer.
  *
- * @param {string} src - Ruta de la imagen.
- * @param {string} alt - Texto alternativo para accesibilidad.
- * @param {string} heightClass - Clase Tailwind para controlar la altura de la imagen.
+ * @param {string} src - Image source path.
+ * @param {string} alt - Alternative text for accessibility.
+ * @param {string} heightClass - Tailwind class to control image height.
  */
 
 function FooterImage({ src, alt, heightClass }) {
@@ -14,27 +14,26 @@ function FooterImage({ src, alt, heightClass }) {
       src={src}
       alt={alt}
       className={`${heightClass} w-auto object-contain flex-shrink-0`}
-      loading="lazy" // optimiza carga de imágenes
+      loading="lazy" // optimizes image loading
     />
   );
 }
 
 /**
- * Footer principal del sitio web.
+ * Main Footer component of the website.
  *
- * Contiene:
- * - Logos institucionales
- * - Información de contacto
- * - Link de acceso a login
- * - Créditos de desarrollo
+ * Includes:
+ * - Institutional logos
+ * - Contact information
+ * - Login access link
+ * - Development credits
  */
 
 export default function Footer() {
-  // obtiene el año actual automáticamente
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 text-white py-12">
+    <footer className="bg-[#002D72] text-white pt-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div className="flex justify-center md:justify-start">
@@ -68,7 +67,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-700 pt-8">
+        <div className="border-t border-gray-700 pt-8 pb-6">
           <div className="text-center text-xs text-gray-400">
             <Link
               to="/login"
@@ -76,17 +75,29 @@ export default function Footer() {
             >
               Iniciar Sesión
             </Link>
+          </div>
+        </div>
+      </div>
+      
+      <div className="w-full bg-[#020617] py-5 text-xs text-gray-300 border-t-2 border-[#E30613]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-4">
+          <div className="flex flex-col text-center lg:text-left leading-tight">
+            <span>© {currentYear} Universidad de La Serena</span>
+            <span className="mt-1">
+              Sitio del Departamento de Ingeniería Industrial
+            </span>
+          </div>
+          
+          <div className="text-center lg:whitespace-nowrap">
+            <span className="block lg:inline">
+              Créditos: Matias Wormald | Emilio Maturana | Felipe Urqueta | Joselyn Montaño
+            </span>
+          </div>
 
-            <p className="mt-4">© {currentYear} Derechos reservados</p>
-            <div className="mt-2">
-              <p>Desarrollado por:</p>
-              <ul className="mt-1 space-y-0.5">
-                <li>Matias Wormald</li>
-                <li>Emilio Maturana</li>
-                <li>Felipe Urqueta</li>
-                <li>Joselyn Montaño</li>
-              </ul>
-            </div>
+          <div className="text-center lg:text-right lg:whitespace-nowrap">
+            <span className="block lg:inline">
+              QA: Adolfo Toledo | Edinson Godoy
+            </span>
           </div>
         </div>
       </div>
