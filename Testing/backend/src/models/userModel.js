@@ -293,6 +293,42 @@ const UserModel = {
       console.error(`[ERROR] Failed to clear login code for user ${userId}:`, error);
       throw error;
     }
+  },
+  getByResetToken: async (token) => {
+    try {
+      const query = 'SELECT * FROM users WHERE reset_token = $1;';
+      const { rows } = await pool.query(query, [token]);
+      return rows.length > 0 ? rows[0] : null;
+    } catch (error) {
+      console.error(`[ERROR] Failed to fetch user by reset token:`, error);
+      throw error;
+    }
+  },
+
+  setResetToken: async (userId, token, expiresAt) => {
+    try {
+      const query = `UPDATE users SET reset_token = $1, reset_token_expires_at = $2 WHERE id = $3;`;
+      await pool.query(query, [token, expiresAt, userId]);
+      return true;
+    } catch (error) {
+      console.error(`[ERROR] Failed to set reset token for user ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  updatePasswordAndClearToken: async (userId, newPasswordHash) => {
+    try {
+      const query = `
+        UPDATE users 
+        SET password_hash = $1, reset_token = NULL, reset_token_expires_at = NULL 
+        WHERE id = $2;
+      `;
+      await pool.query(query, [newPasswordHash, userId]);
+      return true;
+    } catch (error) {
+      console.error(`[ERROR] Failed to update password for user ${userId}:`, error);
+      throw error;
+    }
   }
 };
 
