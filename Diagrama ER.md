@@ -8,87 +8,117 @@ El siguiente diagrama ilustra las entidades y sus relaciones. Destaca la gestió
 
 ```mermaid
 erDiagram
-    %% ENTIDADES PRINCIPALES
-    USERS {
-        int id PK
-        string full_name
-        string email UK
-        string password_hash
-        string role "ENUM: admin, egresado"
-        string profile_picture_url "Upload de imagen (RF-04)"
+    users {
+        SERIAL id PK
+        VARCHAR(100) full_name
+        VARCHAR(100) email
+        VARCHAR(255) password_hash
+        VARCHAR(20) role
+        VARCHAR(6) login_code
+        TIMESTAMP login_code_expires_at
+        VARCHAR(255) reset_token
+        TIMESTAMP reset_token_expires_at
+        TIMESTAMP created_at
     }
 
-    ALUMNI_PROFILES {
-        int user_id PK, FK
-        string phone_contact
-        string portfolio_url
-        string studies_summary
-        boolean contact_authorized "Permite ser contactado (RF-12)"
+    alumni_profiles {
+        SERIAL id PK
+        INTEGER user_id FK "UNIQUE"
+        VARCHAR(100) degree
+        VARCHAR(100) specialty
+        VARCHAR(255) video_url_embed
+        BYTEA image_data
+        VARCHAR(50) image_mimetype
+        BOOLEAN is_profile_public
     }
 
-    PROFESSORS {
-        int id PK
-        string full_name
-        string degree
-        string bio
-        string email_public
-        string profile_picture_url "Upload de imagen (RF-04)"
-        string portfolio_url "Portafolio/Estudios (RF-13)"
-        boolean is_active
+    professors {
+        SERIAL id PK
+        INTEGER user_id FK "UNIQUE"
+        VARCHAR(100) degree
+        VARCHAR(100) area
+        BYTEA image_data
+        VARCHAR(50) image_mimetype
     }
 
-    NEWS {
-        int id PK
-        string title
-        string slug UK
-        string content
-        string image_url "Upload de imagen (RF-04)"
-        boolean is_active "Sigue vigente (RF-10)"
-        datetime published_at
-        int created_by FK
+    news {
+        SERIAL id PK
+        VARCHAR(200) title
+        VARCHAR(255) slug
+        TEXT content
+        BYTEA image_data
+        VARCHAR(50) image_mimetype
+        BOOLEAN is_active
+        TIMESTAMP published_at
+        INTEGER created_by FK
     }
 
-    CATEGORIES {
-        int id PK
-        string name "Ej: Operaciones, Logística"
-        string description
+    categories {
+        SERIAL id PK
+        VARCHAR(100) name
+        TEXT description
     }
 
-    PROJECTS {
-        int id PK
-        string title
-        string abstract
-        string pdf_url
-        string image_url "Upload de imagen (RF-04)"
-        string status "ENUM: en proceso, finalizado (RF-08)"
-        int category_id FK "Relación con CATEGORIES"
-        int year
+    projects {
+        SERIAL id PK
+        VARCHAR(255) title
+        TEXT abstract
+        DATE year
+        VARCHAR(20) status
+        INTEGER category_id FK
+        BYTEA image_data
+        VARCHAR(50) image_mimetype
+        BYTEA pdf_data
+        VARCHAR(50) pdf_mimetype
     }
 
-    EQUIPMENT {
-        int id PK
-        string name
-        string category
-        text description
-        string image_url "Upload de imagen"
+    equipment {
+        SERIAL id PK
+        VARCHAR(100) name
+        VARCHAR(100) category
+        TEXT description
+        BYTEA image_data
+        VARCHAR(50) image_mimetype
     }
 
-    %% TABLAS INTERMEDIAS (PIVOT)
-    PROJECT_PROFESSORS {
-        int project_id PK, FK
-        int professor_id PK, FK
+    contacts {
+        SERIAL id PK
+        VARCHAR(100) name
+        VARCHAR(100) email
+        VARCHAR(150) subject
+        TEXT message
+        BOOLEAN is_read
+        TIMESTAMP created_at
     }
 
-    PROJECT_ALUMNI {
-        int project_id PK, FK
-        int user_id PK, FK
+    project_authors {
+        INTEGER project_id PK, FK
+        INTEGER user_id PK, FK
     }
 
-    %% RELACIONES
-    USERS ||--o| ALUMNI_PROFILES : "tiene detalles (solo egresados)"
-    USERS ||--o{ NEWS : "publica (solo admin)"
-    CATEGORIES ||--o{ PROJECTS : "clasifica"
-    PROJECTS ||--|{ PROJECT_PROFESSORS : "tiene"
-    PROFESSORS ||--|{ PROJECT_PROFESSORS : "participa"
-    PROJECTS ||--o{ PROJECT_ALUMNI : "tiene"
-    USERS ||--o{ PROJECT_ALUMNI : "participa (solo egresados)"
+    audit_logs {
+        SERIAL id PK
+        INTEGER user_id FK
+        VARCHAR(50) action
+        VARCHAR(50) entity_type
+        INTEGER entity_id
+        JSONB details
+        TIMESTAMP created_at
+    }
+
+    %% Relaciones (Basadas en las llaves foraneas y restricciones UNIQUE)
+    
+    %% Relaciones 1 a 1 (Un usuario puede tener cero o un perfil de egresado/profesor)
+    users ||--o| alumni_profiles : "has_profile (CASCADE)"
+    users ||--o| professors : "has_profile (CASCADE)"
+
+    %% Relaciones 1 a Muchos (Un usuario puede crear muchas noticias o generar muchos logs)
+    users ||--o{ news : "publishes"
+    users ||--o{ audit_logs : "triggers (SET NULL)"
+
+    %% Relaciones 1 a Muchos (Una categoria tiene muchos proyectos)
+    categories ||--o{ projects : "contains (RESTRICT)"
+
+    %% Relacion Muchos a Muchos (Proyectos y Autores)
+    projects ||--o{ project_authors : "has_author (CASCADE)"
+    users ||--o{ project_authors : "is_author (CASCADE)"
