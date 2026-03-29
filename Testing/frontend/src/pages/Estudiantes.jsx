@@ -9,7 +9,7 @@
 import { useEffect, useState } from "react";
 import { usePublicStudents } from "../hooks/usePublicStudents";
 
-const DEFAULT_AVATAR = "/images/foto-estudiante.png"; // Fallback image
+const DEFAULT_AVATAR = "../images/foto-docente.png"; // Fallback image
 
 /**
  * Converts a YouTube URL into embed format.

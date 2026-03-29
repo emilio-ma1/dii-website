@@ -1,6 +1,11 @@
 // src/index.js
 require('dotenv').config()
 
+if (!process.env.JWT_SECRET) {
+  console.error('[FATAL] Missing JWT_SECRET environment variable')
+  process.exit(1)
+}
+
 const app = require('./app')
 
 const PORT = process.env.PORT || 3000

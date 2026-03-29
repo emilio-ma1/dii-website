@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 
 // Controllers and Middlewares
-const { login, register } = require('../controllers/authController');
+const { login, register, verify2FA } = require('../controllers/authController');
 const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 
 /**
@@ -18,6 +18,7 @@ const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
  * @access Public
  */
 router.post('/login', login);
+router.post('/verify-2fa', verify2FA);
 
 /**
  * @route POST /api/auth/register

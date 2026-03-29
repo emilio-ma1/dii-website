@@ -1,3 +1,12 @@
+/**
+ * @file authContext.js
+ * @description
+ * Global authentication state manager.
+ * * Responsibilities:
+ * - Persists and manages the final user session.
+ * - Monitors JWT expiration and automatically logs out the user for security.
+ * - Exposes setSession to allow components to orchestrate multi-step logins (e.g., 2FA).
+ */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
@@ -14,7 +23,6 @@ export function AuthProvider({ children }) {
 
   /**
    * Clears the current user session, removes tokens, and redirects to login.
-   * La movemos arriba para que el useEffect pueda usarla.
    */
   const logout = () => {
     localStorage.removeItem("user");
@@ -24,7 +32,18 @@ export function AuthProvider({ children }) {
     window.location.href = "/login"; // Redirección limpia
   };
 
-  //EFECTO DE VIGILANCIA: Lee el token y programa el cierre de sesión
+  /**
+   * Saves the final authenticated session into the global state and storage.
+   * Called by the Login component only AFTER the 2FA process is successfully completed.
+   */
+  const setSession = (newToken, userData) => {
+    localStorage.setItem("token", newToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+    setToken(newToken);
+    setUser(userData);
+  };
+
+//Lee el token y programa el cierre de sesión
   useEffect(() => {
     if (!token) {
       setLoading(false);
@@ -32,21 +51,21 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      //Rompemos el candado del JWT para leer sus datos (sin alterarlo)
+      // Rompemos el candado del JWT para leer sus datos (sin alterarlo)
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const payload = JSON.parse(window.atob(base64));
 
-      //Calculamos el tiempo (JWT guarda la fecha en segundos, JS usa milisegundos)
+      // Calculamos el tiempo (JWT guarda la fecha en segundos, JS usa milisegundos)
       const expirationTime = payload.exp * 1000;
       const currentTime = Date.now();
       const timeUntilExpiry = expirationTime - currentTime;
 
-      //i el token ya venció, cerramos sesión inmediatamente por seguridad
+      // Si el token ya venció, cerramos sesión inmediatamente por seguridad
       if (timeUntilExpiry <= 0) {
         logout();
       } else {
-        //Si el token es válido, restauramos al usuario y ponemos la alarma
+        // Si el token es válido, restauramos al usuario y ponemos la alarma
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           setUser(JSON.parse(storedUser));
@@ -68,46 +87,6 @@ export function AuthProvider({ children }) {
       logout(); // Si el token está corrupto o alterado, lo expulsamos por seguridad
     }
   }, [token]);
-
-  /**
-   * Authenticates a user, stores the session token, and updates the context state.
-   */
-  const login = async ({ email, password }) => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { 
-          ok: false, 
-          message: data.error || data.message || "Invalid credentials provided." 
-        };
-      }
-
-      const { token: newToken, user: userData } = data;
-
-      // Guardamos en memoria local
-      localStorage.setItem("token", newToken);
-      localStorage.setItem("user", JSON.stringify(userData));
-      
-      // Actualizamos los estados (esto dispara el useEffect de vigilancia automáticamente)
-      setUser(userData);
-      setToken(newToken);
-      
-      return { ok: true };
-
-    } catch (error) {
-      console.error("[ERROR] Network failure during login attempt:", error);
-      return { ok: false, message: "Network error: Unable to reach the authentication service." };
-    }
-  };
 
   /**
    * Registers a new user in the system (Admin only access).
@@ -141,11 +120,11 @@ export function AuthProvider({ children }) {
       user,
       loading,
       isAuthenticated: Boolean(user),
-      login,
+      setSession,
       logout,
       register,
     }),
-    [user, loading]
+    [user, loading, token]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
