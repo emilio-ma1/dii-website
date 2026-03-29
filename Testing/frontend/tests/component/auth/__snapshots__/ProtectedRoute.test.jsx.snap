@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProtectedRoute > 12 - Snapshot del estado autenticado 1`] = `
+<div>
+  <div>
+    Contenido protegido
+  </div>
+</div>
+`;
