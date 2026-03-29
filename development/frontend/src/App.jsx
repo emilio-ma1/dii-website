@@ -32,6 +32,7 @@ import VinculacionConElMedio from "./pages/VinculacionconelMedio.jsx";
 import VinculacionDetalle from "./pages/VinculacionDetalle.jsx";
 import InvestigacionDetalle from "./pages/InvestigacionDetalle.jsx";
 import RecuperarPassword from "./pages/RecuperarContrasena.jsx";
+import ResetPassword from "./pages/ReiniciarContraseña.jsx";
 import { AuthProvider } from "./auth/authContext.jsx";
 
 
@@ -104,6 +105,9 @@ export default function App() {
         <Route path="vinculacion-con-el-medio-detalle/:id" element={<VinculacionDetalle />} />
         <Route path="investigacion/:id" element={<InvestigacionDetalle />} />
         <Route path="/recuperar-password" element={<RecuperarPassword />} />
+        {/* Flujo de recuperación de contraseña */}
+        <Route path="/recuperar-password" element={<RecuperarPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
       </Route>
 
         {/* rutas protegidas del panel administrativo */}

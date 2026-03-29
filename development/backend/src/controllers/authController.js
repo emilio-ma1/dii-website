@@ -184,4 +184,80 @@ const register = async (req, res) => {
   }
 };
 
-module.exports = { login, register, verify2FA };
+/**
+ * Initiates the password recovery process.
+ * Prevents email enumeration by returning 200 OK even if the email doesn't exist.
+ * @param {object} req - Express HTTP request containing the user's email.
+ * @param {object} res - Express HTTP response.
+ */
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'El correo institucional es requerido.' });
+  }
+
+  try {
+    const user = await UserModel.getByEmail(email);
+
+    if (!user) {
+      console.warn(`[SECURITY] Password reset requested for non-existent email: ${email}`);
+      return res.status(200).json({ message: 'Si el correo existe, recibirás instrucciones.' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60000);
+
+    await UserModel.setResetToken(user.id, resetToken, expiresAt);
+    await emailService.sendPasswordResetEmail(user.email, resetToken);
+    await AuditLogModel.logAction(user.id, 'PASSWORD_RESET_REQUESTED', 'users', user.id, { ip: req.ip });
+
+    return res.status(200).json({ message: 'Si el correo existe, recibirás instrucciones.' });
+
+  } catch (error) {
+    console.error('[ERROR] Forgot password process failed:', error);
+    return res.status(500).json({ message: 'Error interno al procesar la solicitud.' });
+  }
+};
+
+/**
+ * Resets the user's password using a valid reset token.
+ * Token is strictly single-use and invalidated immediately.
+ * @param {object} req - Express HTTP request (requires token param and newPassword in body).
+ * @param {object} res - Express HTTP response.
+ */
+const resetPassword = async (req, res) => {
+  const { token } = req.params; 
+  const { newPassword } = req.body; 
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ message: 'Token y nueva contraseña son obligatorios.' });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres.' });
+  }
+
+  try {
+    const user = await UserModel.getByResetToken(token);
+    const now = new Date();
+
+    if (!user || now > new Date(user.reset_token_expires_at)) {
+      return res.status(400).json({ message: 'El enlace de recuperación es inválido o ha expirado.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    await UserModel.updatePasswordAndClearToken(user.id, passwordHash);
+    await AuditLogModel.logAction(user.id, 'PASSWORD_RESET_COMPLETED', 'users', user.id, { ip: req.ip });
+
+    return res.status(200).json({ message: 'Tu contraseña ha sido actualizada exitosamente.' });
+
+  } catch (error) {
+    console.error('[ERROR] Reset password process failed:', error);
+    return res.status(500).json({ message: 'Error interno al procesar el cambio de contraseña.' });
+  }
+};
+
+module.exports = { login, register, verify2FA, forgotPassword, resetPassword };

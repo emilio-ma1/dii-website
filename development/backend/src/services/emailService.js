@@ -58,6 +58,44 @@ const send2FACode = async (toEmail, code) => {
   }
 };
 
+/**
+ * Sends a password reset link to the user.
+ *
+ * @param {string} toEmail - The recipient's email address.
+ * @param {string} resetToken - The unique security token.
+ */
+const sendPasswordResetEmail = async (toEmail, resetToken) => {
+  try {
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    const mailOptions = {
+      from: `"Departamento de Ingeniería Industrial" <${process.env.SMTP_USER}>`,
+      to: toEmail,
+      subject: 'Recuperación de Contraseña - Sistema Web DII',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+          <h2 style="color: #722b4d; text-align: center;">Recuperación de Contraseña</h2>
+          <p style="font-size: 16px; color: #333;">Hola,</p>
+          <p style="font-size: 16px; color: #333;">Hemos recibido una solicitud para restablecer tu contraseña. Haz clic en el siguiente botón para crear una nueva:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #722b4d; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Restablecer Contraseña</a>
+          </div>
+          <p style="font-size: 14px; color: #666; text-align: center;">Este enlace expirará en 1 hora.</p>
+          <p style="font-size: 12px; color: #999; text-align: center; margin-top: 20px;">Si no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`[INFO] Password reset email sent successfully to ${toEmail}.`);
+    return true;
+  } catch (error) {
+    console.error(`[ERROR] Failed to send password reset email to ${toEmail}:`, error);
+    throw new Error('Error al enviar el correo de recuperación.');
+  }
+};
+
 module.exports = {
   send2FACode,
+  sendPasswordResetEmail,
 };

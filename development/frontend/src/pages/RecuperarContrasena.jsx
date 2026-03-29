@@ -1,29 +1,38 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-/**
- * Password recovery page.
- *
- * Allows the user to submit their institutional email
- * in order to receive password reset instructions.
- *
- * @returns {JSX.Element} Rendered password recovery page.
- */
 export default function RecuperarPassword() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    /**
-   * Handles password recovery form submission.
-   *
-   * Marks the request as submitted and switches the UI
-   * to the confirmation state.
-   *
-   * @param {React.FormEvent<HTMLFormElement>} event - Form submit event.
-   */
-  const handleSubmit = (event) => {
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsSubmitted(true);
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Ocurrió un error al procesar la solicitud.");
+      }
+
+      setIsSubmitted(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,48 +50,57 @@ export default function RecuperarPassword() {
           Recuperar contraseña
         </h1>
 
-        <p className="mt-3 text-center text-sm leading-6 text-gray-600">
-          Ingresa tu correo electrónico institucional y te enviaremos
-          instrucciones para restablecer tu contraseña.
-        </p>
-
         {!isSubmitted ? (
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">
-                Correo electrónico
-              </label>
+          <>
+            <p className="mt-3 text-center text-sm leading-6 text-gray-600">
+              Ingresa tu correo electrónico institucional y te enviaremos
+              instrucciones para restablecer tu contraseña.
+            </p>
 
-              <input
-                type="email"
-                className="w-full rounded-xl border px-4 py-2 outline-none focus:ring-2 focus:ring-[#722b4d]/30"
-                placeholder="nombre@userena.cl"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-            </div>
+            {error && (
+              <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200 text-center">
+                {error}
+              </div>
+            )}
 
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-[#722b4d] py-2 font-semibold text-white transition hover:opacity-90"
-            >
-              Enviar
-            </button>
+            <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Correo electrónico
+                </label>
+                <input
+                  type="email"
+                  className="w-full rounded-xl border px-4 py-2 outline-none focus:ring-2 focus:ring-[#722b4d]/30 disabled:opacity-50"
+                  placeholder="nombre@userena.cl"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
 
-            <div className="text-center">
-              <Link
-                to="/login"
-                className="text-sm font-medium text-[#722b4d] hover:underline"
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full rounded-xl bg-[#722b4d] py-2 font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
               >
-                Volver al inicio de sesión
-              </Link>
-            </div>
-          </form>
+                {isLoading ? "Enviando..." : "Enviar instrucciones"}
+              </button>
+
+              <div className="text-center">
+                <Link
+                  to="/login"
+                  className="text-sm font-medium text-[#722b4d] hover:underline"
+                >
+                  Volver al inicio de sesión
+                </Link>
+              </div>
+            </form>
+          </>
         ) : (
           <div className="mt-8 space-y-6">
-            <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center text-sm leading-6 text-green-700">
-              Recibirás instrucciones para restablecer tu contraseña.
+            <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center text-sm leading-6 text-green-700 font-medium">
+              Si el correo institucional existe en nuestros registros, recibirás instrucciones para restablecer tu contraseña.
             </div>
 
             <div className="text-center">
