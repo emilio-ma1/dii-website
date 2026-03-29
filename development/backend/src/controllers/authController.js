@@ -13,6 +13,7 @@ const crypto = require('crypto');
 const UserModel = require('../models/userModel');
 const AuditLogModel = require('../models/auditLogModel'); 
 const emailService = require('../services/emailService');
+const pool = require('../config/db');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_TEMP_SECRET = process.env.JWT_TEMP_SECRET;
