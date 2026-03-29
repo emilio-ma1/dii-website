@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProtectedRoutes > 13 - Snapshot: admin autorizado 1`] = `
+<div>
+  <div
+    data-testid="protected-content"
+  >
+    Contenido protegido
+  </div>
+</div>
+`;
